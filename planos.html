@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planos de Assinatura – Santana.com</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f4f4f4;color:#0a0a0a}
+header{background:#0a0a0a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+header a.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none}
+header a.logo span{color:#00cc66}
+header a.voltar{color:#ccc;text-decoration:none;font-size:13px}
+.hero{text-align:center;padding:50px 20px 30px}
+.hero h1{font-family:'Playfair Display',serif;font-size:32px;margin-bottom:10px}
+.hero p{color:#555;font-size:15px;max-width:540px;margin:0 auto}
+.promo-banner{max-width:640px;margin:24px auto 0;background:#00cc66;color:#0a0a0a;text-align:center;padding:10px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:none}
+.planos{max-width:1000px;margin:30px auto 70px;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.plano{background:#fff;padding:30px 26px;box-shadow:0 4px 20px rgba(0,0,0,.06);border-top:4px solid #ddd;position:relative;display:flex;flex-direction:column}
+.plano.destaque{border-top-color:#00cc66;transform:scale(1.03);box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.selo{position:absolute;top:-12px;right:20px;background:#00cc66;color:#0a0a0a;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 12px;letter-spacing:.5px}
+.plano h2{font-family:'Playfair Display',serif;font-size:19px;margin-bottom:6px}
+.plano .periodo{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:18px}
+.plano .preco{font-size:34px;font-weight:900;margin-bottom:2px}
+.plano .preco span{font-size:14px;font-weight:600;color:#777}
+.plano .preco-original{font-size:13px;color:#999;text-decoration:line-through;margin-bottom:14px}
+.plano ul{list-style:none;margin:18px 0;flex-grow:1}
+.plano li{font-size:13px;padding:7px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:8px}
+.plano li:before{content:"✓";color:#00cc66;font-weight:700}
+.btn-assinar{margin-top:10px;background:#0a0a0a;color:#fff;border:none;padding:13px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.btn-assinar:hover{background:#00cc66;color:#0a0a0a}
+.plano.destaque .btn-assinar{background:#00cc66;color:#0a0a0a}
+.faixa-gratis{max-width:700px;margin:0 auto 50px;text-align:center;padding:0 20px}
+.faixa-gratis p{font-size:13px;color:#777}
+.faixa-gratis a{color:#00cc66;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">Santana<span>.com</span></a>
+  <a href="index.html" class="voltar">← Voltar ao site</a>
+</header>
+
+<div class="hero">
+  <h1>Assine o Santana.com</h1>
+  <p>Jornalismo local de qualidade, direto de Amargosa e região. Escolha o plano que combina com você.</p>
+</div>
+
+<div class="promo-banner" id="bannerPromo"></div>
+
+<div class="planos" id="listaPlanos"></div>
+
+<div class="faixa-gratis">
+  <p>Algumas notícias são gratuitas para todos os leitores. <a href="cadastro.html">Crie sua conta grátis</a> para acompanhar.</p>
+</div>
+
+<script type="module">
+import { auth, db } from './js/firebase-config.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// Configuração dos planos - edite aqui para mudar preços e promoções
+const PLANOS = [
+  {
+    id: 'mensal',
+    nome: 'Mensal',
+    periodo: 'Cobrança mensal',
+    preco: 19.90,
+    precoOriginal: null,
+    destaque: false,
+    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Cancele quando quiser']
+  },
+  {
+    id: 'trimestral',
+    nome: 'Trimestral',
+    periodo: 'Cobrança a cada 3 meses',
+    preco: 49.90,
+    precoOriginal: 59.70,
+    destaque: true,
+    selo: 'Mais popular',
+    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Conteúdo exclusivo de colunistas', 'Economia de 16%']
+  },
+  {
+    id: 'anual',
+    nome: 'Anual',
+    periodo: 'Cobrança anual',
+    preco: 159.90,
+    precoOriginal: 238.80,
+    destaque: false,
+    selo: 'Melhor valor',
+    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Conteúdo exclusivo de colunistas', 'Economia de 33%', 'Newsletter premium']
+  }
+];
+
+const PROMOCAO_ATIVA = null; // exemplo: "Black Friday: 30% OFF em todos os planos até dia 30!"
+if (PROMOCAO_ATIVA) {
+  const banner = document.getElementById('bannerPromo');
+  banner.textContent = PROMOCAO_ATIVA;
+  banner.style.display = 'block';
+}
+
+function formatarPreco(v) {
+  return v.toFixed(2).replace('.', ',');
+}
+
+const container = document.getElementById('listaPlanos');
+PLANOS.forEach(plano => {
+  const div = document.createElement('div');
+  div.className = 'plano' + (plano.destaque ? ' destaque' : '');
+  div.innerHTML = `
+    ${plano.selo ? `<div class="selo">${plano.selo}</div>` : ''}
+    <h2>${plano.nome}</h2>
+    <div class="periodo">${plano.periodo}</div>
+    ${plano.precoOriginal ? `<div class="preco-original">R$ ${formatarPreco(plano.precoOriginal)}</div>` : ''}
+    <div class="preco">R$ ${formatarPreco(plano.preco)} <span>/${plano.id === 'mensal' ? 'mês' : plano.id === 'trimestral' ? 'trimestre' : 'ano'}</span></div>
+    <ul>${plano.beneficios.map(b => `<li>${b}</li>`).join('')}</ul>
+    <a href="#" class="btn-assinar" data-plano="${plano.id}">Assinar ${plano.nome}</a>
+  `;
+  container.appendChild(div);
+});
+
+let usuarioAtual = null;
+onAuthStateChanged(auth, (user) => { usuarioAtual = user; });
+
+container.addEventListener('click', async (e) => {
+  if (!e.target.classList.contains('btn-assinar')) return;
+  e.preventDefault();
+  const planoId = e.target.dataset.plano;
+  const plano = PLANOS.find(p => p.id === planoId);
+
+  if (!usuarioAtual) {
+    alert('Você precisa criar uma conta ou entrar para assinar um plano.');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // TODO: aqui entra a integração futura com um gateway de pagamento (Mercado Pago, Stripe, etc).
+  // Por enquanto, registra a intenção de assinatura no perfil do usuário.
+  await setDoc(doc(db, 'usuarios', usuarioAtual.uid), {
+    plano: {
+      id: plano.id,
+      nome: plano.nome,
+      descricao: `R$ ${formatarPreco(plano.preco)} / ${plano.periodo.toLowerCase()}`,
+      status: 'pendente_pagamento',
+      escolhidoEm: new Date().toISOString()
+    }
+  }, { merge: true });
+
+  alert('Plano selecionado! A integração de pagamento será adicionada em breve. Por enquanto, fale com o administrador para confirmar sua assinatura.');
+  window.location.href = 'perfil.html';
+});
+</script>
+</body>
+</html>
