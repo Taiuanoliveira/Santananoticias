@@ -1,3 +1,4 @@
+cat > cadastro.html << 'EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,8 +15,8 @@
     h1 { font-family: 'Playfair Display', serif; font-size: 24px; text-align: center; margin-bottom: 8px; color: #0a0a0a; }
     .auth-sub { text-align: center; font-size: 13px; color: #555; margin-bottom: 24px; }
     label { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; }
-    input, select { border: 1px solid #ddd; padding: 11px 14px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; width: 100%; background: #fff; }
-    input:focus, select:focus { border-color: #00cc66; }
+    input { border: 1px solid #ddd; padding: 11px 14px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; width: 100%; background: #fff; }
+    input:focus { border-color: #00cc66; }
     .btn-auth { margin-top: 20px; background: #0a0a0a; color: #fff; border: none; padding: 13px; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: background 0.2s; width: 100%; }
     .btn-auth:hover { background: #00cc66; }
     .auth-rodape { text-align: center; font-size: 13px; color: #555; margin-top: 20px; }
@@ -23,7 +24,6 @@
     .auth-msg { padding: 10px 14px; font-size: 13px; margin-bottom: 16px; border-left: 3px solid; display: none; }
     .auth-msg.erro { background: #fdecea; color: #b3261e; border-left-color: #b3261e; display: block; }
     .auth-msg.sucesso { background: #e8f5e9; color: #1a5c2a; border-left-color: #00cc66; display: block; }
-    .aviso-cargo { background: #fff8e1; border-left: 3px solid #f9a825; padding: 10px 14px; font-size: 12px; color: #555; margin-top: 8px; }
     .campo-senha { position: relative; }
     .campo-senha input { padding-right: 42px; }
     .toggle-senha { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 6px; color: #888; display: flex; line-height: 0; }
@@ -38,7 +38,7 @@
   <div class="auth-card">
     <a href="index.html" class="auth-logo">Santana<span>.com</span></a>
     <h1>Criar Conta</h1>
-    <p class="auth-sub">Preencha os dados para solicitar acesso.</p>
+    <p class="auth-sub">Preencha os dados para criar sua conta.</p>
     <div id="msgErro" class="auth-msg"></div>
     <label>Nome completo</label>
     <input type="text" id="nome" placeholder="Seu nome">
@@ -60,13 +60,6 @@
         <svg class="olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-7 0-11-7-11-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A10.07 10.07 0 0 1 12 5c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
       </button>
     </div>
-    <label>Cargo solicitado</label>
-    <select id="cargo">
-      <option value="colunista">Colunista</option>
-      <option value="revisor">Revisor</option>
-      <option value="editor">Editor</option>
-    </select>
-    <div class="aviso-cargo">⚠️ O cargo de Administrador só pode ser atribuído pelo administrador do sistema.</div>
     <button class="btn-auth" onclick="criarConta()">Criar conta</button>
     <div class="auth-rodape">Já tem conta? <a href="login.html">Entrar</a></div>
   </div>
@@ -82,8 +75,8 @@
 
   <script type="module">
     import { auth, db } from './js/firebase-config.js';
-    import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     function msg(texto, tipo) {
       const el = document.getElementById('msgErro');
@@ -96,7 +89,6 @@
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value;
       const confirmar = document.getElementById('confirmar').value;
-      const cargo = document.getElementById('cargo').value;
 
       if (!nome || !email || !senha) return msg('Preencha todos os campos.', 'erro');
       if (senha.length < 6) return msg('Senha precisa ter no mínimo 6 caracteres.', 'erro');
@@ -106,12 +98,12 @@
         const cred = await createUserWithEmailAndPassword(auth, email, senha);
         await updateProfile(cred.user, { displayName: nome });
         await setDoc(doc(db, 'usuarios', cred.user.uid), {
-          nome, email, cargo,
-          ativo: cargo === 'colunista', // colunista já ativo, outros aguardam aprovação
+          nome, email, cargo: 'leitor',
+          ativo: true,
           criadoEm: new Date().toISOString()
         });
-        msg('Conta criada! Aguarde a aprovação do administrador.', 'sucesso');
-        setTimeout(() => window.location.href = 'login.html', 3000);
+        msg('Conta criada com sucesso!', 'sucesso');
+        setTimeout(() => window.location.href = 'login.html', 2000);
       } catch(e) {
         if (e.code === 'auth/email-already-in-use') msg('E-mail já cadastrado.', 'erro');
         else msg('Erro ao criar conta: ' + e.message, 'erro');
@@ -120,3 +112,5 @@
   </script>
 </body>
 </html>
+EOF
+git add . && git commit -m "removendo campo de cargo solicitado no cadastro" && git push
