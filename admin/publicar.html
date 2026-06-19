@@ -50,6 +50,14 @@
           <label for="conteudo">Conteúdo completo</label>
           <textarea id="conteudo" rows="12" required placeholder="Texto completo da notícia"></textarea>
 
+          <label for="edicao">Edição</label>
+          <input type="text" id="edicao" placeholder="Ex: Edição 1, Edição Especial Junho">
+
+          <label style="display:flex;align-items:center;gap:8px;margin-top:14px;">
+            <input type="checkbox" id="gratuito" style="width:auto;">
+            Notícia gratuita (qualquer pessoa pode ler sem assinar)
+          </label>
+
           <label for="imagem">Imagem de destaque</label>
           <input type="file" id="imagem" accept="image/*">
           <img id="previewImagem" class="preview-imagem" style="display:none;">
@@ -171,6 +179,8 @@
       const categoria = document.getElementById('categoria').value;
       const resumo = document.getElementById('resumo').value.trim();
       const conteudo = document.getElementById('conteudo').value.trim();
+      const edicao = document.getElementById('edicao').value.trim();
+      const gratuito = document.getElementById('gratuito').checked;
       const arquivoImagem = document.getElementById('imagem').files[0];
 
       if (!titulo || !categoria || !conteudo) {
@@ -187,7 +197,7 @@
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
-            { titulo, categoria, resumo, conteudo, status, imagemUrl: imagemAtualUrl },
+            { titulo, categoria, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito },
             usuarioAtual.uid,
             usuarioAtual.displayName || usuarioAtual.email
           );
@@ -198,7 +208,7 @@
           imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
         }
 
-        await atualizarNoticia(idNoticia, { titulo, categoria, resumo, conteudo, status, imagemUrl });
+        await atualizarNoticia(idNoticia, { titulo, categoria, resumo, conteudo, status, imagemUrl, edicao, gratuito });
 
         noticiaIdEdicao = idNoticia;
         mostrarSucesso('Notícia salva com sucesso!');
