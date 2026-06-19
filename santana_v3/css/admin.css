@@ -1,0 +1,374 @@
+/* ============================================
+   SANTANA.COM – Painel Administrativo
+   ============================================ */
+
+.admin-body {
+  background: var(--off-white);
+  font-family: var(--fonte-ui);
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- SIDEBAR --- */
+.admin-sidebar {
+  width: 260px;
+  background: var(--preto);
+  color: var(--branco);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  flex-shrink: 0;
+}
+
+.admin-logo {
+  font-family: var(--fonte-titulo);
+  font-size: 24px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.admin-logo span { color: var(--acento); }
+
+.admin-cargo-label {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 28px;
+}
+
+.admin-cargo-label strong { color: var(--acento); }
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.admin-nav a {
+  color: #ccc;
+  padding: 11px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-nav a:hover { background: #1a1a1a; color: var(--acento); }
+
+.admin-btn-sair {
+  background: none;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.2s;
+}
+
+.admin-btn-sair:hover { background: #b3261e; border-color: #b3261e; color: #fff; }
+
+/* --- MAIN --- */
+.admin-main {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 1100px;
+}
+
+.admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.admin-topbar h1 {
+  font-family: var(--fonte-titulo);
+  font-size: 26px;
+  color: var(--preto);
+}
+
+.admin-link-site {
+  font-size: 13px;
+  color: var(--acento);
+  font-weight: 600;
+}
+
+/* --- CARDS DE RESUMO --- */
+.admin-cards-resumo {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.admin-card {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-top: 3px solid var(--acento);
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+}
+
+.admin-card-num {
+  font-family: var(--fonte-titulo);
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--preto);
+}
+
+.admin-card-label {
+  font-size: 12px;
+  color: var(--cinza-medio);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* --- BLOCO --- */
+.admin-bloco {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.admin-bloco h2 {
+  font-family: var(--fonte-titulo);
+  font-size: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.admin-explicacao {
+  font-size: 13px;
+  color: var(--cinza-medio);
+  margin-bottom: 16px;
+}
+
+.admin-carregando, .admin-vazio {
+  font-size: 13px;
+  color: var(--cinza-claro);
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* --- LISTA DE NOTÍCIAS NO PAINEL --- */
+.admin-lista-noticias {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.admin-item-noticia {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borda);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-item-noticia strong {
+  font-size: 14px;
+  color: var(--preto);
+  margin-right: 10px;
+}
+
+.admin-item-noticia > div:first-child a { color: var(--acento); font-size: 13px; font-weight: 600; }
+
+.admin-autor-pequeno {
+  font-size: 12px;
+  color: var(--cinza-claro);
+  margin-left: 8px;
+}
+
+.admin-acoes-linha {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-status {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  margin-left: 6px;
+}
+
+.status-rascunho { background: #eee; color: #555; }
+.status-em_revisao { background: #fff3cd; color: #8a6d00; }
+.status-aprovado { background: #d4edda; color: #1a5c2a; }
+.status-publicado { background: #00cc66; color: #fff; }
+.status-devolvido { background: #fdecea; color: #b3261e; }
+
+/* --- BOTÕES MINI --- */
+.btn-mini {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 1px solid var(--borda);
+  background: var(--branco);
+  color: var(--preto);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-mini:hover { background: var(--off-white); }
+.btn-aprovar { border-color: var(--acento); color: var(--acento-escuro); }
+.btn-aprovar:hover { background: var(--acento); color: #fff; }
+.btn-devolver, .btn-excluir { border-color: #b3261e; color: #b3261e; }
+.btn-devolver:hover, .btn-excluir:hover { background: #b3261e; color: #fff; }
+.btn-publicar { border-color: var(--preto); }
+.btn-publicar:hover { background: var(--preto); color: #fff; }
+
+/* --- FILTROS --- */
+.admin-filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-btn:hover { border-color: var(--acento); }
+.filtro-btn.ativo { background: var(--preto); color: var(--branco); border-color: var(--preto); }
+
+/* --- FORMULÁRIO DE NOTÍCIA / CONFIGURAÇÕES --- */
+.form-noticia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-noticia label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--grafite);
+  margin-top: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-noticia input,
+.form-noticia select,
+.form-noticia textarea {
+  border: 1px solid var(--borda);
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: var(--fonte-ui);
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+}
+
+.form-noticia input:focus,
+.form-noticia select:focus,
+.form-noticia textarea:focus { border-color: var(--acento); }
+
+.preview-imagem {
+  max-width: 260px;
+  margin-top: 10px;
+  border: 1px solid var(--borda);
+}
+
+.form-acoes {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-secundario {
+  background: var(--branco);
+  color: var(--preto);
+  border: 1px solid var(--borda);
+}
+
+.btn-secundario:hover { background: var(--off-white); color: var(--preto); }
+
+/* --- USUÁRIOS --- */
+.admin-lista-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.admin-item-usuario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--borda);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-item-usuario strong { font-size: 14px; color: var(--preto); margin-right: 10px; }
+
+.admin-email-pequeno { font-size: 12px; color: var(--cinza-claro); }
+
+.select-cargo {
+  border: 1px solid var(--borda);
+  padding: 7px 12px;
+  font-size: 13px;
+  font-family: var(--fonte-ui);
+  background: var(--branco);
+}
+
+/* --- CATEGORIAS --- */
+.lista-categorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.categoria-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--off-white);
+  border: 1px solid var(--borda);
+  padding: 6px 6px 6px 14px;
+  font-size: 13px;
+}
+
+.add-categoria {
+  display: flex;
+  gap: 8px;
+}
+
+.add-categoria input {
+  flex: 1;
+  border: 1px solid var(--borda);
+  padding: 9px 14px;
+  font-size: 13px;
+  font-family: var(--fonte-ui);
+}
+
+/* --- RESPONSIVO --- */
+@media (max-width: 900px) {
+  .admin-layout { flex-direction: column; }
+  .admin-sidebar { width: 100%; flex-direction: row; align-items: center; flex-wrap: wrap; padding: 16px 20px; }
+  .admin-nav { flex-direction: row; flex-wrap: wrap; }
+  .admin-main { padding: 24px 20px; }
+  .admin-cards-resumo { flex-wrap: wrap; }
+}

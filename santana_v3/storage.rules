@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    // Imagens de notícias: leitura pública, upload só para Admin/Editor/Colunista/Revisor logados.
+    match /noticias/{noticiaId}/{arquivo} {
+      allow read: if true;
+      allow write: if estaLogado()
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Logo, banners e imagens institucionais: só Admin escreve.
+    match /site/{arquivo} {
+      allow read: if true;
+      allow write: if estaLogado();
+    }
+  }
+}

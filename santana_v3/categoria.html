@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categoria – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-divider"><span id="tituloCategoria">Categoria</span></div>
+    <section class="news-grid-section" style="display:block;">
+      <div class="news-grid" id="gridCategoria">
+        <p class="admin-carregando">Carregando...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { listarPorCategoria } from "./js/noticias.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const categoria = params.get('c') || '';
+    const grid = document.getElementById('gridCategoria');
+
+    const nomesCategorias = {
+      politica: 'Política', economia: 'Economia', regional: 'Regional',
+      agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde'
+    };
+
+    document.getElementById('tituloCategoria').textContent = nomesCategorias[categoria] || categoria;
+
+    async function carregar() {
+      const noticias = await listarPorCategoria(categoria);
+
+      if (noticias.length === 0) {
+        grid.innerHTML = '<p class="admin-vazio">Nenhuma notícia publicada nesta categoria ainda.</p>';
+        return;
+      }
+
+      grid.innerHTML = noticias.map(n => `
+        <article class="news-card">
+          ${n.imagemUrl ? `<div class="card-img-placeholder small" style="background-image:url('${n.imagemUrl}');background-size:cover;"></div>` : '<div class="card-img-placeholder small"></div>'}
+          <div class="card-content">
+            <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
+            <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+            <p>${n.resumo || ''}</p>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

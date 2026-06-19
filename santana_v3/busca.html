@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Busca – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-divider"><span id="tituloBusca">Resultados da busca</span></div>
+    <section class="news-grid-section" style="display:block;">
+      <div class="news-grid" id="gridBusca">
+        <p class="admin-carregando">Buscando...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { listarPublicadas, filtrarPorTermo } from "./js/noticias.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const termo = params.get('q') || '';
+    const grid = document.getElementById('gridBusca');
+
+    document.getElementById('tituloBusca').textContent = termo ? `Resultados para "${termo}"` : 'Resultados da busca';
+
+    const nomesCategorias = {
+      politica: 'Política', economia: 'Economia', regional: 'Regional',
+      agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde'
+    };
+
+    async function buscar() {
+      if (!termo.trim()) {
+        grid.innerHTML = '<p class="admin-vazio">Digite um termo para buscar.</p>';
+        return;
+      }
+
+      const todas = await listarPublicadas(200);
+      const resultados = filtrarPorTermo(todas, termo);
+
+      if (resultados.length === 0) {
+        grid.innerHTML = '<p class="admin-vazio">Nenhuma notícia encontrada para esse termo.</p>';
+        return;
+      }
+
+      grid.innerHTML = resultados.map(n => `
+        <article class="news-card">
+          ${n.imagemUrl ? `<div class="card-img-placeholder small" style="background-image:url('${n.imagemUrl}');background-size:cover;"></div>` : '<div class="card-img-placeholder small"></div>'}
+          <div class="card-content">
+            <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
+            <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+            <p>${n.resumo || ''}</p>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    buscar();
+  </script>
+</body>
+</html>

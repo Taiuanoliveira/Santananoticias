@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Notícia – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1 id="tituloPagina">Nova Notícia</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <div id="mensagemErro" class="auth-msg erro" style="display:none;"></div>
+        <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
+
+        <form id="formNoticia" class="form-noticia">
+          <label for="titulo">Título</label>
+          <input type="text" id="titulo" required placeholder="Título da notícia">
+
+          <label for="categoria">Categoria</label>
+          <select id="categoria" required>
+            <option value="">Selecione...</option>
+            <option value="politica">Política</option>
+            <option value="economia">Economia</option>
+            <option value="regional">Regional</option>
+            <option value="agro">Agro</option>
+            <option value="esportes">Esportes</option>
+            <option value="cultura">Cultura</option>
+            <option value="saude">Saúde</option>
+          </select>
+
+          <label for="resumo">Resumo (aparece nos cards)</label>
+          <textarea id="resumo" rows="2" placeholder="Resumo curto da notícia"></textarea>
+
+          <label for="conteudo">Conteúdo completo</label>
+          <textarea id="conteudo" rows="12" required placeholder="Texto completo da notícia"></textarea>
+
+          <label for="imagem">Imagem de destaque</label>
+          <input type="file" id="imagem" accept="image/*">
+          <img id="previewImagem" class="preview-imagem" style="display:none;">
+
+          <div class="form-acoes" id="formAcoes">
+            <!-- Botões inseridos via JS conforme o cargo -->
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { criarNoticia, atualizarNoticia, obterNoticia, enviarImagem, STATUS } from "../js/noticias.js";
+
+    let usuarioAtual = null;
+    let cargoAtual = null;
+    let noticiaIdEdicao = null;
+    let imagemAtualUrl = null;
+
+    const params = new URLSearchParams(window.location.search);
+    const idParaEditar = params.get('id');
+
+    protegerPagina(
+      [CARGOS.ADMIN, CARGOS.EDITOR, CARGOS.COLUNISTA],
+      async (user, cargo) => {
+        usuarioAtual = user;
+        cargoAtual = cargo;
+        document.getElementById('nomeUsuario')?.textContent;
+        document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
+        montarMenu(cargo);
+        montarBotoesAcao(cargo);
+
+        if (idParaEditar) {
+          noticiaIdEdicao = idParaEditar;
+          document.getElementById('tituloPagina').textContent = 'Editar Notícia';
+          await carregarNoticia(idParaEditar);
+        }
+      }
+    );
+
+    function formatarCargo(cargo) {
+      const nomes = { administrador: 'Administrador', editor: 'Editor', colunista: 'Colunista', revisor: 'Revisor' };
+      return nomes[cargo] || cargo;
+    }
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function montarBotoesAcao(cargo) {
+      const acoes = document.getElementById('formAcoes');
+      if (cargo === CARGOS.COLUNISTA) {
+        acoes.innerHTML = `
+          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+          <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>
+        `;
+      } else {
+        // Admin e Editor podem publicar direto
+        acoes.innerHTML = `
+          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+          <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>
+        `;
+      }
+
+      acoes.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao));
+      });
+    }
+
+    async function carregarNoticia(id) {
+      const noticia = await obterNoticia(id);
+      if (!noticia) return;
+      document.getElementById('titulo').value = noticia.titulo || '';
+      document.getElementById('categoria').value = noticia.categoria || '';
+      document.getElementById('resumo').value = noticia.resumo || '';
+      document.getElementById('conteudo').value = noticia.conteudo || '';
+      if (noticia.imagemUrl) {
+        imagemAtualUrl = noticia.imagemUrl;
+        const preview = document.getElementById('previewImagem');
+        preview.src = noticia.imagemUrl;
+        preview.style.display = 'block';
+      }
+    }
+
+    document.getElementById('imagem').addEventListener('change', (e) => {
+      const arquivo = e.target.files[0];
+      if (!arquivo) return;
+      const preview = document.getElementById('previewImagem');
+      preview.src = URL.createObjectURL(arquivo);
+      preview.style.display = 'block';
+    });
+
+    function mostrarErro(texto) {
+      const el = document.getElementById('mensagemErro');
+      document.getElementById('mensagemSucesso').style.display = 'none';
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('mensagemSucesso');
+      document.getElementById('mensagemErro').style.display = 'none';
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    async function salvarNoticia(acao) {
+      const titulo = document.getElementById('titulo').value.trim();
+      const categoria = document.getElementById('categoria').value;
+      const resumo = document.getElementById('resumo').value.trim();
+      const conteudo = document.getElementById('conteudo').value.trim();
+      const arquivoImagem = document.getElementById('imagem').files[0];
+
+      if (!titulo || !categoria || !conteudo) {
+        mostrarErro('Preencha ao menos título, categoria e conteúdo.');
+        return;
+      }
+
+      let status = STATUS.RASCUNHO;
+      if (acao === 'enviar_revisao') status = STATUS.EM_REVISAO;
+      if (acao === 'publicar') status = STATUS.PUBLICADO;
+
+      try {
+        let idNoticia = noticiaIdEdicao;
+
+        if (!idNoticia) {
+          idNoticia = await criarNoticia(
+            { titulo, categoria, resumo, conteudo, status, imagemUrl: imagemAtualUrl },
+            usuarioAtual.uid,
+            usuarioAtual.displayName || usuarioAtual.email
+          );
+        }
+
+        let imagemUrl = imagemAtualUrl;
+        if (arquivoImagem) {
+          imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
+        }
+
+        await atualizarNoticia(idNoticia, { titulo, categoria, resumo, conteudo, status, imagemUrl });
+
+        noticiaIdEdicao = idNoticia;
+        mostrarSucesso('Notícia salva com sucesso!');
+        setTimeout(() => window.location.href = 'gerenciar-noticias.html', 1500);
+      } catch (err) {
+        mostrarErro('Erro ao salvar a notícia. Verifique sua permissão e tente novamente.');
+        console.error(err);
+      }
+    }
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../login.html';
+    });
+  </script>
+</body>
+</html>

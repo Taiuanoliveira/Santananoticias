@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha – Santana.com</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .auth-card { background: #fff; width: 100%; max-width: 420px; padding: 40px 36px; border-top: 4px solid #00cc66; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+    .auth-logo { display: block; text-align: center; font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 900; color: #0a0a0a; margin-bottom: 24px; text-decoration: none; }
+    .auth-logo span { color: #00cc66; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 24px; text-align: center; margin-bottom: 8px; color: #0a0a0a; }
+    .auth-sub { text-align: center; font-size: 13px; color: #555; margin-bottom: 24px; line-height: 1.6; }
+    label { font-size: 12px; font-weight: 600; color: #1a1a1a; margin-top: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+    input { border: 1px solid #ddd; padding: 11px 14px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; width: 100%; }
+    input:focus { border-color: #00cc66; }
+    .btn-auth { margin-top: 20px; background: #0a0a0a; color: #fff; border: none; padding: 13px; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: background 0.2s; width: 100%; }
+    .btn-auth:hover { background: #00cc66; }
+    .auth-rodape { text-align: center; font-size: 13px; color: #555; margin-top: 20px; }
+    .auth-rodape a { color: #00cc66; font-weight: 600; text-decoration: none; }
+    .auth-msg { padding: 10px 14px; font-size: 13px; margin-bottom: 16px; border-left: 3px solid; display: none; }
+    .auth-msg.erro { background: #fdecea; color: #b3261e; border-left-color: #b3261e; display: block; }
+    .auth-msg.sucesso { background: #e8f5e9; color: #1a5c2a; border-left-color: #00cc66; display: block; }
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <a href="index.html" class="auth-logo">Santana<span>.com</span></a>
+    <h1>Recuperar Senha</h1>
+    <p class="auth-sub">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
+    <div id="msgErro" class="auth-msg"></div>
+    <label>E-mail</label>
+    <input type="email" id="email" placeholder="seu@email.com">
+    <button class="btn-auth" onclick="recuperar()">Enviar link</button>
+    <div class="auth-rodape"><a href="login.html">← Voltar ao login</a></div>
+  </div>
+
+  <script type="module">
+    import { auth } from './js/firebase-config.js';
+    import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    function msg(texto, tipo) {
+      const el = document.getElementById('msgErro');
+      el.textContent = texto;
+      el.className = 'auth-msg ' + tipo;
+    }
+
+    window.recuperar = async function() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return msg('Informe seu e-mail.', 'erro');
+      try {
+        await sendPasswordResetEmail(auth, email);
+        msg('E-mail enviado! Verifique sua caixa de entrada.', 'sucesso');
+      } catch(e) {
+        msg('E-mail não encontrado.', 'erro');
+      }
+    };
+  </script>
+</body>
+</html>

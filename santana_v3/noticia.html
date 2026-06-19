@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notícia – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="noticia-conteudo" id="conteudoNoticia">
+      <p class="admin-carregando">Carregando notícia...</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { obterNoticia } from "./js/noticias.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const container = document.getElementById('conteudoNoticia');
+
+    function formatarData(timestamp) {
+      if (!timestamp) return '';
+      const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return data.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function carregar() {
+      if (!id) {
+        container.innerHTML = '<p class="admin-vazio">Notícia não encontrada.</p>';
+        return;
+      }
+
+      const noticia = await obterNoticia(id);
+
+      if (!noticia || noticia.status !== 'publicado') {
+        container.innerHTML = '<p class="admin-vazio">Esta notícia não está disponível.</p>';
+        return;
+      }
+
+      document.title = noticia.titulo + ' – Santana.com';
+
+      container.innerHTML = `
+        <div class="noticia-wrap">
+          <span class="tag-categoria ${noticia.categoria}">${noticia.categoria}</span>
+          <h1 class="noticia-titulo">${noticia.titulo}</h1>
+          <div class="noticia-meta">Por ${noticia.autorNome || 'Redação'} • ${formatarData(noticia.criadoEm)}</div>
+          ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="noticia-imagem" alt="${noticia.titulo}">` : ''}
+          <div class="noticia-corpo">${noticia.conteudo.split('\n').map(p => `<p>${p}</p>`).join('')}</div>
+        </div>
+      `;
+    }
+
+    carregar();
+  </script>
+
+  <style>
+    .noticia-conteudo { max-width: 760px; margin: 40px auto; padding: 0 20px 60px; }
+    .noticia-wrap { background: var(--branco); }
+    .noticia-titulo { font-family: var(--fonte-titulo); font-size: 34px; line-height: 1.2; margin: 12px 0 16px; }
+    .noticia-meta { font-size: 13px; color: var(--cinza-claro); margin-bottom: 24px; }
+    .noticia-imagem { width: 100%; margin-bottom: 24px; }
+    .noticia-corpo { font-family: var(--fonte-corpo); font-size: 18px; line-height: 1.8; color: var(--grafite); }
+    .noticia-corpo p { margin-bottom: 18px; }
+  </style>
+</body>
+</html>

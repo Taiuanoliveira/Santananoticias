@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciar Notícias – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Gerenciar Notícias</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <div class="admin-filtros" id="filtros"></div>
+
+      <section class="admin-bloco">
+        <div id="listaGerenciar" class="admin-lista-noticias">
+          <p class="admin-carregando">Carregando...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { listarPorAutor, listarPorStatus, listarPublicadas, atualizarNoticia, excluirNoticia, STATUS } from "../js/noticias.js";
+
+    let usuarioAtual = null;
+    let cargoAtual = null;
+    let filtroAtual = 'todas';
+
+    protegerPagina(
+      [CARGOS.ADMIN, CARGOS.EDITOR, CARGOS.COLUNISTA, CARGOS.REVISOR],
+      async (user, cargo) => {
+        usuarioAtual = user;
+        cargoAtual = cargo;
+        document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
+        montarMenu(cargo);
+        montarFiltros(cargo);
+        await carregarLista();
+      }
+    );
+
+    function formatarCargo(cargo) {
+      const nomes = { administrador: 'Administrador', editor: 'Editor', colunista: 'Colunista', revisor: 'Revisor' };
+      return nomes[cargo] || cargo;
+    }
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function montarFiltros(cargo) {
+      const filtrosDiv = document.getElementById('filtros');
+      let opcoes = [{ id: 'todas', label: 'Todas' }];
+
+      if (cargo === CARGOS.REVISOR) {
+        opcoes = [
+          { id: 'em_revisao', label: 'Aguardando revisão' },
+          { id: 'aprovado', label: 'Aprovadas' },
+          { id: 'devolvido', label: 'Devolvidas' }
+        ];
+      } else if (cargo === CARGOS.COLUNISTA) {
+        opcoes = [
+          { id: 'todas', label: 'Minhas notícias' },
+          { id: 'rascunho', label: 'Rascunhos' },
+          { id: 'em_revisao', label: 'Em revisão' },
+          { id: 'devolvido', label: 'Devolvidas' },
+          { id: 'publicado', label: 'Publicadas' }
+        ];
+      } else {
+        opcoes = [
+          { id: 'todas', label: 'Publicadas' },
+          { id: 'em_revisao', label: 'Em revisão' },
+          { id: 'aprovado', label: 'Aprovadas' },
+          { id: 'rascunho', label: 'Rascunhos' }
+        ];
+      }
+
+      filtroAtual = opcoes[0].id;
+      filtrosDiv.innerHTML = opcoes.map((o, idx) =>
+        `<button class="filtro-btn ${idx === 0 ? 'ativo' : ''}" data-filtro="${o.id}">${o.label}</button>`
+      ).join('');
+
+      filtrosDiv.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filtrosDiv.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+          btn.classList.add('ativo');
+          filtroAtual = btn.dataset.filtro;
+          carregarLista();
+        });
+      });
+    }
+
+    async function carregarLista() {
+      const lista = document.getElementById('listaGerenciar');
+      lista.innerHTML = '<p class="admin-carregando">Carregando...</p>';
+
+      let noticias = [];
+
+      if (cargoAtual === CARGOS.COLUNISTA) {
+        const todas = await listarPorAutor(usuarioAtual.uid);
+        noticias = filtroAtual === 'todas' ? todas : todas.filter(n => n.status === filtroAtual);
+      } else if (cargoAtual === CARGOS.REVISOR) {
+        noticias = await listarPorStatus(filtroAtual);
+      } else {
+        // Admin/Editor
+        noticias = filtroAtual === 'todas' ? await listarPublicadas(50) : await listarPorStatus(filtroAtual);
+      }
+
+      if (noticias.length === 0) {
+        lista.innerHTML = '<p class="admin-vazio">Nenhuma notícia encontrada neste filtro.</p>';
+        return;
+      }
+
+      lista.innerHTML = noticias.map(n => montarLinhaNoticia(n)).join('');
+      ligarBotoesAcao();
+    }
+
+    function montarLinhaNoticia(n) {
+      let botoes = '';
+
+      if (cargoAtual === CARGOS.REVISOR && n.status === STATUS.EM_REVISAO) {
+        botoes = `
+          <button class="btn-mini btn-aprovar" data-id="${n.id}" data-acao="aprovar">Aprovar</button>
+          <button class="btn-mini btn-devolver" data-id="${n.id}" data-acao="devolver">Devolver</button>
+        `;
+      } else if ((cargoAtual === CARGOS.ADMIN || cargoAtual === CARGOS.EDITOR) && n.status === STATUS.APROVADO) {
+        botoes = `<button class="btn-mini btn-publicar" data-id="${n.id}" data-acao="publicar">Publicar</button>`;
+      }
+
+      const podeEditar = cargoAtual === CARGOS.ADMIN || cargoAtual === CARGOS.EDITOR ||
+        (cargoAtual === CARGOS.COLUNISTA && n.status !== STATUS.PUBLICADO);
+      const podeExcluir = cargoAtual === CARGOS.ADMIN ||
+        (cargoAtual === CARGOS.COLUNISTA && n.status !== STATUS.PUBLICADO);
+
+      return `
+        <div class="admin-item-noticia">
+          <div>
+            <strong>${n.titulo}</strong>
+            <span class="admin-status status-${n.status}">${n.status.replace('_',' ')}</span>
+            <span class="admin-autor-pequeno">por ${n.autorNome || 'desconhecido'}</span>
+          </div>
+          <div class="admin-acoes-linha">
+            ${botoes}
+            ${podeEditar ? `<a href="publicar.html?id=${n.id}" class="btn-mini">Editar</a>` : ''}
+            ${podeExcluir ? `<button class="btn-mini btn-excluir" data-id="${n.id}" data-acao="excluir">Excluir</button>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function ligarBotoesAcao() {
+      document.querySelectorAll('[data-acao]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          const acao = btn.dataset.acao;
+
+          try {
+            if (acao === 'aprovar') {
+              await atualizarNoticia(id, { status: STATUS.APROVADO });
+            } else if (acao === 'devolver') {
+              await atualizarNoticia(id, { status: STATUS.DEVOLVIDO });
+            } else if (acao === 'publicar') {
+              await atualizarNoticia(id, { status: STATUS.PUBLICADO });
+            } else if (acao === 'excluir') {
+              if (!confirm('Tem certeza que deseja excluir esta notícia? Essa ação não pode ser desfeita.')) return;
+              await excluirNoticia(id);
+            }
+            await carregarLista();
+          } catch (err) {
+            alert('Não foi possível concluir essa ação. Verifique sua permissão.');
+            console.error(err);
+          }
+        });
+      });
+    }
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../login.html';
+    });
+  </script>
+</body>
+</html>

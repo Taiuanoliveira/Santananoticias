@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Função auxiliar: pega o cargo do usuário logado ---
+    function cargoDoUsuario() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo;
+    }
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    function ehAdmin() {
+      return estaLogado() && cargoDoUsuario() == 'administrador';
+    }
+
+    function ehEditor() {
+      return estaLogado() && cargoDoUsuario() == 'editor';
+    }
+
+    function ehColunista() {
+      return estaLogado() && cargoDoUsuario() == 'colunista';
+    }
+
+    function ehRevisor() {
+      return estaLogado() && cargoDoUsuario() == 'revisor';
+    }
+
+    // --- COLEÇÃO: usuarios ---
+    match /usuarios/{userId} {
+      // Qualquer pessoa logada pode ler a própria conta; Admin pode ler todas.
+      allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
+      // Criação acontece no cadastro (o próprio usuário cria seu doc com cargo "pendente").
+      allow create: if estaLogado() && request.auth.uid == userId && request.resource.data.cargo == 'pendente';
+      // Só Admin pode alterar cargos de outras pessoas. O próprio usuário pode editar nome/email.
+      allow update: if ehAdmin() || (estaLogado() && request.auth.uid == userId && request.resource.data.cargo == resource.data.cargo);
+      allow delete: if ehAdmin();
+    }
+
+    // --- COLEÇÃO: noticias ---
+    match /noticias/{noticiaId} {
+      // Leitura pública apenas de notícias publicadas. Logados podem ver as próprias/em revisão conforme cargo.
+      allow read: if resource.data.status == 'publicado'
+                  || ehAdmin() || ehEditor() || ehRevisor()
+                  || (estaLogado() && resource.data.autorUid == request.auth.uid);
+
+      // Criação: Admin, Editor e Colunista podem criar notícias.
+      allow create: if ehAdmin() || ehEditor() || ehColunista();
+
+      // Atualização:
+      // - Admin e Editor podem editar e publicar qualquer notícia.
+      // - Revisor pode mudar o status (aprovar/devolver) mas não o conteúdo.
+      // - Colunista só pode editar as PRÓPRIAS notícias, e não pode definir status como "publicado".
+      allow update: if ehAdmin() || ehEditor()
+                    || (ehRevisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'atualizadoEm', 'observacaoRevisor']))
+                    || (ehColunista() && resource.data.autorUid == request.auth.uid && request.resource.data.status != 'publicado');
+
+      // Exclusão: Admin sempre pode. Colunista só pode excluir o próprio rascunho (ainda não publicado).
+      allow delete: if ehAdmin()
+                    || (ehColunista() && resource.data.autorUid == request.auth.uid && resource.data.status != 'publicado');
+    }
+
+    // --- COLEÇÃO: configuracoes (logo, banner, redes sociais, dados do site) ---
+    match /configuracoes/{docId} {
+      allow read: if true; // o site público precisa ler isso para exibir logo, etc.
+      allow write: if ehAdmin();
+    }
+
+    // --- COLEÇÃO: categorias ---
+    match /categorias/{catId} {
+      allow read: if true;
+      allow write: if ehAdmin() || ehEditor();
+    }
+  }
+}

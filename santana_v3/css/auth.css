@@ -1,0 +1,167 @@
+/* ============================================
+   SANTANA.COM – Páginas de Autenticação
+   ============================================ */
+
+.auth-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--preto);
+  padding: 24px;
+  font-family: var(--fonte-ui);
+}
+
+.auth-card {
+  background: var(--branco);
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 36px;
+  border-top: 4px solid var(--acento);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+.auth-logo {
+  display: block;
+  text-align: center;
+  font-family: var(--fonte-titulo);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--preto);
+  margin-bottom: 24px;
+}
+
+.auth-logo span { color: var(--acento); }
+
+.auth-card h1 {
+  font-family: var(--fonte-titulo);
+  font-size: 26px;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--preto);
+}
+
+.auth-sub {
+  text-align: center;
+  font-size: 13px;
+  color: var(--cinza-medio);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-form label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--grafite);
+  margin-top: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.auth-form input {
+  border: 1px solid var(--borda);
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: var(--fonte-ui);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-form input:focus { border-color: var(--acento); }
+
+.auth-link-pequeno {
+  align-self: flex-end;
+  font-size: 12px;
+  color: var(--acento);
+  margin-top: 6px;
+}
+
+.btn-auth {
+  margin-top: 20px;
+  background: var(--preto);
+  color: var(--branco);
+  border: none;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--fonte-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-auth:hover { background: var(--acento); }
+
+.btn-google {
+  background: var(--branco);
+  color: var(--preto);
+  border: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 0;
+}
+
+.btn-google:hover { background: var(--off-white); }
+
+.google-icon {
+  font-family: 'Arial', sans-serif;
+  font-weight: 700;
+  color: #4285F4;
+  font-size: 16px;
+}
+
+.auth-divisor {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 22px 0;
+  color: var(--cinza-claro);
+  font-size: 12px;
+}
+
+.auth-divisor::before,
+.auth-divisor::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--borda);
+}
+
+.auth-divisor span { padding: 0 12px; }
+
+.auth-rodape {
+  text-align: center;
+  font-size: 13px;
+  color: var(--cinza-medio);
+  margin-top: 24px;
+}
+
+.auth-rodape a { color: var(--acento); font-weight: 600; }
+
+.auth-msg {
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  border-left: 3px solid;
+}
+
+.auth-msg.erro {
+  background: #fdecea;
+  color: #b3261e;
+  border-left-color: #b3261e;
+}
+
+.auth-msg.sucesso {
+  background: #e8f5e9;
+  color: #1a5c2a;
+  border-left-color: var(--acento);
+}

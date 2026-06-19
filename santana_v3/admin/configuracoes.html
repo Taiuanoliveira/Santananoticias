@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong>Administrador</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Configurações do Portal</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
+
+      <section class="admin-bloco">
+        <h2>Identidade visual</h2>
+        <form id="formIdentidade" class="form-noticia">
+          <label for="logoTexto">Texto do logo</label>
+          <input type="text" id="logoTexto" placeholder="Santana.com">
+
+          <label for="tagline">Slogan / Tagline</label>
+          <input type="text" id="tagline" placeholder="A voz do Recôncavo Baiano">
+
+          <label for="logoImagem">Logo (imagem, opcional)</label>
+          <input type="file" id="logoImagem" accept="image/*">
+
+          <label for="bannerImagem">Banner da página inicial (opcional)</label>
+          <input type="file" id="bannerImagem" accept="image/*">
+
+          <button type="submit" class="btn-auth">Salvar identidade visual</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Informações do site</h2>
+        <form id="formInfo" class="form-noticia">
+          <label for="emailContato">E-mail de contato</label>
+          <input type="email" id="emailContato" placeholder="contato@santana.com">
+
+          <label for="telefoneContato">Telefone / WhatsApp</label>
+          <input type="text" id="telefoneContato" placeholder="(82) 9 9999-0000">
+
+          <label for="enderecoContato">Cidade / Região</label>
+          <input type="text" id="enderecoContato" placeholder="Santana de Ipanema, Alagoas">
+
+          <button type="submit" class="btn-auth">Salvar informações</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Redes sociais</h2>
+        <form id="formRedes" class="form-noticia">
+          <label for="facebook">Facebook (link)</label>
+          <input type="url" id="facebook" placeholder="https://facebook.com/seuusuario">
+
+          <label for="instagram">Instagram (link)</label>
+          <input type="url" id="instagram" placeholder="https://instagram.com/seuusuario">
+
+          <label for="youtube">YouTube (link)</label>
+          <input type="url" id="youtube" placeholder="https://youtube.com/seucanal">
+
+          <label for="whatsapp">WhatsApp (link)</label>
+          <input type="url" id="whatsapp" placeholder="https://wa.me/5582999990000">
+
+          <button type="submit" class="btn-auth">Salvar redes sociais</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Categorias do portal</h2>
+        <p class="admin-explicacao">Adicione ou remova as categorias usadas no menu e nas notícias.</p>
+        <div id="listaCategorias" class="lista-categorias"></div>
+        <div class="add-categoria">
+          <input type="text" id="novaCategoria" placeholder="Nome da nova categoria">
+          <button id="btnAddCategoria" class="btn-mini">Adicionar</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db, storage } from "../js/firebase-config.js";
+    import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    protegerPagina([CARGOS.ADMIN], async (user, cargo) => {
+      montarMenu(cargo);
+      await carregarConfiguracoes();
+      await carregarCategorias();
+    });
+
+    function montarMenu(cargo) {
+      document.getElementById('menuAdmin').innerHTML = `
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="publicar.html">✍️ Nova Notícia</a>
+        <a href="gerenciar-noticias.html">📰 Gerenciar Notícias</a>
+        <a href="usuarios.html">👥 Usuários</a>
+        <a href="configuracoes.html">⚙️ Configurações</a>
+      `;
+    }
+
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('mensagemSucesso');
+      el.textContent = texto;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function carregarConfiguracoes() {
+      const snap = await getDoc(doc(db, 'configuracoes', 'geral'));
+      if (!snap.exists()) return;
+      const c = snap.data();
+      if (c.logoTexto) document.getElementById('logoTexto').value = c.logoTexto;
+      if (c.tagline) document.getElementById('tagline').value = c.tagline;
+      if (c.emailContato) document.getElementById('emailContato').value = c.emailContato;
+      if (c.telefoneContato) document.getElementById('telefoneContato').value = c.telefoneContato;
+      if (c.enderecoContato) document.getElementById('enderecoContato').value = c.enderecoContato;
+      if (c.facebook) document.getElementById('facebook').value = c.facebook;
+      if (c.instagram) document.getElementById('instagram').value = c.instagram;
+      if (c.youtube) document.getElementById('youtube').value = c.youtube;
+      if (c.whatsapp) document.getElementById('whatsapp').value = c.whatsapp;
+    }
+
+    async function salvarCampo(campos) {
+      await setDoc(doc(db, 'configuracoes', 'geral'), campos, { merge: true });
+    }
+
+    document.getElementById('formIdentidade').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dados = {
+        logoTexto: document.getElementById('logoTexto').value.trim(),
+        tagline: document.getElementById('tagline').value.trim()
+      };
+
+      const logoArquivo = document.getElementById('logoImagem').files[0];
+      if (logoArquivo) {
+        const r = ref(storage, `site/logo_${Date.now()}_${logoArquivo.name}`);
+        await uploadBytes(r, logoArquivo);
+        dados.logoUrl = await getDownloadURL(r);
+      }
+
+      const bannerArquivo = document.getElementById('bannerImagem').files[0];
+      if (bannerArquivo) {
+        const r = ref(storage, `site/banner_${Date.now()}_${bannerArquivo.name}`);
+        await uploadBytes(r, bannerArquivo);
+        dados.bannerUrl = await getDownloadURL(r);
+      }
+
+      await salvarCampo(dados);
+      mostrarSucesso('Identidade visual salva!');
+    });
+
+    document.getElementById('formInfo').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await salvarCampo({
+        emailContato: document.getElementById('emailContato').value.trim(),
+        telefoneContato: document.getElementById('telefoneContato').value.trim(),
+        enderecoContato: document.getElementById('enderecoContato').value.trim()
+      });
+      mostrarSucesso('Informações do site salvas!');
+    });
+
+    document.getElementById('formRedes').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await salvarCampo({
+        facebook: document.getElementById('facebook').value.trim(),
+        instagram: document.getElementById('instagram').value.trim(),
+        youtube: document.getElementById('youtube').value.trim(),
+        whatsapp: document.getElementById('whatsapp').value.trim()
+      });
+      mostrarSucesso('Redes sociais salvas!');
+    });
+
+    async function carregarCategorias() {
+      const lista = document.getElementById('listaCategorias');
+      const snap = await getDocs(collection(db, 'categorias'));
+      if (snap.empty) {
+        lista.innerHTML = '<p class="admin-vazio">Nenhuma categoria cadastrada ainda. As categorias padrão (Política, Economia, Regional, Agro, Esportes, Cultura, Saúde) já funcionam nas notícias mesmo sem estarem aqui.</p>';
+        return;
+      }
+      lista.innerHTML = snap.docs.map(d => `
+        <div class="categoria-item">
+          <span>${d.data().nome}</span>
+          <button class="btn-mini btn-excluir" data-id="${d.id}">Remover</button>
+        </div>
+      `).join('');
+
+      lista.querySelectorAll('.btn-excluir').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await deleteDoc(doc(db, 'categorias', btn.dataset.id));
+          await carregarCategorias();
+        });
+      });
+    }
+
+    document.getElementById('btnAddCategoria').addEventListener('click', async () => {
+      const input = document.getElementById('novaCategoria');
+      const nome = input.value.trim();
+      if (!nome) return;
+      await addDoc(collection(db, 'categorias'), { nome });
+      input.value = '';
+      await carregarCategorias();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../login.html';
+    });
+  </script>
+</body>
+</html>

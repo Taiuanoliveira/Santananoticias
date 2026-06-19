@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo – Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <!-- MENU LATERAL -->
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+
+      <nav class="admin-nav" id="menuAdmin">
+        <!-- Itens do menu são inseridos via JS conforme o cargo -->
+      </nav>
+
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Olá, <span id="nomeUsuario">...</span></h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-cards-resumo" id="cardsResumo">
+        <!-- Cards de resumo inseridos via JS -->
+      </section>
+
+      <section class="admin-bloco">
+        <h2 id="tituloLista">Notícias recentes</h2>
+        <div id="listaNoticias" class="admin-lista-noticias">
+          <p class="admin-carregando">Carregando...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { listarPorAutor, listarPorStatus, listarPublicadas, STATUS } from "../js/noticias.js";
+
+    protegerPagina(
+      [CARGOS.ADMIN, CARGOS.EDITOR, CARGOS.COLUNISTA, CARGOS.REVISOR],
+      async (user, cargo) => {
+        document.getElementById('nomeUsuario').textContent = user.displayName || user.email;
+        document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
+        montarMenu(cargo);
+        await carregarConteudo(user, cargo);
+      }
+    );
+
+    function formatarCargo(cargo) {
+      const nomes = {
+        administrador: 'Administrador',
+        editor: 'Editor',
+        colunista: 'Colunista',
+        revisor: 'Revisor'
+      };
+      return nomes[cargo] || cargo;
+    }
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens
+        .filter(item => item.cargos.includes(cargo))
+        .map(item => `<a href="${item.href}">${item.label}</a>`)
+        .join('');
+    }
+
+    async function carregarConteudo(user, cargo) {
+      const cardsResumo = document.getElementById('cardsResumo');
+      const tituloLista = document.getElementById('tituloLista');
+      const listaNoticias = document.getElementById('listaNoticias');
+
+      let noticias = [];
+
+      if (cargo === CARGOS.COLUNISTA) {
+        tituloLista.textContent = 'Minhas notícias';
+        noticias = await listarPorAutor(user.uid);
+      } else if (cargo === CARGOS.REVISOR) {
+        tituloLista.textContent = 'Notícias aguardando revisão';
+        noticias = await listarPorStatus(STATUS.EM_REVISAO);
+      } else {
+        tituloLista.textContent = 'Notícias publicadas recentemente';
+        noticias = await listarPublicadas(10);
+      }
+
+      // Cards de resumo simples
+      const totalPublicadas = (await listarPublicadas(1000)).length;
+      let cardsHtml = `
+        <div class="admin-card"><span class="admin-card-num">${totalPublicadas}</span><span class="admin-card-label">Publicadas</span></div>
+      `;
+      if (cargo === CARGOS.ADMIN || cargo === CARGOS.EDITOR || cargo === CARGOS.REVISOR) {
+        const emRevisao = await listarPorStatus(STATUS.EM_REVISAO);
+        cardsHtml += `<div class="admin-card"><span class="admin-card-num">${emRevisao.length}</span><span class="admin-card-label">Em revisão</span></div>`;
+      }
+      cardsResumo.innerHTML = cardsHtml;
+
+      // Lista de notícias
+      if (noticias.length === 0) {
+        listaNoticias.innerHTML = '<p class="admin-vazio">Nenhuma notícia encontrada.</p>';
+        return;
+      }
+
+      listaNoticias.innerHTML = noticias.map(n => `
+        <div class="admin-item-noticia">
+          <div>
+            <strong>${n.titulo}</strong>
+            <span class="admin-status status-${n.status}">${n.status.replace('_',' ')}</span>
+          </div>
+          <a href="gerenciar-noticias.html?id=${n.id}">Abrir →</a>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../login.html';
+    });
+  </script>
+</body>
+</html>

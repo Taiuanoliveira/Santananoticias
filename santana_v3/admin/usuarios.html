@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong>Administrador</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Usuários e Cargos</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <p class="admin-explicacao">Defina o cargo de cada pessoa cadastrada. Contas novas aparecem como <strong>pendente</strong> até você escolher um cargo.</p>
+        <div id="listaUsuarios" class="admin-lista-usuarios">
+          <p class="admin-carregando">Carregando...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    protegerPagina([CARGOS.ADMIN], async (user, cargo) => {
+      montarMenu(cargo);
+      await carregarUsuarios();
+    });
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      menu.innerHTML = `
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="publicar.html">✍️ Nova Notícia</a>
+        <a href="gerenciar-noticias.html">📰 Gerenciar Notícias</a>
+        <a href="usuarios.html">👥 Usuários</a>
+        <a href="configuracoes.html">⚙️ Configurações</a>
+      `;
+    }
+
+    async function carregarUsuarios() {
+      const lista = document.getElementById('listaUsuarios');
+      const snap = await getDocs(collection(db, 'usuarios'));
+
+      if (snap.empty) {
+        lista.innerHTML = '<p class="admin-vazio">Nenhum usuário encontrado.</p>';
+        return;
+      }
+
+      lista.innerHTML = snap.docs.map(d => {
+        const u = d.data();
+        return `
+          <div class="admin-item-usuario">
+            <div>
+              <strong>${u.nome || 'Sem nome'}</strong>
+              <span class="admin-email-pequeno">${u.email}</span>
+            </div>
+            <select data-uid="${d.id}" class="select-cargo">
+              <option value="pendente" ${u.cargo === 'pendente' ? 'selected' : ''}>Pendente</option>
+              <option value="administrador" ${u.cargo === 'administrador' ? 'selected' : ''}>Administrador</option>
+              <option value="editor" ${u.cargo === 'editor' ? 'selected' : ''}>Editor</option>
+              <option value="colunista" ${u.cargo === 'colunista' ? 'selected' : ''}>Colunista</option>
+              <option value="revisor" ${u.cargo === 'revisor' ? 'selected' : ''}>Revisor</option>
+            </select>
+          </div>
+        `;
+      }).join('');
+
+      lista.querySelectorAll('.select-cargo').forEach(select => {
+        select.addEventListener('change', async () => {
+          const uid = select.dataset.uid;
+          const novoCargo = select.value;
+          try {
+            await updateDoc(doc(db, 'usuarios', uid), { cargo: novoCargo });
+          } catch (err) {
+            alert('Não foi possível atualizar o cargo.');
+            console.error(err);
+          }
+        });
+      });
+    }
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../login.html';
+    });
+  </script>
+</body>
+</html>
