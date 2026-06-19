@@ -408,8 +408,14 @@
       if (!linkLogin || !linkCadastro) return;
 
       if (user && cargo && cargo !== 'pendente') {
-        linkLogin.textContent = 'Painel Administrativo';
-        linkLogin.href = 'admin/dashboard.html';
+        const cargosAdmin = ['administrador', 'admin', 'editor', 'colunista', 'revisor'];
+        if (cargosAdmin.includes(cargo)) {
+          linkLogin.textContent = 'Painel Administrativo';
+          linkLogin.href = 'admin/dashboard.html';
+        } else {
+          linkLogin.textContent = 'Meu Perfil';
+          linkLogin.href = 'perfil.html';
+        }
         linkCadastro.textContent = 'Sair';
         linkCadastro.href = '#';
         linkCadastro.addEventListener('click', async (e) => {
