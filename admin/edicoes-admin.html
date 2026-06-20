@@ -75,10 +75,26 @@
 
     let usuarioAtual = null;
 
-    protegerPagina([CARGOS.ADMINISTRADOR, CARGOS.EDITOR], (user, cargo, menu) => {
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens
+        .filter(item => item.cargos.includes(cargo))
+        .map(item => `<a href="${item.href}">${item.label}</a>`)
+        .join('');
+    }
+
+    protegerPagina([CARGOS.ADMIN, CARGOS.EDITOR], (user, cargo) => {
       usuarioAtual = user;
       document.getElementById('cargoAtual').textContent = cargo;
-      document.getElementById('menuAdmin').innerHTML = menu;
+      montarMenu(cargo);
       carregarEdicoes();
     });
 
