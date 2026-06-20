@@ -23,7 +23,7 @@
       <div class="header-meta">
         <span id="data-atual"></span>
         <span class="separator">|</span>
-        <span>Santana de Ipanema, Alagoas</span>
+        <span id="cidadeRegiao">Santana de Ipanema, Alagoas</span>
       </div>
       <nav class="header-links">
         <img id="avatarHeader" style="display:none;width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid #00cc66;">
@@ -38,8 +38,8 @@
         <span></span><span></span><span></span>
       </button>
       <div class="logo-area">
-        <h1 class="logo">Santana<span>.com</span></h1>
-        <p class="logo-tagline">A voz do Recôncavo Baiano</p>
+        <h1 class="logo"><span id="logoNome">Santana</span><span id="logoSufixo">.com</span></h1>
+        <p class="logo-tagline" id="logoTaglineTexto">A voz do Recôncavo Baiano</p>
       </div>
       <div class="header-search">
         <input type="text" placeholder="Buscar notícias…" id="searchInput">
@@ -280,7 +280,7 @@
   <footer class="site-footer">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo">Santana<span>.com</span></div>
+        <div class="footer-logo"><span id="logoNomeRodape">Santana</span><span id="logoSufixoRodape">.com</span></div>
         <p>O portal de notícias de Santana de Ipanema e do Sertão Alagoano. Jornalismo local com compromisso e responsabilidade.</p>
       </div>
       <div class="footer-nav">
@@ -307,12 +307,12 @@
       <div class="footer-social">
         <h4>Nos acompanhe</h4>
         <div class="social-icons footer-social-icons">
-          <a href="#" title="Facebook">f</a>
-          <a href="#" title="Instagram">in</a>
-          <a href="#" title="YouTube">▶</a>
-          <a href="#" title="WhatsApp">W</a>
+          <a href="#" id="linkFacebook" title="Facebook">f</a>
+          <a href="#" id="linkInstagram" title="Instagram">in</a>
+          <a href="#" id="linkYoutube" title="YouTube">▶</a>
+          <a href="#" id="linkWhatsapp" title="WhatsApp">W</a>
         </div>
-        <p class="footer-contact">contato@santana.com<br>(82) 9 9999-0000</p>
+        <p class="footer-contact" id="footerContato">contato@santana.com<br>(82) 9 9999-0000</p>
       </div>
     </div>
     <div class="footer-bottom">
@@ -445,6 +445,57 @@
     });
 
     carregarNoticias();
+  </script>
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    (async function carregarConfigGeral() {
+      try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'geral'));
+        const c = snap.data();
+
+        if (c.logoTexto) {
+          const partes = c.logoTexto.split('.');
+          const nome = partes[0] || c.logoTexto;
+          const sufixo = partes.length > 1 ? '.' + partes.slice(1).join('.') : '';
+          ['logoNome', 'logoNomeRodape'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = nome;
+          });
+          ['logoSufixo', 'logoSufixoRodape'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = sufixo;
+          });
+        }
+
+        const elTagline = document.getElementById('logoTaglineTexto');
+        if (elTagline && c.tagline) elTagline.textContent = c.tagline;
+
+        const elCidade = document.getElementById('cidadeRegiao');
+        if (elCidade && c.enderecoContato) elCidade.textContent = c.enderecoContato;
+
+        const elContato = document.getElementById('footerContato');
+        if (elContato && (c.emailContato || c.telefoneContato)) {
+          elContato.innerHTML = (c.emailContato || '') + (c.emailContato && c.telefoneContato ? '<br>' : '') + (c.telefoneContato || '');
+        }
+
+        const mapaRedes = {
+          linkFacebook: c.facebook,
+          linkInstagram: c.instagram,
+          linkYoutube: c.youtube,
+          linkWhatsapp: c.whatsapp
+        };
+        Object.entries(mapaRedes).forEach(([id, url]) => {
+          const el = document.getElementById(id);
+          if (el && url) {
+            el.href = url;
+            el.target = '_blank';
+            el.rel = 'noopener noreferrer';
+          }
+        });
+      } catch (e) { console.error('Erro ao carregar configuracoes gerais:', e); }
+    })();
   </script>
 </body>
 </html>
