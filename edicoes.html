@@ -57,6 +57,7 @@ async function carregar() {
 
     const capasPorNome = {};
     const dataLancamentoPorNome = {};
+    const descricaoPorNome = {};
     try {
       const snapEdicoes = await getDocs(collection(db, 'edicoes'));
       snapEdicoes.forEach(d => {
@@ -64,9 +65,10 @@ async function carregar() {
         if (ed.nome) {
           capasPorNome[ed.nome] = ed.capaUrl || null;
           dataLancamentoPorNome[ed.nome] = ed.dataLancamento || null;
+          descricaoPorNome[ed.nome] = ed.descricao || '';
         }
       });
-    } catch (e) { /* segue sem capas/datas se der erro */ }
+    } catch (e) { /* segue sem capas/datas/descricoes se der erro */ }
 
     const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '');
 
@@ -98,6 +100,7 @@ async function carregar() {
       const capaUrl = capasPorNome[nomeEdicao];
       const dataLanc = dataLancamentoPorNome[nomeEdicao];
       const dataExibida = dataLanc ? new Date(dataLanc + 'T00:00:00').toLocaleDateString('pt-BR') : formatarData(dataMaisRecente);
+      const descricaoEdicao = descricaoPorNome[nomeEdicao];
 
       bloco.innerHTML = `
         <div class="edicao-titulo">
@@ -107,6 +110,7 @@ async function carregar() {
             <span class="qtd" style="display:block;margin-top:4px;">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${dataExibida}</span>
           </div>
         </div>
+        ${descricaoEdicao ? `<p style="font-size:14px;color:#555;margin:-10px 0 18px;max-width:700px;">${descricaoEdicao}</p>` : ''}
         <div class="grid"></div>
       `;
 
