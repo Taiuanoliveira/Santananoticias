@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edições – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Edições</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <div id="mensagemErro" class="auth-msg erro" style="display:none;"></div>
+        <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
+
+        <form id="formEdicao" class="form-noticia">
+          <label for="nomeEdicao">Nome da edição</label>
+          <input type="text" id="nomeEdicao" required placeholder="Ex: Edição 1, Edição Especial Junho">
+
+          <label for="temaEdicao">Tema / categoria principal</label>
+          <select id="temaEdicao" required>
+            <option value="">Selecione...</option>
+            <option value="politica">Política</option>
+            <option value="economia">Economia</option>
+            <option value="regional">Regional</option>
+            <option value="agro">Agro</option>
+            <option value="esportes">Esportes</option>
+            <option value="cultura">Cultura</option>
+            <option value="saude">Saúde</option>
+            <option value="geral">Geral / Variados</option>
+          </select>
+
+          <label for="descricaoEdicao">Descrição (opcional)</label>
+          <textarea id="descricaoEdicao" rows="2" placeholder="Breve descrição sobre esta edição"></textarea>
+
+          <div class="form-acoes">
+            <button type="button" class="btn-primario" onclick="criarEdicao()">Criar edição</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">Edições existentes</h2>
+        <div id="listaEdicoes">Carregando...</div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    let usuarioAtual = null;
+
+    protegerPagina([CARGOS.ADMINISTRADOR, CARGOS.EDITOR], (user, cargo, menu) => {
+      usuarioAtual = user;
+      document.getElementById('cargoAtual').textContent = cargo;
+      document.getElementById('menuAdmin').innerHTML = menu;
+      carregarEdicoes();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../index.html';
+    });
+
+    function mostrarErro(texto) {
+      const el = document.getElementById('mensagemErro');
+      document.getElementById('mensagemSucesso').style.display = 'none';
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('mensagemSucesso');
+      document.getElementById('mensagemErro').style.display = 'none';
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    window.criarEdicao = async function() {
+      const nome = document.getElementById('nomeEdicao').value.trim();
+      const tema = document.getElementById('temaEdicao').value;
+      const descricao = document.getElementById('descricaoEdicao').value.trim();
+
+      if (!nome || !tema) {
+        mostrarErro('Preencha ao menos o nome e o tema da edição.');
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, 'edicoes'), {
+          nome, tema, descricao,
+          criadoEm: new Date().toISOString(),
+          criadoPor: usuarioAtual.displayName || usuarioAtual.email
+        });
+        mostrarSucesso('Edição criada com sucesso!');
+        document.getElementById('formEdicao').reset();
+        carregarEdicoes();
+      } catch (err) {
+        mostrarErro('Erro ao criar edição: ' + err.message);
+      }
+    };
+
+    async function carregarEdicoes() {
+      const container = document.getElementById('listaEdicoes');
+      try {
+        const q = query(collection(db, 'edicoes'), orderBy('criadoEm', 'desc'));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          container.innerHTML = '<p style="color:#777;font-size:13px;">Nenhuma edição criada ainda.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(d => {
+          const ed = d.data();
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:14px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;';
+          div.innerHTML = `
+            <div>
+              <strong>${ed.nome}</strong>
+              <div style="font-size:12px;color:#777;">${ed.tema} ${ed.descricao ? '— ' + ed.descricao : ''}</div>
+            </div>
+            <button data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-size:12px;font-weight:600;text-transform:uppercase;cursor:pointer;">Excluir</button>
+          `;
+          div.querySelector('button').addEventListener('click', async () => {
+            if (confirm('Excluir a edição "' + ed.nome + '"? Os artigos já escritos não serão apagados.')) {
+              await deleteDoc(doc(db, 'edicoes', d.id));
+              carregarEdicoes();
+            }
+          });
+          container.appendChild(div);
+        });
+      } catch (err) {
+        container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar edições: ' + err.message + '</p>';
+      }
+    }
+  </script>
+</body>
+</html>
