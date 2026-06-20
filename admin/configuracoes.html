@@ -81,8 +81,137 @@
       </section>
 
       <section class="admin-bloco">
+        <h2>Faixa de notícias urgentes</h2>
+        <p class="admin-explicacao">Uma manchete por linha. Elas ficam rolando na faixa "URGENTE" no topo do site.</p>
+        <form id="formUrgente" class="form-noticia">
+          <textarea id="breakingNews" rows="5" placeholder="Câmara Municipal aprova novo plano diretor da cidade
+Produção agrícola do município bate recorde histórico"></textarea>
+          <button type="submit" class="btn-auth">Salvar faixa de notícias</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Editorial da Semana</h2>
+        <p class="admin-explicacao">O texto de opinião e o autor que aparecem na página inicial.</p>
+        <form id="formEditorial" class="form-noticia">
+          <label for="editorialTitulo">Título do editorial</label>
+          <input type="text" id="editorialTitulo" placeholder="O papel da imprensa local...">
+
+          <label for="editorialTexto">Texto do editorial</label>
+          <textarea id="editorialTexto" rows="5" placeholder="Texto completo do editorial..."></textarea>
+
+          <label for="editorialLink">Link "Leia o editorial completo" (opcional)</label>
+          <input type="url" id="editorialLink" placeholder="https://...">
+
+          <label for="editorialAutorNome">Nome do autor</label>
+          <input type="text" id="editorialAutorNome" placeholder="João Santana">
+
+          <label for="editorialAutorCargo">Cargo do autor</label>
+          <input type="text" id="editorialAutorCargo" placeholder="Editor-Chefe">
+
+          <label for="editorialAutorBio">Mini biografia do autor</label>
+          <textarea id="editorialAutorBio" rows="3" placeholder="Jornalista há 20 anos..."></textarea>
+
+          <label for="editorialAutorFoto">Foto do autor (opcional)</label>
+          <input type="file" id="editorialAutorFoto" accept="image/*">
+
+          <button type="submit" class="btn-auth">Salvar editorial</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Ranking "Em Alta"</h2>
+        <p class="admin-explicacao">As manchetes da lista lateral "Em Alta". A ordem de cadastro define a ordem na lista.</p>
+        <div id="listaEmAlta" class="lista-categorias"></div>
+        <div class="add-categoria add-item-duplo">
+          <input type="text" id="novoEmAltaTitulo" placeholder="Título da manchete">
+          <input type="url" id="novoEmAltaLink" placeholder="Link (opcional)">
+          <button id="btnAddEmAlta" class="btn-mini">Adicionar</button>
+        </div>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Publicidade (lateral)</h2>
+        <p class="admin-explicacao">O quadro de anúncio que aparece na coluna lateral da página inicial.</p>
+        <form id="formAd" class="form-noticia">
+          <label for="adTitulo">Título</label>
+          <input type="text" id="adTitulo" placeholder="Seu anúncio aqui">
+
+          <label for="adTexto">Texto</label>
+          <input type="text" id="adTexto" placeholder="Fale com nossa equipe comercial">
+
+          <label for="adLink">Link do anúncio (opcional)</label>
+          <input type="url" id="adLink" placeholder="https://...">
+
+          <label for="adImagem">Imagem do anúncio (opcional)</label>
+          <input type="file" id="adImagem" accept="image/*">
+
+          <button type="submit" class="btn-auth">Salvar publicidade</button>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Agronegócio Regional</h2>
+        <p class="admin-explicacao">Os cards da seção de Agronegócio. Use um emoji como ícone (ex: 🌾).</p>
+        <div id="listaAgro" class="lista-categorias"></div>
+        <div class="add-categoria add-item-multi">
+          <input type="text" id="novoAgroIcone" placeholder="Ícone (emoji)" maxlength="4">
+          <input type="text" id="novoAgroTitulo" placeholder="Título">
+          <input type="text" id="novoAgroDescricao" placeholder="Descrição curta">
+          <input type="url" id="novoAgroLink" placeholder="Link (opcional)">
+          <button id="btnAddAgro" class="btn-mini">Adicionar</button>
+        </div>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Nossa Equipe</h2>
+        <p class="admin-explicacao">Quem aparece na seção "Nossa Equipe" da página inicial.</p>
+        <div id="listaEquipe" class="lista-categorias"></div>
+        <div class="add-categoria add-item-multi">
+          <input type="text" id="novoEquipeNome" placeholder="Nome">
+          <input type="text" id="novoEquipeCargo" placeholder="Cargo">
+          <input type="file" id="novoEquipeFoto" accept="image/*">
+          <button id="btnAddEquipe" class="btn-mini">Adicionar</button>
+        </div>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Serviços</h2>
+        <p class="admin-explicacao">Os cards de serviços oferecidos (publicidade, eventos, marketing, etc). Use um emoji como ícone.</p>
+        <div id="listaServicos" class="lista-categorias"></div>
+        <div class="add-categoria add-item-multi">
+          <input type="text" id="novoServicoIcone" placeholder="Ícone (emoji)" maxlength="4">
+          <input type="text" id="novoServicoTitulo" placeholder="Título">
+          <input type="text" id="novoServicoDescricao" placeholder="Descrição curta">
+          <input type="url" id="novoServicoLink" placeholder="Link (opcional)">
+          <button id="btnAddServico" class="btn-mini">Adicionar</button>
+        </div>
+      </section>
+
+      <section class="admin-bloco">
+        <h2>Rodapé</h2>
+        <form id="formRodape" class="form-noticia">
+          <label for="footerDescricao">Descrição da empresa (rodapé)</label>
+          <textarea id="footerDescricao" rows="3" placeholder="O portal de notícias de..."></textarea>
+
+          <label for="footerCnpj">CNPJ</label>
+          <input type="text" id="footerCnpj" placeholder="00.000.000/0001-00">
+
+          <button type="submit" class="btn-auth">Salvar rodapé</button>
+        </form>
+        <p class="admin-explicacao" style="margin-top:16px;">Links institucionais do rodapé (ex: Sobre nós, Política de Privacidade):</p>
+        <div id="listaInstitucional" class="lista-categorias"></div>
+        <div class="add-categoria">
+          <input type="text" id="novoInstitucionalTitulo" placeholder="Título do link">
+          <input type="url" id="novoInstitucionalLink" placeholder="Link">
+          <button id="btnAddInstitucional" class="btn-mini">Adicionar</button>
+        </div>
+        <p class="admin-explicacao" style="margin-top:12px;">A lista "Editorias" do rodapé é a mesma cadastrada em "Categorias do portal", lá embaixo.</p>
+      </section>
+
+      <section class="admin-bloco">
         <h2>Categorias do portal</h2>
-        <p class="admin-explicacao">Adicione ou remova as categorias usadas no menu e nas notícias.</p>
+        <p class="admin-explicacao">Adicione ou remova as categorias usadas no menu, nas notícias e no rodapé.</p>
         <div id="listaCategorias" class="lista-categorias"></div>
         <div class="add-categoria">
           <input type="text" id="novaCategoria" placeholder="Nome da nova categoria">
@@ -94,7 +223,7 @@
 
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
-    import { db, storage } from "../js/firebase-config.js";
+    import { db } from "../js/firebase-config.js";
     import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { enviarImagemCloudinary } from "../js/cloudinary.js";
 
@@ -102,6 +231,11 @@
       montarMenu(cargo);
       await carregarConfiguracoes();
       await carregarCategorias();
+      await listaEmAlta.carregar();
+      await listaAgro.carregar();
+      await listaEquipe.carregar();
+      await listaServicos.carregar();
+      await listaInstitucional.carregar();
     });
 
     function montarMenu(cargo) {
@@ -134,6 +268,18 @@
       if (c.instagram) document.getElementById('instagram').value = c.instagram;
       if (c.youtube) document.getElementById('youtube').value = c.youtube;
       if (c.whatsapp) document.getElementById('whatsapp').value = c.whatsapp;
+      if (c.breakingNews) document.getElementById('breakingNews').value = c.breakingNews;
+      if (c.editorialTitulo) document.getElementById('editorialTitulo').value = c.editorialTitulo;
+      if (c.editorialTexto) document.getElementById('editorialTexto').value = c.editorialTexto;
+      if (c.editorialLink) document.getElementById('editorialLink').value = c.editorialLink;
+      if (c.editorialAutorNome) document.getElementById('editorialAutorNome').value = c.editorialAutorNome;
+      if (c.editorialAutorCargo) document.getElementById('editorialAutorCargo').value = c.editorialAutorCargo;
+      if (c.editorialAutorBio) document.getElementById('editorialAutorBio').value = c.editorialAutorBio;
+      if (c.adTitulo) document.getElementById('adTitulo').value = c.adTitulo;
+      if (c.adTexto) document.getElementById('adTexto').value = c.adTexto;
+      if (c.adLink) document.getElementById('adLink').value = c.adLink;
+      if (c.footerDescricao) document.getElementById('footerDescricao').value = c.footerDescricao;
+      if (c.footerCnpj) document.getElementById('footerCnpj').value = c.footerCnpj;
     }
 
     async function salvarCampo(campos) {
@@ -149,16 +295,12 @@
 
       const logoArquivo = document.getElementById('logoImagem').files[0];
       if (logoArquivo) {
-        const r = ref(storage, `site/logo_${Date.now()}_${logoArquivo.name}`);
-        await uploadBytes(r, logoArquivo);
-        dados.logoUrl = await getDownloadURL(r);
+        dados.logoUrl = await enviarImagemCloudinary(logoArquivo);
       }
 
       const bannerArquivo = document.getElementById('bannerImagem').files[0];
       if (bannerArquivo) {
-        const r = ref(storage, `site/banner_${Date.now()}_${bannerArquivo.name}`);
-        await uploadBytes(r, bannerArquivo);
-        dados.bannerUrl = await getDownloadURL(r);
+        dados.bannerUrl = await enviarImagemCloudinary(bannerArquivo);
       }
 
       await salvarCampo(dados);
@@ -184,6 +326,160 @@
         whatsapp: document.getElementById('whatsapp').value.trim()
       });
       mostrarSucesso('Redes sociais salvas!');
+    });
+
+    document.getElementById('formUrgente').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await salvarCampo({
+        breakingNews: document.getElementById('breakingNews').value.trim()
+      });
+      mostrarSucesso('Faixa de notícias salva!');
+    });
+
+    document.getElementById('formEditorial').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dados = {
+        editorialTitulo: document.getElementById('editorialTitulo').value.trim(),
+        editorialTexto: document.getElementById('editorialTexto').value.trim(),
+        editorialLink: document.getElementById('editorialLink').value.trim(),
+        editorialAutorNome: document.getElementById('editorialAutorNome').value.trim(),
+        editorialAutorCargo: document.getElementById('editorialAutorCargo').value.trim(),
+        editorialAutorBio: document.getElementById('editorialAutorBio').value.trim()
+      };
+      const foto = document.getElementById('editorialAutorFoto').files[0];
+      if (foto) dados.editorialAutorFotoUrl = await enviarImagemCloudinary(foto);
+      await salvarCampo(dados);
+      mostrarSucesso('Editorial salvo!');
+    });
+
+    document.getElementById('formAd').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const dados = {
+        adTitulo: document.getElementById('adTitulo').value.trim(),
+        adTexto: document.getElementById('adTexto').value.trim(),
+        adLink: document.getElementById('adLink').value.trim()
+      };
+      const imagem = document.getElementById('adImagem').files[0];
+      if (imagem) dados.adImagemUrl = await enviarImagemCloudinary(imagem);
+      await salvarCampo(dados);
+      mostrarSucesso('Publicidade salva!');
+    });
+
+    document.getElementById('formRodape').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await salvarCampo({
+        footerDescricao: document.getElementById('footerDescricao').value.trim(),
+        footerCnpj: document.getElementById('footerCnpj').value.trim()
+      });
+      mostrarSucesso('Rodapé salvo!');
+    });
+
+    // --- Função genérica pra listas simples (estilo "categorias") ---
+    function criarListaSimples({ colecao, elementoLista, montarLinha }) {
+      async function carregar() {
+        const lista = document.getElementById(elementoLista);
+        const snap = await getDocs(collection(db, colecao));
+        if (snap.empty) {
+          lista.innerHTML = '<p class="admin-vazio">Nada cadastrado ainda.</p>';
+          return;
+        }
+        lista.innerHTML = snap.docs.map(d => `
+          <div class="categoria-item">
+            <span>${montarLinha(d.data())}</span>
+            <button class="btn-mini btn-excluir" data-id="${d.id}">Remover</button>
+          </div>
+        `).join('');
+        lista.querySelectorAll('.btn-excluir').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            await deleteDoc(doc(db, colecao, btn.dataset.id));
+            await carregar();
+          });
+        });
+      }
+      return { carregar };
+    }
+
+    const listaEmAlta = criarListaSimples({
+      colecao: 'emAlta', elementoLista: 'listaEmAlta',
+      montarLinha: (d) => d.titulo
+    });
+    const listaAgro = criarListaSimples({
+      colecao: 'agro', elementoLista: 'listaAgro',
+      montarLinha: (d) => `${d.icone || ''} ${d.titulo}`
+    });
+    const listaEquipe = criarListaSimples({
+      colecao: 'equipe', elementoLista: 'listaEquipe',
+      montarLinha: (d) => `${d.nome} — ${d.cargo}`
+    });
+    const listaServicos = criarListaSimples({
+      colecao: 'servicos', elementoLista: 'listaServicos',
+      montarLinha: (d) => `${d.icone || ''} ${d.titulo}`
+    });
+    const listaInstitucional = criarListaSimples({
+      colecao: 'institucional', elementoLista: 'listaInstitucional',
+      montarLinha: (d) => d.titulo
+    });
+
+    document.getElementById('btnAddEmAlta').addEventListener('click', async () => {
+      const titulo = document.getElementById('novoEmAltaTitulo').value.trim();
+      if (!titulo) return;
+      const link = document.getElementById('novoEmAltaLink').value.trim();
+      await addDoc(collection(db, 'emAlta'), { titulo, link: link || '#' });
+      document.getElementById('novoEmAltaTitulo').value = '';
+      document.getElementById('novoEmAltaLink').value = '';
+      await listaEmAlta.carregar();
+    });
+
+    document.getElementById('btnAddAgro').addEventListener('click', async () => {
+      const titulo = document.getElementById('novoAgroTitulo').value.trim();
+      if (!titulo) return;
+      const icone = document.getElementById('novoAgroIcone').value.trim();
+      const descricao = document.getElementById('novoAgroDescricao').value.trim();
+      const link = document.getElementById('novoAgroLink').value.trim();
+      await addDoc(collection(db, 'agro'), { icone, titulo, descricao, link: link || '#' });
+      document.getElementById('novoAgroIcone').value = '';
+      document.getElementById('novoAgroTitulo').value = '';
+      document.getElementById('novoAgroDescricao').value = '';
+      document.getElementById('novoAgroLink').value = '';
+      await listaAgro.carregar();
+    });
+
+    document.getElementById('btnAddEquipe').addEventListener('click', async () => {
+      const nome = document.getElementById('novoEquipeNome').value.trim();
+      if (!nome) return;
+      const cargo = document.getElementById('novoEquipeCargo').value.trim();
+      const arquivoFoto = document.getElementById('novoEquipeFoto').files[0];
+      const dados = { nome, cargo };
+      if (arquivoFoto) dados.fotoUrl = await enviarImagemCloudinary(arquivoFoto);
+      await addDoc(collection(db, 'equipe'), dados);
+      document.getElementById('novoEquipeNome').value = '';
+      document.getElementById('novoEquipeCargo').value = '';
+      document.getElementById('novoEquipeFoto').value = '';
+      await listaEquipe.carregar();
+    });
+
+    document.getElementById('btnAddServico').addEventListener('click', async () => {
+      const titulo = document.getElementById('novoServicoTitulo').value.trim();
+      if (!titulo) return;
+      const icone = document.getElementById('novoServicoIcone').value.trim();
+      const descricao = document.getElementById('novoServicoDescricao').value.trim();
+      const link = document.getElementById('novoServicoLink').value.trim();
+      await addDoc(collection(db, 'servicos'), { icone, titulo, descricao, link: link || '#' });
+      document.getElementById('novoServicoIcone').value = '';
+      document.getElementById('novoServicoTitulo').value = '';
+      document.getElementById('novoServicoDescricao').value = '';
+      document.getElementById('novoServicoLink').value = '';
+      await listaServicos.carregar();
+    });
+
+    document.getElementById('btnAddInstitucional').addEventListener('click', async () => {
+      const titulo = document.getElementById('novoInstitucionalTitulo').value.trim();
+      if (!titulo) return;
+      const link = document.getElementById('novoInstitucionalLink').value.trim();
+      await addDoc(collection(db, 'institucional'), { titulo, link: link || '#' });
+      document.getElementById('novoInstitucionalTitulo').value = '';
+      document.getElementById('novoInstitucionalLink').value = '';
+      await listaInstitucional.carregar();
     });
 
     async function carregarCategorias() {

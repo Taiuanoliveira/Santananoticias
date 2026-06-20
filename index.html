@@ -13,7 +13,7 @@
   <div class="breaking-bar">
     <span class="breaking-label">URGENTE</span>
     <div class="breaking-scroll">
-      <span>Câmara Municipal aprova novo plano diretor da cidade &nbsp;•&nbsp; Produção agrícola do município bate recorde histórico &nbsp;•&nbsp; Prefeitura anuncia obra de pavimentação para bairros da periferia &nbsp;•&nbsp; Festival Regional de Cultura volta a ser realizado após dois anos</span>
+      <span id="breakingScrollTexto">Câmara Municipal aprova novo plano diretor da cidade &nbsp;•&nbsp; Produção agrícola do município bate recorde histórico &nbsp;•&nbsp; Prefeitura anuncia obra de pavimentação para bairros da periferia &nbsp;•&nbsp; Festival Regional de Cultura volta a ser realizado após dois anos</span>
     </div>
   </div>
 
@@ -119,7 +119,7 @@
 
         <div class="widget">
           <div class="widget-title">Em Alta</div>
-          <ol class="ranking-list">
+          <ol class="ranking-list" id="rankingList">
             <li>
               <span class="ranking-num">01</span>
               <a href="#">Prefeito anuncia novo secretariado para segundo semestre</a>
@@ -150,7 +150,7 @@
           <button>Assinar Newsletter</button>
         </div>
 
-        <div class="widget">
+        <div class="widget" id="widgetPublicidade">
           <div class="widget-title">Publicidade</div>
           <div class="ad-placeholder">
             <span>Seu anúncio aqui</span>
@@ -166,7 +166,7 @@
       <span>Editorial da Semana</span>
     </div>
 
-    <section class="editorial-section">
+    <section class="editorial-section" id="editorialSection">
       <div class="editorial-card">
         <div class="eyebrow">&#9997; Editorial</div>
         <h2>O papel da imprensa local no fortalecimento da democracia municipal</h2>
@@ -187,7 +187,7 @@
     </div>
 
     <section class="agro-section">
-      <div class="agro-grid">
+      <div class="agro-grid" id="agroGrid">
         <article class="agro-card destaque">
           <div class="agro-icon">&#127807;</div>
           <span class="tag-categoria agro">Agro</span>
@@ -222,7 +222,7 @@
     </div>
 
     <section class="equipe-section">
-      <div class="equipe-grid">
+      <div class="equipe-grid" id="equipeGrid">
         <div class="equipe-card">
           <div class="equipe-avatar"></div>
           <strong>João Santana</strong>
@@ -252,7 +252,7 @@
     </div>
 
     <section class="servicos-section">
-      <div class="servicos-grid">
+      <div class="servicos-grid" id="servicosGrid">
         <div class="servico-card">
           <div class="servico-icon">&#128227;</div>
           <h3>Publicidade Comercial</h3>
@@ -281,11 +281,11 @@
     <div class="footer-top">
       <div class="footer-brand">
         <div class="footer-logo"><span id="logoNomeRodape">Santana</span><span id="logoSufixoRodape">.com</span></div>
-        <p>O portal de notícias de Santana de Ipanema e do Sertão Alagoano. Jornalismo local com compromisso e responsabilidade.</p>
+        <p id="footerDescricaoTexto">O portal de notícias de Santana de Ipanema e do Sertão Alagoano. Jornalismo local com compromisso e responsabilidade.</p>
       </div>
       <div class="footer-nav">
         <h4>Editorias</h4>
-        <ul>
+        <ul id="footerEditoriasLista">
           <li><a href="#">Política</a></li>
           <li><a href="#">Economia</a></li>
           <li><a href="#">Regional</a></li>
@@ -296,7 +296,7 @@
       </div>
       <div class="footer-nav">
         <h4>Institucional</h4>
-        <ul>
+        <ul id="footerInstitucionalLista">
           <li><a href="#">Sobre nós</a></li>
           <li><a href="#">Nossa Equipe</a></li>
           <li><a href="#">Fale Conosco</a></li>
@@ -317,7 +317,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2026 Santana.com – Todos os direitos reservados</span>
-      <span>CNPJ: 00.000.000/0001-00</span>
+      <span id="footerCnpjTexto">CNPJ: 00.000.000/0001-00</span>
     </div>
   </footer>
 
@@ -448,12 +448,12 @@
   </script>
   <script type="module">
     import { db } from './js/firebase-config.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { doc, getDoc, getDocs, collection } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     (async function carregarConfigGeral() {
       try {
         const snap = await getDoc(doc(db, 'configuracoes', 'geral'));
-        const c = snap.data();
+        const c = snap.data() || {};
 
         if (c.logoTexto) {
           const partes = c.logoTexto.split('.');
@@ -494,6 +494,154 @@
             el.rel = 'noopener noreferrer';
           }
         });
+
+        // --- Faixa de notícias urgentes ---
+        if (c.breakingNews) {
+          const linhas = c.breakingNews.split('\n').map(l => l.trim()).filter(Boolean);
+          const elBreaking = document.getElementById('breakingScrollTexto');
+          if (elBreaking && linhas.length) elBreaking.innerHTML = linhas.join(' &nbsp;•&nbsp; ');
+        }
+
+        // --- Editorial da Semana ---
+        if (c.editorialTitulo || c.editorialTexto || c.editorialAutorNome) {
+          const sec = document.getElementById('editorialSection');
+          if (sec) {
+            const linkHtml = c.editorialLink
+              ? `<a href="${c.editorialLink}" class="btn-leia-mais secundario" target="_blank" rel="noopener noreferrer">Leia o editorial completo →</a>`
+              : '';
+            const fotoStyle = c.editorialAutorFotoUrl
+              ? ` style="background-image:url('${c.editorialAutorFotoUrl}');background-size:cover;"`
+              : '';
+            sec.innerHTML = `
+              <div class="editorial-card">
+                <div class="eyebrow">&#9997; Editorial</div>
+                <h2>${c.editorialTitulo || ''}</h2>
+                <p>${c.editorialTexto || ''}</p>
+                ${linkHtml}
+              </div>
+              <div class="editorial-author">
+                <div class="author-avatar"${fotoStyle}></div>
+                <strong>${c.editorialAutorNome || ''}</strong>
+                <span>${c.editorialAutorCargo || ''}</span>
+                <p class="author-bio">${c.editorialAutorBio || ''}</p>
+              </div>
+            `;
+          }
+        }
+
+        // --- Publicidade (lateral) ---
+        if (c.adTitulo || c.adTexto || c.adImagemUrl || c.adLink) {
+          const widget = document.getElementById('widgetPublicidade');
+          if (widget) {
+            let interno = c.adImagemUrl
+              ? `<img src="${c.adImagemUrl}" alt="${c.adTitulo || 'Publicidade'}" style="width:100%;border-radius:4px;display:block;">`
+              : `<div class="ad-placeholder"><span>${c.adTitulo || 'Seu anúncio aqui'}</span><small>${c.adTexto || ''}</small></div>`;
+            if (c.adLink) interno = `<a href="${c.adLink}" target="_blank" rel="noopener noreferrer">${interno}</a>`;
+            widget.innerHTML = `<div class="widget-title">Publicidade</div>${interno}`;
+          }
+        }
+
+        // --- Ranking "Em Alta" ---
+        const snapEmAlta = await getDocs(collection(db, 'emAlta'));
+        if (!snapEmAlta.empty) {
+          const ranking = document.getElementById('rankingList');
+          if (ranking) {
+            ranking.innerHTML = snapEmAlta.docs.map((d, i) => {
+              const item = d.data();
+              return `<li><span class="ranking-num">${String(i + 1).padStart(2, '0')}</span><a href="${item.link || '#'}">${item.titulo}</a></li>`;
+            }).join('');
+          }
+        }
+
+        // --- Agronegócio Regional ---
+        const snapAgro = await getDocs(collection(db, 'agro'));
+        if (!snapAgro.empty) {
+          const grid = document.getElementById('agroGrid');
+          if (grid) {
+            grid.innerHTML = snapAgro.docs.map((d, i) => {
+              const item = d.data();
+              return `
+                <article class="agro-card ${i === 0 ? 'destaque' : ''}">
+                  ${item.icone ? `<div class="agro-icon">${item.icone}</div>` : ''}
+                  <span class="tag-categoria agro">Agro</span>
+                  <h3>${item.titulo}</h3>
+                  ${item.descricao ? `<p>${item.descricao}</p>` : ''}
+                  <a href="${item.link || '#'}">Leia mais →</a>
+                </article>
+              `;
+            }).join('');
+          }
+        }
+
+        // --- Nossa Equipe ---
+        const snapEquipe = await getDocs(collection(db, 'equipe'));
+        if (!snapEquipe.empty) {
+          const grid = document.getElementById('equipeGrid');
+          if (grid) {
+            grid.innerHTML = snapEquipe.docs.map(d => {
+              const item = d.data();
+              const avatarStyle = item.fotoUrl ? ` style="background-image:url('${item.fotoUrl}');background-size:cover;"` : '';
+              return `
+                <div class="equipe-card">
+                  <div class="equipe-avatar"${avatarStyle}></div>
+                  <strong>${item.nome}</strong>
+                  <span>${item.cargo || ''}</span>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        // --- Serviços ---
+        const snapServicos = await getDocs(collection(db, 'servicos'));
+        if (!snapServicos.empty) {
+          const grid = document.getElementById('servicosGrid');
+          if (grid) {
+            grid.innerHTML = snapServicos.docs.map(d => {
+              const item = d.data();
+              return `
+                <div class="servico-card">
+                  ${item.icone ? `<div class="servico-icon">${item.icone}</div>` : ''}
+                  <h3>${item.titulo}</h3>
+                  ${item.descricao ? `<p>${item.descricao}</p>` : ''}
+                  <a href="${item.link || '#'}" class="btn-servico">Saiba mais</a>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        // --- Rodapé: descrição e CNPJ ---
+        const elFooterDesc = document.getElementById('footerDescricaoTexto');
+        if (elFooterDesc && c.footerDescricao) elFooterDesc.textContent = c.footerDescricao;
+
+        const elFooterCnpj = document.getElementById('footerCnpjTexto');
+        if (elFooterCnpj && c.footerCnpj) elFooterCnpj.textContent = 'CNPJ: ' + c.footerCnpj;
+
+        // --- Rodapé: Editorias (reaproveita as categorias do portal) ---
+        const snapCategorias = await getDocs(collection(db, 'categorias'));
+        if (!snapCategorias.empty) {
+          const listaEditorias = document.getElementById('footerEditoriasLista');
+          if (listaEditorias) {
+            listaEditorias.innerHTML = snapCategorias.docs.map(d => {
+              const nome = d.data().nome;
+              const slug = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+              return `<li><a href="categoria.html?c=${slug}">${nome}</a></li>`;
+            }).join('');
+          }
+        }
+
+        // --- Rodapé: Institucional ---
+        const snapInstitucional = await getDocs(collection(db, 'institucional'));
+        if (!snapInstitucional.empty) {
+          const listaInst = document.getElementById('footerInstitucionalLista');
+          if (listaInst) {
+            listaInst.innerHTML = snapInstitucional.docs.map(d => {
+              const item = d.data();
+              return `<li><a href="${item.link || '#'}">${item.titulo}</a></li>`;
+            }).join('');
+          }
+        }
       } catch (e) { console.error('Erro ao carregar configuracoes gerais:', e); }
     })();
   </script>
