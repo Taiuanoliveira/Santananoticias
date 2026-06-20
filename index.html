@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Santana.com – Notícias de Santana de Ipanema e Região</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- BREAKING NEWS BAR -->
+  <div class="breaking-bar">
+    <span class="breaking-label">URGENTE</span>
+    <div class="breaking-scroll">
+      <span>Câmara Municipal aprova novo plano diretor da cidade &nbsp;•&nbsp; Produção agrícola do município bate recorde histórico &nbsp;•&nbsp; Prefeitura anuncia obra de pavimentação para bairros da periferia &nbsp;•&nbsp; Festival Regional de Cultura volta a ser realizado após dois anos</span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="header-top">
+      <div class="header-meta">
+        <span id="data-atual"></span>
+        <span class="separator">|</span>
+        <span id="cidadeRegiao">Santana de Ipanema, Alagoas</span>
+      </div>
+      <nav class="header-links">
+        <img id="avatarHeader" style="display:none;width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid #00cc66;">
+        <a href="login.html" id="linkLogin">Entrar</a>
+        <a href="cadastro.html" id="linkCadastro">Cadastre-se</a>
+        <a href="#contato">Fale Conosco</a>
+      </nav>
+    </div>
+
+    <div class="header-main">
+      <button class="menu-toggle" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="logo-area">
+        <h1 class="logo"><span id="logoNome">Santana</span><span id="logoSufixo">.com</span></h1>
+        <p class="logo-tagline" id="logoTaglineTexto">A voz do Recôncavo Baiano</p>
+      </div>
+      <div class="header-search">
+        <input type="text" placeholder="Buscar notícias…" id="searchInput">
+        <button onclick="window.buscar && window.buscar()">&#128269;</button>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html" class="active">Início</a></li>
+        <li><a href="categoria.html?c=politica">Política</a></li>
+        <li><a href="categoria.html?c=economia">Economia</a></li>
+        <li><a href="categoria.html?c=regional">Regional</a></li>
+        <li><a href="categoria.html?c=agro">Agro</a></li>
+        <li><a href="categoria.html?c=esportes">Esportes</a></li>
+        <li><a href="categoria.html?c=cultura">Cultura</a></li>
+        <li><a href="categoria.html?c=saude">Saúde</a></li>
+        <li><a href="categoria.html?c=tecnologia">Tecnologia</a></li>
+        <li><a href="categoria.html?c=educacao">Educação</a></li>
+        <li><a href="categoria.html?c=entretenimento">Entretenimento</a></li>
+        <li><a href="categoria.html?c=brasil-mundo">Brasil/Mundo</a></li>
+        <li><a href="#editorial-secao">Editorial</a></li>
+        <li><a href="#servicos-secao">Serviços</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <button class="sidebar-close" onclick="toggleMenu()">✕</button>
+    <div class="sidebar-logo">Santana.com</div>
+    <nav class="sidebar-nav">
+      <a href="#">&#127968; Início</a>
+      <a href="#">&#128240; Últimas Notícias</a>
+      <a href="#">&#128293; Em Alta</a>
+      <a href="#">&#127963; Política</a>
+      <a href="#">&#128200; Economia</a>
+      <a href="#">&#127807; Agro</a>
+      <a href="#">&#9917; Esportes</a>
+      <a href="#">&#127925; Cultura</a>
+      <a href="#">&#10084; Saúde</a>
+      <a href="#">&#9997; Editorial</a>
+      <a href="#">&#128101; Equipe</a>
+      <a href="#">&#128295; Serviços</a>
+    </nav>
+    <div class="sidebar-social">
+      <p>Nos siga</p>
+      <div class="social-icons">
+        <a href="#" title="Facebook">f</a>
+        <a href="#" title="Instagram">in</a>
+        <a href="#" title="YouTube">▶</a>
+        <a href="#" title="WhatsApp">W</a>
+      </div>
+    </div>
+  </aside>
+  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+  <!-- HERO / MANCHETE PRINCIPAL -->
+  <main>
+    <section class="hero-section" id="heroSection">
+      <p class="admin-carregando">Carregando manchete...</p>
+    </section>
+
+    <!-- LINHA DIVISÓRIA -->
+    <div class="section-divider">
+      <span>Últimas Notícias</span>
+    </div>
+
+    <!-- GRID DE NOTÍCIAS -->
+    <section class="news-grid-section">
+      <div class="news-grid" id="newsGrid">
+        <p class="admin-carregando">Carregando notícias...</p>
+      </div>
+
+      <!-- COLUNA LATERAL -->
+      <aside class="sidebar-content">
+
+        <div class="widget">
+          <div class="widget-title">Em Alta</div>
+          <ol class="ranking-list">
+            <li>
+              <span class="ranking-num">01</span>
+              <a href="#">Prefeito anuncia novo secretariado para segundo semestre</a>
+            </li>
+            <li>
+              <span class="ranking-num">02</span>
+              <a href="#">Chuvas voltam ao sertão e aliviam situação hídrica</a>
+            </li>
+            <li>
+              <span class="ranking-num">03</span>
+              <a href="#">Escola pública ganha laboratório de informática</a>
+            </li>
+            <li>
+              <span class="ranking-num">04</span>
+              <a href="#">Time local disputa final estadual neste sábado</a>
+            </li>
+            <li>
+              <span class="ranking-num">05</span>
+              <a href="#">Mercado municipal passa por reforma e reabre em julho</a>
+            </li>
+          </ol>
+        </div>
+
+        <div class="widget newsletter-widget">
+          <div class="widget-title">Receba nossas notícias</div>
+          <p>Cadastre seu e-mail e fique por dentro do que acontece em Santana e região.</p>
+          <input type="email" placeholder="seu@email.com">
+          <button>Assinar Newsletter</button>
+        </div>
+
+        <div class="widget">
+          <div class="widget-title">Publicidade</div>
+          <div class="ad-placeholder">
+            <span>Seu anúncio aqui</span>
+            <small>Fale com nossa equipe comercial</small>
+          </div>
+        </div>
+
+      </aside>
+    </section>
+
+    <!-- SEÇÃO EDITORIAL -->
+    <div class="section-divider">
+      <span>Editorial da Semana</span>
+    </div>
+
+    <section class="editorial-section">
+      <div class="editorial-card">
+        <div class="eyebrow">&#9997; Editorial</div>
+        <h2>O papel da imprensa local no fortalecimento da democracia municipal</h2>
+        <p>Quando um jornal de cidade pequena fecha as portas, não é apenas uma empresa que desaparece — é a memória viva de uma comunidade que se perde. A comunicação regional tem valor insubstituível...</p>
+        <a href="#" class="btn-leia-mais secundario">Leia o editorial completo →</a>
+      </div>
+      <div class="editorial-author">
+        <div class="author-avatar"></div>
+        <strong>João Santana</strong>
+        <span>Editor-Chefe</span>
+        <p class="author-bio">Jornalista há 20 anos, fundador do Santana.com e referência no jornalismo do sertão alagoano.</p>
+      </div>
+    </section>
+
+    <!-- SEÇÃO AGRO -->
+    <div class="section-divider">
+      <span>Agronegócio Regional</span>
+    </div>
+
+    <section class="agro-section">
+      <div class="agro-grid">
+        <article class="agro-card destaque">
+          <div class="agro-icon">&#127807;</div>
+          <span class="tag-categoria agro">Agro</span>
+          <h3>Safra de feijão supera expectativas e garante renda para pequenos agricultores</h3>
+          <p>Produtores do entorno de Santana colhem resultados acima da média após temporada de chuvas bem distribuídas.</p>
+          <a href="#">Leia mais →</a>
+        </article>
+        <article class="agro-card">
+          <span class="tag-categoria agro">Agro</span>
+          <h3>Mercado Agro</h3>
+          <p>Cotações e análises do mercado regional.</p>
+          <a href="#">Ver cotações →</a>
+        </article>
+        <article class="agro-card">
+          <span class="tag-categoria agro">Agro</span>
+          <h3>Pecuária</h3>
+          <p>Notícias e tendências do setor pecuário no sertão.</p>
+          <a href="#">Ver mais →</a>
+        </article>
+        <article class="agro-card">
+          <span class="tag-categoria agro">Agro</span>
+          <h3>Tecnologia Rural</h3>
+          <p>Inovações que chegam ao campo santanense.</p>
+          <a href="#">Ver mais →</a>
+        </article>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <div class="section-divider">
+      <span>Nossa Equipe</span>
+    </div>
+
+    <section class="equipe-section">
+      <div class="equipe-grid">
+        <div class="equipe-card">
+          <div class="equipe-avatar"></div>
+          <strong>João Santana</strong>
+          <span>Editor-Chefe</span>
+        </div>
+        <div class="equipe-card">
+          <div class="equipe-avatar"></div>
+          <strong>Maria Oliveira</strong>
+          <span>Economia & Negócios</span>
+        </div>
+        <div class="equipe-card">
+          <div class="equipe-avatar"></div>
+          <strong>Carlos Souza</strong>
+          <span>Repórter Regional</span>
+        </div>
+        <div class="equipe-card">
+          <div class="equipe-avatar"></div>
+          <strong>Ana Lima</strong>
+          <span>Cultura & Esportes</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVIÇOS -->
+    <div class="section-divider">
+      <span>Serviços</span>
+    </div>
+
+    <section class="servicos-section">
+      <div class="servicos-grid">
+        <div class="servico-card">
+          <div class="servico-icon">&#128227;</div>
+          <h3>Publicidade Comercial</h3>
+          <p>Anuncie no maior portal de notícias de Santana de Ipanema. Alcance direto ao público local.</p>
+          <a href="#" class="btn-servico">Saiba mais</a>
+        </div>
+        <div class="servico-card">
+          <div class="servico-icon">&#127881;</div>
+          <h3>Divulgação de Eventos</h3>
+          <p>Seu evento com visibilidade regional. Formaturas, feiras, shows e muito mais.</p>
+          <a href="#" class="btn-servico">Saiba mais</a>
+        </div>
+        <div class="servico-card">
+          <div class="servico-icon">&#128200;</div>
+          <h3>Marketing Local</h3>
+          <p>Estratégias de comunicação pensadas para o mercado do sertão alagoano.</p>
+          <a href="#" class="btn-servico">Saiba mais</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo"><span id="logoNomeRodape">Santana</span><span id="logoSufixoRodape">.com</span></div>
+        <p>O portal de notícias de Santana de Ipanema e do Sertão Alagoano. Jornalismo local com compromisso e responsabilidade.</p>
+      </div>
+      <div class="footer-nav">
+        <h4>Editorias</h4>
+        <ul>
+          <li><a href="#">Política</a></li>
+          <li><a href="#">Economia</a></li>
+          <li><a href="#">Regional</a></li>
+          <li><a href="#">Agro</a></li>
+          <li><a href="#">Esportes</a></li>
+          <li><a href="#">Cultura</a></li>
+        </ul>
+      </div>
+      <div class="footer-nav">
+        <h4>Institucional</h4>
+        <ul>
+          <li><a href="#">Sobre nós</a></li>
+          <li><a href="#">Nossa Equipe</a></li>
+          <li><a href="#">Fale Conosco</a></li>
+          <li><a href="#">Publicidade</a></li>
+          <li><a href="#">Política de Privacidade</a></li>
+        </ul>
+      </div>
+      <div class="footer-social">
+        <h4>Nos acompanhe</h4>
+        <div class="social-icons footer-social-icons">
+          <a href="#" id="linkFacebook" title="Facebook">f</a>
+          <a href="#" id="linkInstagram" title="Instagram">in</a>
+          <a href="#" id="linkYoutube" title="YouTube">▶</a>
+          <a href="#" id="linkWhatsapp" title="WhatsApp">W</a>
+        </div>
+        <p class="footer-contact" id="footerContato">contato@santana.com<br>(82) 9 9999-0000</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+      <span>CNPJ: 00.000.000/0001-00</span>
+    </div>
+  </footer>
+
+  <button class="btn-tema" id="btnTema" onclick="alternarTema()">🌙 Tema Escuro</button>
+  <script src="script.js"></script>
+
+  <script type="module">
+    import { listarPublicadas } from "./js/noticias.js";
+    import { observarLogin, sair } from "./js/auth.js";
+
+    const nomesCategorias = {
+      politica: 'Política', economia: 'Economia', regional: 'Regional',
+      agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde',
+      tecnologia: 'Tecnologia', educacao: 'Educação', entretenimento: 'Entretenimento',
+      'brasil-mundo': 'Brasil/Mundo'
+    };
+
+    function formatarData(timestamp) {
+      if (!timestamp) return '';
+      const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return data.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function carregarNoticias() {
+      const noticias = await listarPublicadas(20);
+      const heroSection = document.getElementById('heroSection');
+      const grid = document.getElementById('newsGrid');
+
+      if (noticias.length === 0) {
+        heroSection.innerHTML = '<p class="admin-vazio">Nenhuma notícia publicada ainda. Acesse o painel administrativo para publicar a primeira!</p>';
+        grid.innerHTML = '';
+        return;
+      }
+
+      const [destaque, ...resto] = noticias;
+
+      heroSection.innerHTML = `
+        <div class="hero-main">
+          <div class="eyebrow">Manchete do Dia</div>
+          <h2 class="hero-title"><a href="noticia.html?id=${destaque.id}">${destaque.titulo}</a></h2>
+          <p class="hero-desc">${destaque.resumo || ''}</p>
+          <div class="hero-meta">
+            <span class="hero-author">Por <strong>${destaque.autorNome || 'Redação Santana.com'}</strong></span>
+            <span class="hero-time">${formatarData(destaque.criadoEm)}</span>
+            <span class="tag-categoria ${destaque.categoria}">${nomesCategorias[destaque.categoria] || destaque.categoria}</span>
+          </div>
+          <a href="noticia.html?id=${destaque.id}" class="btn-leia-mais">Leia a reportagem completa →</a>
+        </div>
+        <div class="hero-side">
+          <div class="hero-img-placeholder" ${destaque.imagemUrl ? `style="background-image:url('${destaque.imagemUrl}');background-size:cover;"` : ''}>
+            ${!destaque.imagemUrl ? '<div class="img-label">Sem imagem</div>' : ''}
+          </div>
+          ${resto.slice(0, 2).map(n => `
+            <div class="destaque-card">
+              <div class="eyebrow small">Também em destaque</div>
+              <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+              <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const restoGrid = resto.slice(2);
+      if (restoGrid.length === 0) {
+        grid.innerHTML = '<p class="admin-vazio">Sem mais notícias por enquanto.</p>';
+        return;
+      }
+
+      grid.innerHTML = restoGrid.map((n, idx) => `
+        <article class="news-card ${idx === 0 ? 'grande' : ''}">
+          <div class="card-img-placeholder ${idx === 0 ? '' : 'small'}" ${n.imagemUrl ? `style="background-image:url('${n.imagemUrl}');background-size:cover;"` : ''}></div>
+          <div class="card-content">
+            <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
+            <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+            ${idx === 0 && n.resumo ? `<p>${n.resumo}</p>` : ''}
+            <div class="card-meta"><span>${formatarData(n.criadoEm)}</span></div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Busca via Enter ou botão
+    function irParaBusca() {
+      const termo = document.getElementById('searchInput').value.trim();
+      if (termo.length > 0) {
+        window.location.href = `busca.html?q=${encodeURIComponent(termo)}`;
+      }
+    }
+    window.buscar = irParaBusca;
+
+    // Estado de login no header
+    observarLogin((user, cargo) => {
+      const linkLogin = document.getElementById('linkLogin');
+      const linkCadastro = document.getElementById('linkCadastro');
+      if (!linkLogin || !linkCadastro) return;
+
+      if (user && cargo && cargo !== 'pendente') {
+        const cargosAdmin = ['administrador', 'admin', 'editor', 'colunista', 'revisor'];
+        if (cargosAdmin.includes(cargo)) {
+          linkLogin.textContent = 'Painel Administrativo';
+          linkLogin.href = 'admin/dashboard.html';
+        } else {
+          linkLogin.textContent = 'Meu Perfil';
+          linkLogin.href = 'perfil.html';
+        }
+        linkCadastro.textContent = 'Sair';
+        linkCadastro.href = '#';
+        linkCadastro.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await sair();
+          window.location.reload();
+        });
+
+        const avatar = document.getElementById('avatarHeader');
+        if (avatar) {
+          if (user.photoURL) {
+            avatar.src = user.photoURL;
+          } else {
+            const inicial = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+            avatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(inicial) + '&background=00cc66&color=0a0a0a&size=64&bold=true';
+          }
+          avatar.style.display = 'inline-block';
+        }
+      }
+    });
+
+    carregarNoticias();
+  </script>
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    (async function carregarConfigGeral() {
+      try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'geral'));
+        const c = snap.data();
+
+        if (c.logoTexto) {
+          const partes = c.logoTexto.split('.');
+          const nome = partes[0] || c.logoTexto;
+          const sufixo = partes.length > 1 ? '.' + partes.slice(1).join('.') : '';
+          ['logoNome', 'logoNomeRodape'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = nome;
+          });
+          ['logoSufixo', 'logoSufixoRodape'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = sufixo;
+          });
+        }
+
+        const elTagline = document.getElementById('logoTaglineTexto');
+        if (elTagline && c.tagline) elTagline.textContent = c.tagline;
+
+        const elCidade = document.getElementById('cidadeRegiao');
+        if (elCidade && c.enderecoContato) elCidade.textContent = c.enderecoContato;
+
+        const elContato = document.getElementById('footerContato');
+        if (elContato && (c.emailContato || c.telefoneContato)) {
+          elContato.innerHTML = (c.emailContato || '') + (c.emailContato && c.telefoneContato ? '<br>' : '') + (c.telefoneContato || '');
+        }
+
+        const mapaRedes = {
+          linkFacebook: c.facebook,
+          linkInstagram: c.instagram,
+          linkYoutube: c.youtube,
+          linkWhatsapp: c.whatsapp
+        };
+        Object.entries(mapaRedes).forEach(([id, url]) => {
+          const el = document.getElementById(id);
+          if (el && url) {
+            el.href = url;
+            el.target = '_blank';
+            el.rel = 'noopener noreferrer';
+          }
+        });
+      } catch (e) { console.error('Erro ao carregar configuracoes gerais:', e); }
+    })();
+  </script>
+</body>
+</html>
