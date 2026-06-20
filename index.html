@@ -26,6 +26,7 @@
         <span>Santana de Ipanema, Alagoas</span>
       </div>
       <nav class="header-links">
+        <img id="avatarHeader" style="display:none;width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid #00cc66;">
         <a href="login.html" id="linkLogin">Entrar</a>
         <a href="cadastro.html" id="linkCadastro">Cadastre-se</a>
         <a href="#contato">Fale Conosco</a>
@@ -423,6 +424,17 @@
           await sair();
           window.location.reload();
         });
+
+        const avatar = document.getElementById('avatarHeader');
+        if (avatar) {
+          if (user.photoURL) {
+            avatar.src = user.photoURL;
+          } else {
+            const inicial = (user.displayName || user.email || '?').charAt(0).toUpperCase();
+            avatar.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(inicial) + '&background=00cc66&color=0a0a0a&size=64&bold=true';
+          }
+          avatar.style.display = 'inline-block';
+        }
       }
     });
 

@@ -14,6 +14,10 @@
     <!-- MENU LATERAL -->
     <aside class="admin-sidebar">
       <div class="admin-logo">Santana<span>.com</span></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <img id="avatarAdmin" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #00cc66;">
+        <span id="nomeAdmin" style="font-size:13px;font-weight:600;"></span>
+      </div>
       <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
 
       <nav class="admin-nav" id="menuAdmin">
@@ -53,6 +57,12 @@
       async (user, cargo) => {
         document.getElementById('nomeUsuario').textContent = user.displayName || user.email;
         document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
+      const avatarEl = document.getElementById('avatarAdmin');
+      const nomeEl = document.getElementById('nomeAdmin');
+      if (avatarEl) {
+        avatarEl.src = user.photoURL || ('https://ui-avatars.com/api/?name=' + encodeURIComponent((user.displayName || user.email || '?').charAt(0)) + '&background=00cc66&color=0a0a0a&size=64&bold=true');
+      }
+      if (nomeEl) nomeEl.textContent = user.displayName || user.email || '';
         montarMenu(cargo);
         await carregarConteudo(user, cargo);
       }
