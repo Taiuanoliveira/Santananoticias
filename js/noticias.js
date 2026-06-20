@@ -128,10 +128,8 @@ export function filtrarPorTermo(noticias, termo) {
   );
 }
 
-// --- UPLOAD DE IMAGEM ---
+// --- UPLOAD DE IMAGEM (Cloudinary) ---
+import { enviarImagemCloudinary } from './cloudinary.js';
 export async function enviarImagem(arquivo, noticiaId) {
-  const caminho = `noticias/${noticiaId}/${Date.now()}_${arquivo.name}`;
-  const storageRef = ref(storage, caminho);
-  await uploadBytes(storageRef, arquivo);
-  return await getDownloadURL(storageRef);
+  return await enviarImagemCloudinary(arquivo);
 }
