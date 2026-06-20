@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edições – Santana.com</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f4f4f4;color:#0a0a0a}
+header{background:#0a0a0a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+header a.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none}
+header a.logo span{color:#00cc66}
+header a.voltar{color:#ccc;text-decoration:none;font-size:13px}
+.wrap{max-width:1100px;margin:0 auto;padding:36px 20px 80px}
+.edicao-bloco{margin-bottom:50px}
+.edicao-titulo{font-family:'Playfair Display',serif;font-size:26px;border-bottom:3px solid #00cc66;padding-bottom:10px;margin-bottom:22px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.edicao-titulo .qtd{font-size:13px;color:#777;font-weight:400}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{background:#fff;text-decoration:none;color:#0a0a0a;box-shadow:0 2px 10px rgba(0,0,0,.06);display:flex;flex-direction:column;overflow:hidden;transition:transform .15s}
+.card:hover{transform:translateY(-3px)}
+.card .img{width:100%;height:130px;background:#ddd;background-size:cover;background-position:center}
+.card .conteudo{padding:14px;flex-grow:1;display:flex;flex-direction:column;gap:6px}
+.card .cat{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#00cc66;font-weight:700}
+.card h3{font-family:'Playfair Display',serif;font-size:15px;line-height:1.3}
+.card .autor{font-size:11px;color:#888;margin-top:auto}
+.tag-gratis{display:inline-block;background:#00cc66;color:#0a0a0a;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;letter-spacing:.5px;width:fit-content}
+.tag-paga{display:inline-block;background:#0a0a0a;color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;letter-spacing:.5px;width:fit-content}
+.vazio{text-align:center;color:#777;padding:60px 20px}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="logo">Santana<span>.com</span></a>
+  <a href="index.html" class="voltar">← Voltar ao site</a>
+</header>
+
+<div class="wrap" id="conteudo">
+  <div class="vazio">Carregando edições...</div>
+</div>
+
+<script type="module">
+import { listarPublicadas } from './js/noticias.js';
+
+function formatarData(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR');
+}
+
+async function carregar() {
+  const container = document.getElementById('conteudo');
+  try {
+    const noticias = await listarPublicadas(200);
+
+    const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '');
+
+    if (comEdicao.length === 0) {
+      container.innerHTML = '<div class="vazio">Nenhuma edição publicada ainda.</div>';
+      return;
+    }
+
+    const grupos = {};
+    comEdicao.forEach(n => {
+      if (!grupos[n.edicao]) grupos[n.edicao] = [];
+      grupos[n.edicao].push(n);
+    });
+
+    const nomesEdicoes = Object.keys(grupos).sort((a, b) => {
+      const da = grupos[a][0].criadoEm || '';
+      const db_ = grupos[b][0].criadoEm || '';
+      return db_.localeCompare(da);
+    });
+
+    container.innerHTML = '';
+    nomesEdicoes.forEach(nomeEdicao => {
+      const artigos = grupos[nomeEdicao];
+      const bloco = document.createElement('div');
+      bloco.className = 'edicao-bloco';
+
+      const dataMaisRecente = artigos.reduce((max, n) => (n.criadoEm && n.criadoEm > max ? n.criadoEm : max), '');
+
+      bloco.innerHTML = `
+        <div class="edicao-titulo">
+          ${nomeEdicao}
+          <span class="qtd">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${formatarData(dataMaisRecente)}</span>
+        </div>
+        <div class="grid"></div>
+      `;
+
+      const grid = bloco.querySelector('.grid');
+      artigos.forEach(n => {
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = `noticia.html?id=${n.id}`;
+        a.innerHTML = `
+          <div class="img" style="background-image:url('${n.imagemUrl || ''}')"></div>
+          <div class="conteudo">
+            <span class="${n.gratuito ? 'tag-gratis' : 'tag-paga'}">${n.gratuito ? 'Gratuito' : 'Assinantes'}</span>
+            <span class="cat">${n.categoria || ''}</span>
+            <h3>${n.titulo || 'Sem título'}</h3>
+            <span class="autor">${n.autorNome || ''}</span>
+          </div>
+        `;
+        grid.appendChild(a);
+      });
+
+      container.appendChild(bloco);
+    });
+  } catch (err) {
+    container.innerHTML = `<div class="vazio">Erro ao carregar edições: ${err.message}</div>`;
+  }
+}
+
+carregar();
+</script>
+</body>
+</html>
