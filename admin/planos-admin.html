@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planos – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Planos e Preços</h1>
+        <a href="../planos.html" class="admin-link-site">Ver página de planos →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <div id="mensagemErro" class="auth-msg erro" style="display:none;"></div>
+        <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
+
+        <label for="bannerPromo">Banner de promoção (deixe vazio para esconder)</label>
+        <input type="text" id="bannerPromo" placeholder="Ex: Black Friday: 30% OFF em todos os planos!">
+
+        <div id="formPlanos" style="margin-top:24px;"></div>
+
+        <div class="form-acoes">
+          <button type="button" class="btn-primario" onclick="salvarPlanos()">Salvar alterações</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const PLANOS_PADRAO = [
+      { id: 'mensal', nome: 'Mensal', periodo: 'Cobrança mensal', preco: 19.90, precoOriginal: null },
+      { id: 'trimestral', nome: 'Trimestral', periodo: 'Cobrança a cada 3 meses', preco: 49.90, precoOriginal: 59.70 },
+      { id: 'anual', nome: 'Anual', periodo: 'Cobrança anual', preco: 159.90, precoOriginal: 238.80 }
+    ];
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens
+        .filter(item => item.cargos.includes(cargo))
+        .map(item => `<a href="${item.href}">${item.label}</a>`)
+        .join('');
+    }
+
+    function mostrarErro(texto) {
+      const el = document.getElementById('mensagemErro');
+      document.getElementById('mensagemSucesso').style.display = 'none';
+      el.textContent = texto; el.style.display = 'block';
+    }
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('mensagemSucesso');
+      document.getElementById('mensagemErro').style.display = 'none';
+      el.textContent = texto; el.style.display = 'block';
+    }
+
+    function renderFormulario(planos) {
+      const container = document.getElementById('formPlanos');
+      container.innerHTML = planos.map((p, i) => `
+        <div style="border:1px solid #eee;padding:16px;margin-bottom:14px;">
+          <strong>${p.nome}</strong>
+          <label>Preço atual (R$)</label>
+          <input type="number" step="0.01" id="preco-${p.id}" value="${p.preco}">
+          <label>Preço original riscado (R$) — deixe vazio se não houver desconto</label>
+          <input type="number" step="0.01" id="precoOriginal-${p.id}" value="${p.precoOriginal ?? ''}">
+        </div>
+      `).join('');
+    }
+
+    async function carregarPlanos() {
+      const refConfig = doc(db, 'configuracoes', 'planos');
+      const snap = await getDoc(refConfig);
+      let planos = PLANOS_PADRAO;
+      let banner = '';
+      if (snap.exists()) {
+        const dados = snap.data();
+        if (dados.planos) planos = dados.planos;
+        if (dados.bannerPromo) banner = dados.bannerPromo;
+      }
+      document.getElementById('bannerPromo').value = banner;
+      renderFormulario(planos);
+    }
+
+    window.salvarPlanos = async function() {
+      try {
+        const planos = PLANOS_PADRAO.map(p => ({
+          id: p.id,
+          nome: p.nome,
+          periodo: p.periodo,
+          preco: parseFloat(document.getElementById(`preco-${p.id}`).value) || 0,
+          precoOriginal: document.getElementById(`precoOriginal-${p.id}`).value
+            ? parseFloat(document.getElementById(`precoOriginal-${p.id}`).value)
+            : null
+        }));
+        const bannerPromo = document.getElementById('bannerPromo').value.trim();
+
+        await setDoc(doc(db, 'configuracoes', 'planos'), { planos, bannerPromo });
+        mostrarSucesso('Preços atualizados com sucesso!');
+      } catch (err) {
+        mostrarErro('Erro ao salvar: ' + err.message);
+      }
+    };
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarPlanos();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>
