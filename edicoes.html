@@ -56,13 +56,17 @@ async function carregar() {
     const noticias = await listarPublicadas(200);
 
     const capasPorNome = {};
+    const dataLancamentoPorNome = {};
     try {
       const snapEdicoes = await getDocs(collection(db, 'edicoes'));
       snapEdicoes.forEach(d => {
         const ed = d.data();
-        if (ed.nome) capasPorNome[ed.nome] = ed.capaUrl || null;
+        if (ed.nome) {
+          capasPorNome[ed.nome] = ed.capaUrl || null;
+          dataLancamentoPorNome[ed.nome] = ed.dataLancamento || null;
+        }
       });
-    } catch (e) { /* segue sem capas se der erro */ }
+    } catch (e) { /* segue sem capas/datas se der erro */ }
 
     const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '');
 
@@ -92,13 +96,15 @@ async function carregar() {
       const dataMaisRecente = artigos.reduce((max, n) => (n.criadoEm && n.criadoEm > max ? n.criadoEm : max), '');
 
       const capaUrl = capasPorNome[nomeEdicao];
+      const dataLanc = dataLancamentoPorNome[nomeEdicao];
+      const dataExibida = dataLanc ? new Date(dataLanc + 'T00:00:00').toLocaleDateString('pt-BR') : formatarData(dataMaisRecente);
 
       bloco.innerHTML = `
         <div class="edicao-titulo">
           ${capaUrl ? `<img src="${capaUrl}" style="width:60px;height:80px;object-fit:cover;">` : ''}
           <div>
             ${nomeEdicao}
-            <span class="qtd" style="display:block;margin-top:4px;">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${formatarData(dataMaisRecente)}</span>
+            <span class="qtd" style="display:block;margin-top:4px;">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${dataExibida}</span>
           </div>
         </div>
         <div class="grid"></div>
