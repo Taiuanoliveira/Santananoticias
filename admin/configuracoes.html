@@ -229,13 +229,22 @@ Produção agrícola do município bate recorde histórico"></textarea>
 
     protegerPagina([CARGOS.ADMIN], async (user, cargo) => {
       montarMenu(cargo);
-      await carregarConfiguracoes();
-      await carregarCategorias();
-      await listaEmAlta.carregar();
-      await listaAgro.carregar();
-      await listaEquipe.carregar();
-      await listaServicos.carregar();
-      await listaInstitucional.carregar();
+      try {
+        await carregarConfiguracoes();
+        await carregarCategorias();
+        await listaEmAlta.carregar();
+        await listaAgro.carregar();
+        await listaEquipe.carregar();
+        await listaServicos.carregar();
+        await listaInstitucional.carregar();
+      } catch (e) {
+        document.querySelector('.admin-main').innerHTML = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 30px; background: #fff3f3; border-left: 5px solid #c0392b;">
+            <h2 style="color:#c0392b;">⚠️ Erro ao carregar configurações</h2>
+            <p style="color:#333; line-height:1.6;">Detalhe técnico: ${e.message}</p>
+            <p style="color:#333; margin-top:10px;">Isso costuma acontecer quando as Regras de Segurança do Firestore bloqueiam a leitura. Verifique se a coleção "configuracoes" tem permissão de leitura para administradores.</p>
+          </div>`;
+      }
     });
 
     function montarMenu(cargo) {

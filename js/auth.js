@@ -1,5 +1,4 @@
 // === SANTANA.COM – Autenticação e Cargos (Roles) ===
-
 import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
@@ -26,8 +25,18 @@ export const CARGOS = {
   PENDENTE: "pendente"
 };
 
+// Mostra uma tela de erro visível no lugar da tela branca
+function mostrarErroFatal(titulo, detalhe) {
+  document.body.innerHTML = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 30px; background: #fff3f3; border-left: 5px solid #c0392b;">
+      <h2 style="color:#c0392b; margin-bottom: 10px;">⚠️ ${titulo}</h2>
+      <p style="color:#333; line-height:1.6;">${detalhe}</p>
+      <p style="margin-top:20px;"><a href="/Santananoticias/login.html" style="color:#00cc66; font-weight:bold;">← Voltar para o login</a></p>
+    </div>
+  `;
+}
+
 // --- CADASTRO COM E-MAIL/SENHA ---
-// Novo usuário sempre nasce com cargo "pendente" — só um Administrador pode promovê-lo depois.
 export async function cadastrarUsuario(nome, email, senha) {
   const credencial = await createUserWithEmailAndPassword(auth, email, senha);
   await setDoc(doc(db, "usuarios", credencial.user.uid), {
@@ -49,13 +58,12 @@ export async function entrarComEmail(email, senha) {
 export async function entrarComGoogle() {
   const provider = new GoogleAuthProvider();
   const credencial = await signInWithPopup(auth, provider);
-
-  // Se for o primeiro login desse usuário, cria o documento dele na coleção "usuarios"
+  // Se for primeiro login via Google, cria o documento do usuário como pendente
   const refUsuario = doc(db, "usuarios", credencial.user.uid);
   const snap = await getDoc(refUsuario);
   if (!snap.exists()) {
     await setDoc(refUsuario, {
-      nome: credencial.user.displayName || "Sem nome",
+      nome: credencial.user.displayName || "",
       email: credencial.user.email,
       cargo: CARGOS.PENDENTE,
       criadoEm: serverTimestamp()
@@ -64,55 +72,71 @@ export async function entrarComGoogle() {
   return credencial.user;
 }
 
-// --- RECUPERAÇÃO DE SENHA ---
+// --- RECUPERAR SENHA ---
 export async function recuperarSenha(email) {
   await sendPasswordResetEmail(auth, email);
 }
 
-// --- LOGOUT ---
+// --- SAIR ---
 export async function sair() {
   await signOut(auth);
 }
 
-// --- BUSCAR CARGO DO USUÁRIO ATUAL ---
+// --- OBTER CARGO DO USUÁRIO ---
 export async function obterCargo(uid) {
   const snap = await getDoc(doc(db, "usuarios", uid));
   if (!snap.exists()) return null;
-  return snap.data().cargo;
+  return snap.data().cargo || null;
 }
 
-// --- OBSERVADOR DE ESTADO DE LOGIN ---
-// Use isso em qualquer página para saber se há usuário logado e qual o cargo dele.
+// --- OBSERVAR LOGIN (com tratamento de erro) ---
 export function observarLogin(callback) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       callback(null, null);
       return;
     }
-    const cargo = await obterCargo(user.uid);
-    callback(user, cargo);
+    try {
+      const cargo = await obterCargo(user.uid);
+      callback(user, cargo);
+    } catch (e) {
+      mostrarErroFatal(
+        "Erro ao verificar permissões",
+        "Não foi possível consultar seu cadastro no banco de dados. Detalhe técnico: " + e.message +
+        "<br><br>Isso geralmente acontece quando as Regras de Segurança do Firestore estão bloqueando o acesso, ou quando o documento do usuário não existe na coleção 'usuarios'."
+      );
+    }
   });
 }
 
-// --- PROTEGER PÁGINAS DO PAINEL ADMINISTRATIVO ---
-// cargosPermitidos: array de cargos que podem acessar a página atual.
-// Redireciona para login.html se não estiver logado, ou para admin/dashboard.html se não tiver permissão.
+// --- PROTEGER PÁGINA (com tratamento de erro visível) ---
 export function protegerPagina(cargosPermitidos, aoAutorizar) {
   observarLogin((user, cargo) => {
     if (!user) {
-      window.location.href = "/login.html";
+      window.location.href = "/Santananoticias/login.html";
       return;
     }
     if (cargo === CARGOS.PENDENTE || !cargo) {
-      alert("Sua conta ainda não tem um cargo definido. Aguarde a aprovação de um administrador.");
-      window.location.href = "/index.html";
+      mostrarErroFatal(
+        "Conta aguardando aprovação",
+        "Sua conta ainda não tem um cargo definido. Peça para o administrador liberar seu acesso no Firestore (coleção 'usuarios', campo 'cargo')."
+      );
       return;
     }
     if (!cargosPermitidos.includes(cargo)) {
-      alert("Você não tem permissão para acessar esta página.");
-      window.location.href = "/admin/dashboard.html";
+      mostrarErroFatal(
+        "Acesso negado",
+        "Seu cargo atual é <strong>" + cargo + "</strong>, e esta página exige um dos seguintes cargos: " + cargosPermitidos.join(", ") + "."
+      );
       return;
     }
-    aoAutorizar(user, cargo);
+    try {
+      aoAutorizar(user, cargo);
+    } catch (e) {
+      mostrarErroFatal(
+        "Erro ao carregar a página",
+        "Ocorreu um erro inesperado ao montar esta tela. Detalhe técnico: " + e.message
+      );
+    }
   });
 }
