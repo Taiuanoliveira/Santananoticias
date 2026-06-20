@@ -41,6 +41,8 @@ header a.voltar{color:#ccc;text-decoration:none;font-size:13px}
 
 <script type="module">
 import { listarPublicadas } from './js/noticias.js';
+import { db } from './js/firebase-config.js';
+import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 function formatarData(iso) {
   if (!iso) return '';
@@ -52,6 +54,15 @@ async function carregar() {
   const container = document.getElementById('conteudo');
   try {
     const noticias = await listarPublicadas(200);
+
+    const capasPorNome = {};
+    try {
+      const snapEdicoes = await getDocs(collection(db, 'edicoes'));
+      snapEdicoes.forEach(d => {
+        const ed = d.data();
+        if (ed.nome) capasPorNome[ed.nome] = ed.capaUrl || null;
+      });
+    } catch (e) { /* segue sem capas se der erro */ }
 
     const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '');
 
@@ -80,10 +91,15 @@ async function carregar() {
 
       const dataMaisRecente = artigos.reduce((max, n) => (n.criadoEm && n.criadoEm > max ? n.criadoEm : max), '');
 
+      const capaUrl = capasPorNome[nomeEdicao];
+
       bloco.innerHTML = `
         <div class="edicao-titulo">
-          ${nomeEdicao}
-          <span class="qtd">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${formatarData(dataMaisRecente)}</span>
+          ${capaUrl ? `<img src="${capaUrl}" style="width:60px;height:80px;object-fit:cover;">` : ''}
+          <div>
+            ${nomeEdicao}
+            <span class="qtd" style="display:block;margin-top:4px;">${artigos.length} artigo${artigos.length > 1 ? 's' : ''} • ${formatarData(dataMaisRecente)}</span>
+          </div>
         </div>
         <div class="grid"></div>
       `;
