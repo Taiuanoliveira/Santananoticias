@@ -21,6 +21,13 @@
     <section class="noticia-conteudo" id="conteudoNoticia">
       <p class="admin-carregando">Carregando notícia...</p>
     </section>
+
+    <div style="max-width:720px;margin:24px auto;padding:20px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <strong style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Compartilhar:</strong>
+      <a href="#" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' - '+window.location.href),'_blank');return false;" style="background:#25D366;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">WhatsApp</a>
+      <a href="#" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href),'_blank');return false;" style="background:#1877F2;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">Facebook</a>
+      <a href="#" onclick="navigator.clipboard.writeText(window.location.href);alert('Link copiado!');return false;" style="background:#0a0a0a;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">Copiar link</a>
+    </div>
   </main>
 
   <footer class="site-footer">
