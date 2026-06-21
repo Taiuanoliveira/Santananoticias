@@ -372,3 +372,141 @@
   .admin-main { padding: 24px 20px; }
   .admin-cards-resumo { flex-wrap: wrap; }
 }
+
+
+/* ============================================
+   MELHORIAS VISUAIS - Deixando o painel mais vivo
+   ============================================ */
+
+.admin-body {
+  background: linear-gradient(180deg, #f4f4f4 0%, #eef0ee 100%);
+}
+
+.admin-bloco {
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  border-radius: 4px;
+  transition: box-shadow 0.2s;
+}
+
+.admin-bloco:hover {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+}
+
+.admin-card {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  border-radius: 4px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,204,102,0.15);
+}
+
+.admin-topbar h1 {
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.admin-topbar h1::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 48px;
+  height: 4px;
+  background: var(--acento);
+  border-radius: 2px;
+}
+
+.admin-sidebar {
+  background: linear-gradient(180deg, #0a0a0a 0%, #161616 100%);
+}
+
+.admin-nav a {
+  font-weight: 500;
+}
+
+.admin-nav a.ativo,
+.admin-nav a:hover {
+  background: rgba(0,204,102,0.12);
+  color: var(--acento);
+  border-left: 3px solid var(--acento);
+  padding-left: 9px;
+}
+
+.btn-primario, .btn-auth {
+  background: var(--preto);
+  color: #fff;
+  border: none;
+  padding: 13px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.btn-primario:hover, .btn-auth:hover {
+  background: var(--acento);
+  color: var(--preto);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,204,102,0.35);
+}
+
+.form-acoes {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+}
+
+.admin-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.admin-status.rascunho { background: #eee; color: #777; }
+.admin-status.em_revisao { background: #fff3cd; color: #856404; }
+.admin-status.aprovado { background: #d4edda; color: #155724; }
+.admin-status.publicado { background: #00cc66; color: #0a0a0a; }
+.admin-status.devolvido { background: #f8d7da; color: #721c24; }
+
+.admin-bloco input[type="text"],
+.admin-bloco input[type="email"],
+.admin-bloco input[type="number"],
+.admin-bloco input[type="date"],
+.admin-bloco input[type="file"],
+.admin-bloco select,
+.admin-bloco textarea {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 11px 14px;
+  font-size: 14px;
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: var(--fonte-ui);
+}
+
+.admin-bloco input:focus,
+.admin-bloco select:focus,
+.admin-bloco textarea:focus {
+  outline: none;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(0,204,102,0.12);
+}
+
+.admin-bloco label {
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #444;
+  display: block;
+  margin-top: 16px;
+}
