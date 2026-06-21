@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Notícia – Santana.com</title>
+  <meta name="description" id="metaDescricao" content="">
+  <meta property="og:title" id="metaOgTitulo" content="">
+  <meta property="og:description" id="metaOgDescricao" content="">
+  <meta property="og:image" id="metaOgImagem" content="">
+  <meta property="og:type" content="article">
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -63,6 +68,15 @@
       }
 
       document.title = noticia.titulo + ' – Santana.com';
+
+      const metaDescricao = document.getElementById('metaDescricao');
+      const metaOgTitulo = document.getElementById('metaOgTitulo');
+      const metaOgDescricao = document.getElementById('metaOgDescricao');
+      const metaOgImagem = document.getElementById('metaOgImagem');
+      if (metaDescricao) metaDescricao.setAttribute('content', noticia.resumo || '');
+      if (metaOgTitulo) metaOgTitulo.setAttribute('content', noticia.titulo || '');
+      if (metaOgDescricao) metaOgDescricao.setAttribute('content', noticia.resumo || '');
+      if (metaOgImagem) metaOgImagem.setAttribute('content', noticia.imagemUrl || '');
 
       container.innerHTML = `
         <div class="noticia-wrap">

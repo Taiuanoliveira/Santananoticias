@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://taiuanoliveira.github.io/Santananoticias/sitemap.xml
