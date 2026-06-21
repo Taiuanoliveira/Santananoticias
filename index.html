@@ -346,7 +346,7 @@
     }
 
     async function carregarNoticias() {
-      const noticias = await listarPublicadas(20);
+      const noticias = await listarPublicadas(60);
       const heroSection = document.getElementById('heroSection');
       const grid = document.getElementById('newsGrid');
 
@@ -448,7 +448,32 @@
       }
     });
 
-    carregarNoticias();
+    
+    let todasNoticias = [];
+    let quantidadeMostrada = 12;
+
+    document.getElementById('btnCarregarMais')?.addEventListener('click', () => {
+      quantidadeMostrada += 12;
+      renderizarGrid();
+    });
+
+    function renderizarGrid() {
+      const grid = document.getElementById('newsGrid');
+      const btn = document.getElementById('btnCarregarMais');
+      const visiveis = todasNoticias.slice(0, quantidadeMostrada);
+      grid.innerHTML = visiveis.map(n => `
+        <a href="noticia.html?id=${n.id}" class="news-card">
+          <div class="news-card-img" style="background-image:url('${n.imagemUrl || ''}')"></div>
+          <div class="news-card-body">
+            <span class="news-card-cat">${n.categoria || ''}</span>
+            <h3>${n.titulo || ''}</h3>
+          </div>
+        </a>
+      `).join('');
+      if (btn) btn.style.display = todasNoticias.length > quantidadeMostrada ? 'inline-block' : 'none';
+    }
+
+carregarNoticias();
   </script>
   <script type="module">
     import { db } from './js/firebase-config.js';
