@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Migrate CMS</title>
+</head>
+<body>
+<h2>Rodando migração...</h2>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDlDgm3PAvdqBnX0JHH0gFpzxb6Benhrg0",
+  authDomain: "santanacom-e543e.firebaseapp.com",
+  projectId: "santanacom-e543e",
+  storageBucket: "santanacom-e543e.firebasestorage.app",
+  messagingSenderId: "141469420917",
+  appId: "1:141469420917:web:2ae7b4076a44fba0cc173c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function migrar() {
+  console.log("🚀 Iniciando migração...");
+
+  await setDoc(doc(db, "configuracoes", "geral"), {
+    logoTexto: "Santana.com",
+    tagline: "A voz do Recôncavo Baiano",
+    emailContato: "contato@santana.com",
+    telefoneContato: "(82) 9 9999-0000",
+    enderecoContato: "Santana de Ipanema, Alagoas",
+    breakingNews: [
+      "Notícia 1",
+      "Notícia 2",
+      "Notícia 3"
+    ],
+    criadoEm: serverTimestamp()
+  });
+
+  console.log("✅ MIGRAÇÃO FEITA!");
+  document.body.innerHTML = "<h1>OK - Migração concluída</h1>";
+}
+
+migrar();
+</script>
+
+</body>
+</html>

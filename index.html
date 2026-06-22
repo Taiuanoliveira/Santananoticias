@@ -226,27 +226,8 @@
     </div>
 
     <section class="equipe-section">
-      <div class="equipe-grid">
-        <div class="equipe-card">
-          <div class="equipe-avatar"></div>
-          <strong>João Santana</strong>
-          <span>Editor-Chefe</span>
-        </div>
-        <div class="equipe-card">
-          <div class="equipe-avatar"></div>
-          <strong>Maria Oliveira</strong>
-          <span>Economia & Negócios</span>
-        </div>
-        <div class="equipe-card">
-          <div class="equipe-avatar"></div>
-          <strong>Carlos Souza</strong>
-          <span>Repórter Regional</span>
-        </div>
-        <div class="equipe-card">
-          <div class="equipe-avatar"></div>
-          <strong>Ana Lima</strong>
-          <span>Cultura & Esportes</span>
-        </div>
+      <div class="equipe-grid" id="equipeGrid">
+        <p style="color:#777;font-size:13px;">Carregando equipe...</p>
       </div>
     </section>
 
@@ -524,6 +505,34 @@ carregarNoticias();
           }
         });
       } catch (e) { console.error('Erro ao carregar configuracoes gerais:', e); }
+    })();
+  </script>
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    (async function carregarEquipe() {
+      const grid = document.getElementById('equipeGrid');
+      try {
+        const q = query(collection(db, 'equipe'), orderBy('ordem'));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          grid.innerHTML = '';
+          return;
+        }
+        grid.innerHTML = '';
+        snap.forEach(d => {
+          const m = d.data();
+          const card = document.createElement('div');
+          card.className = 'equipe-card';
+          card.innerHTML = `
+            <div class="equipe-avatar" style="${m.fotoUrl ? 'background-image:url(' + m.fotoUrl + ');background-size:cover;' : ''}"></div>
+            <strong>${m.nome || ''}</strong>
+            <span>${m.cargo || ''}</span>
+          `;
+          grid.appendChild(card);
+        });
+      } catch (e) { grid.innerHTML = ''; console.error('Erro ao carregar equipe:', e); }
     })();
   </script>
 </body>

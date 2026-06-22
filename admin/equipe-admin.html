@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipe – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Equipe</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+      <section class="admin-bloco">
+        <div id="msgSucesso" class="auth-msg sucesso" style="display:none;"></div>
+        <div id="msgErro" class="auth-msg erro" style="display:none;"></div>
+        <label>Nome</label>
+        <input type="text" id="nome" placeholder="Ex: João Silva">
+        <label>Cargo</label>
+        <input type="text" id="cargo" placeholder="Ex: Editor-chefe">
+        <label>Ordem de exibição</label>
+        <input type="number" id="ordem" value="1" min="1">
+        <label>Foto</label>
+        <input type="file" id="foto" accept="image/*">
+        <div class="form-acoes">
+          <button class="btn-primario" onclick="adicionarMembro()">Adicionar à equipe</button>
+        </div>
+      </section>
+      <section class="admin-bloco">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">Membros atuais</h2>
+        <div id="listaMembros">Carregando...</div>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { enviarImagemCloudinary } from "../js/cloudinary.js";
+
+    function montarMenu(cargo) {
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      document.getElementById('menuAdmin').innerHTML = itens
+        .filter(i => i.cargos.includes(cargo))
+        .map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function msg(id, texto) {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function carregarMembros() {
+      const lista = document.getElementById('listaMembros');
+      const snap = await getDocs(query(collection(db, 'equipe'), orderBy('ordem')));
+      if (snap.empty) { lista.innerHTML = '<p style="color:#777;font-size:13px;">Nenhum membro ainda.</p>'; return; }
+      lista.innerHTML = '';
+      snap.forEach(d => {
+        const m = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #eee;';
+        div.innerHTML = `
+          ${m.fotoUrl ? `<img src="${m.fotoUrl}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">` : '<div style="width:44px;height:44px;border-radius:50%;background:#eee;"></div>'}
+          <div style="flex-grow:1;"><strong>${m.nome}</strong><div style="font-size:12px;color:#777;">${m.cargo} — posição ${m.ordem}</div></div>
+          <button data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;">Remover</button>
+        `;
+        div.querySelector('button').onclick = async () => {
+          if (confirm('Remover ' + m.nome + ' da equipe?')) {
+            await deleteDoc(doc(db, 'equipe', d.id));
+            carregarMembros();
+          }
+        };
+        lista.appendChild(div);
+      });
+    }
+
+    window.adicionarMembro = async function() {
+      const nome = document.getElementById('nome').value.trim();
+      const cargo = document.getElementById('cargo').value.trim();
+      const ordem = parseInt(document.getElementById('ordem').value) || 1;
+      const foto = document.getElementById('foto').files[0];
+      if (!nome || !cargo) { msg('msgErro', 'Preencha nome e cargo.'); return; }
+      try {
+        let fotoUrl = null;
+        if (foto) fotoUrl = await enviarImagemCloudinary(foto);
+        await addDoc(collection(db, 'equipe'), { nome, cargo, ordem, fotoUrl });
+        msg('msgSucesso', nome + ' adicionado à equipe!');
+        document.getElementById('nome').value = '';
+        document.getElementById('cargo').value = '';
+        document.getElementById('foto').value = '';
+        carregarMembros();
+      } catch (e) { msg('msgErro', 'Erro: ' + e.message); }
+    };
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarMembros();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair(); window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>
