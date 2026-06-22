@@ -35,13 +35,6 @@
           <label for="categoria">Categoria</label>
           <select id="categoria" required>
             <option value="">Selecione...</option>
-            <option value="politica">Política</option>
-            <option value="economia">Economia</option>
-            <option value="regional">Regional</option>
-            <option value="agro">Agro</option>
-            <option value="esportes">Esportes</option>
-            <option value="cultura">Cultura</option>
-            <option value="saude">Saúde</option>
           </select>
 
           <label for="resumo">Resumo (aparece nos cards)</label>
@@ -98,6 +91,54 @@
       } catch (e) { console.error('Erro ao carregar edicoes:', e); }
     }
     carregarEdicoesNoSelect();
+
+    // Categorias padrão do site (mesmas usadas no menu e na página inicial)
+    const categoriasPadrao = [
+      { valor: 'politica', nome: 'Política' },
+      { valor: 'economia', nome: 'Economia' },
+      { valor: 'regional', nome: 'Regional' },
+      { valor: 'agro', nome: 'Agro' },
+      { valor: 'esportes', nome: 'Esportes' },
+      { valor: 'cultura', nome: 'Cultura' },
+      { valor: 'saude', nome: 'Saúde' },
+      { valor: 'tecnologia', nome: 'Tecnologia' },
+      { valor: 'educacao', nome: 'Educação' },
+      { valor: 'entretenimento', nome: 'Entretenimento' },
+      { valor: 'brasil-mundo', nome: 'Brasil/Mundo' }
+    ];
+
+    function gerarSlug(nome) {
+      return nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+    }
+
+    async function carregarCategoriasNoSelect() {
+      const select = document.getElementById('categoria');
+      const valoresJaAdicionados = new Set();
+
+      categoriasPadrao.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.valor;
+        opt.textContent = cat.nome;
+        select.appendChild(opt);
+        valoresJaAdicionados.add(cat.valor);
+      });
+
+      try {
+        const snap = await getDocs(collection(db, 'categorias'));
+        snap.forEach(d => {
+          const nome = d.data().nome;
+          if (!nome) return;
+          const valor = gerarSlug(nome);
+          if (valoresJaAdicionados.has(valor)) return; // já existe, evita duplicar
+          const opt = document.createElement('option');
+          opt.value = valor;
+          opt.textContent = nome;
+          select.appendChild(opt);
+          valoresJaAdicionados.add(valor);
+        });
+      } catch (e) { console.error('Erro ao carregar categorias extras:', e); }
+    }
+    carregarCategoriasNoSelect();
 
     let usuarioAtual = null;
     let cargoAtual = null;
