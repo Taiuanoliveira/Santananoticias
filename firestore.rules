@@ -73,6 +73,13 @@ service cloud.firestore {
       allow write: if ehAdmin() || ehEditor();
     }
 
+    // --- COLEÇÃO: comentarios (subcollection das noticias) ---
+    match /noticias/{noticiaId}/comentarios/{comentarioId} {
+      allow read: if true;
+      allow create: if estaLogado() && request.resource.data.autorUid == request.auth.uid;
+      allow delete: if ehAdmin() || (estaLogado() && resource.data.autorUid == request.auth.uid);
+    }
+
     // --- COLEÇÃO: edicoes (editorial) ---
     match /edicoes/{edicaoId} {
       allow read: if true;

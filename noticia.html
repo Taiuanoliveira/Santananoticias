@@ -11,6 +11,45 @@
   <meta property="og:type" content="article">
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .noticia-conteudo { max-width: 760px; margin: 40px auto; padding: 0 20px 60px; }
+    .noticia-wrap { background: var(--branco); }
+    .noticia-titulo { font-family: var(--fonte-titulo); font-size: 34px; line-height: 1.2; margin: 12px 0 16px; }
+    .noticia-meta { font-size: 13px; color: var(--cinza-claro); margin-bottom: 24px; }
+    .noticia-imagem { width: 100%; margin-bottom: 24px; }
+    .noticia-corpo p { margin-bottom: 18px; }
+    .fonte-controle { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .fonte-controle button { background: #0a0a0a; color: #fff; border: none; width: 32px; height: 32px; font-size: 16px; cursor: pointer; border-radius: 3px; font-weight: 700; }
+    .fonte-controle button:hover { background: #00cc66; color: #0a0a0a; }
+    .fonte-controle span { font-size: 13px; color: #777; }
+    .compartilhar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 24px 0; }
+    .compartilhar strong { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+    .compartilhar a { padding: 8px 14px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 3px; color: #fff; }
+    .btn-wpp { background: #25D366; }
+    .btn-fb { background: #1877F2; }
+    .btn-copy { background: #0a0a0a; }
+    .secao-comentarios { max-width: 760px; margin: 0 auto 40px; padding: 0 20px; }
+    .secao-comentarios h2 { font-family: var(--fonte-titulo); font-size: 22px; margin-bottom: 20px; }
+    .form-comentario { background: #f9f9f9; padding: 20px; margin-bottom: 24px; }
+    .form-comentario textarea { width: 100%; border: 1px solid #ddd; padding: 12px; font-family: var(--fonte-ui); font-size: 14px; resize: vertical; min-height: 90px; }
+    .form-comentario textarea:focus { outline: none; border-color: #00cc66; }
+    .btn-comentar { background: #0a0a0a; color: #fff; border: none; padding: 11px 22px; font-size: 13px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 10px; }
+    .btn-comentar:hover { background: #00cc66; color: #0a0a0a; }
+    .comentario-item { padding: 16px 0; border-bottom: 1px solid #eee; }
+    .comentario-item .autor { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .comentario-item .data { font-size: 11px; color: #999; margin-left: 8px; }
+    .comentario-item p { font-size: 14px; line-height: 1.6; color: #333; }
+    .secao-ultimas { max-width: 760px; margin: 0 auto 60px; padding: 0 20px; }
+    .secao-ultimas h2 { font-family: var(--fonte-titulo); font-size: 22px; border-bottom: 3px solid #00cc66; padding-bottom: 10px; margin-bottom: 20px; }
+    .ultimas-lista { display: flex; flex-direction: column; gap: 16px; }
+    .ultima-card { display: flex; gap: 14px; text-decoration: none; color: #0a0a0a; }
+    .ultima-card:hover h4 { color: #00cc66; }
+    .ultima-thumb { width: 80px; height: 60px; flex-shrink: 0; background: #eee; background-size: cover; background-position: center; }
+    .ultima-card h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .ultima-card span { font-size: 11px; color: #999; }
+    .aviso-login { background: #f4f4f4; padding: 16px; text-align: center; font-size: 13px; color: #555; }
+    .aviso-login a { color: #00cc66; font-weight: 700; text-decoration: none; }
+  </style>
 </head>
 <body>
 
@@ -26,14 +65,18 @@
     <section class="noticia-conteudo" id="conteudoNoticia">
       <p class="admin-carregando">Carregando notícia...</p>
     </section>
-
-    <div style="max-width:720px;margin:24px auto;padding:20px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-      <strong style="font-size:13px;text-transform:uppercase;letter-spacing:.5px;">Compartilhar:</strong>
-      <a href="#" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' - '+window.location.href),'_blank');return false;" style="background:#25D366;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">WhatsApp</a>
-      <a href="#" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href),'_blank');return false;" style="background:#1877F2;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">Facebook</a>
-      <a href="#" onclick="navigator.clipboard.writeText(window.location.href);alert('Link copiado!');return false;" style="background:#0a0a0a;color:#fff;padding:8px 16px;text-decoration:none;font-size:13px;font-weight:600;border-radius:3px;">Copiar link</a>
-    </div>
   </main>
+
+  <section class="secao-comentarios" id="secaoComentarios" style="display:none;">
+    <h2>Comentários</h2>
+    <div id="formComentario"></div>
+    <div id="listaComentarios"><p style="color:#777;font-size:13px;">Carregando comentários...</p></div>
+  </section>
+
+  <section class="secao-ultimas" id="secaoUltimas" style="display:none;">
+    <h2>Últimas notícias</h2>
+    <div class="ultimas-lista" id="listaUltimas"></div>
+  </section>
 
   <footer class="site-footer">
     <div class="footer-bottom">
@@ -42,64 +85,135 @@
   </footer>
 
   <script type="module">
-    import { obterNoticia } from "./js/noticias.js";
+    import { obterNoticia, listarPublicadas } from "./js/noticias.js";
+    import { auth, db } from "./js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { collection, addDoc, getDocs, orderBy, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-    const container = document.getElementById('conteudoNoticia');
+    const id = params.get("id");
+    const container = document.getElementById("conteudoNoticia");
+    let tamanhoFonte = 18;
+    let usuarioAtual = null;
+
+    onAuthStateChanged(auth, u => { usuarioAtual = u; });
 
     function formatarData(timestamp) {
-      if (!timestamp) return '';
-      const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return data.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
+      return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
     }
 
     async function carregar() {
-      if (!id) {
-        container.innerHTML = '<p class="admin-vazio">Notícia não encontrada.</p>';
-        return;
-      }
-
       const noticia = await obterNoticia(id);
 
-      if (!noticia || noticia.status !== 'publicado') {
-        container.innerHTML = '<p class="admin-vazio">Esta notícia não está disponível.</p>';
-        return;
-      }
-
-      document.title = noticia.titulo + ' – Santana.com';
-
-      const metaDescricao = document.getElementById('metaDescricao');
-      const metaOgTitulo = document.getElementById('metaOgTitulo');
-      const metaOgDescricao = document.getElementById('metaOgDescricao');
-      const metaOgImagem = document.getElementById('metaOgImagem');
-      if (metaDescricao) metaDescricao.setAttribute('content', noticia.resumo || '');
-      if (metaOgTitulo) metaOgTitulo.setAttribute('content', noticia.titulo || '');
-      if (metaOgDescricao) metaOgDescricao.setAttribute('content', noticia.resumo || '');
-      if (metaOgImagem) metaOgImagem.setAttribute('content', noticia.imagemUrl || '');
+      document.title = noticia.titulo + " – Santana.com";
+      document.getElementById("metaDescricao")?.setAttribute("content", noticia.resumo || "");
+      document.getElementById("metaOgTitulo")?.setAttribute("content", noticia.titulo || "");
+      document.getElementById("metaOgDescricao")?.setAttribute("content", noticia.resumo || "");
+      document.getElementById("metaOgImagem")?.setAttribute("content", noticia.imagemUrl || "");
 
       container.innerHTML = `
         <div class="noticia-wrap">
-          <span class="tag-categoria ${noticia.categoria}">${noticia.categoria}</span>
+          <span class="tag-categoria ${noticia.categoria}">${noticia.categoria || ""}</span>
           <h1 class="noticia-titulo">${noticia.titulo}</h1>
-          <div class="noticia-meta">Por ${noticia.autorNome || 'Redação'} • ${formatarData(noticia.criadoEm)}</div>
-          ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="noticia-imagem" alt="${noticia.titulo}">` : ''}
-          <div class="noticia-corpo">${noticia.conteudo.split('\n').map(p => `<p>${p}</p>`).join('')}</div>
+          <div class="noticia-meta">Por ${noticia.autorNome || "Redação"} • ${formatarData(noticia.criadoEm)}</div>
+
+          <div class="fonte-controle">
+            <span>Tamanho do texto:</span>
+            <button onclick="mudarFonte(-2)">A-</button>
+            <button onclick="mudarFonte(2)">A+</button>
+          </div>
+
+          ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="noticia-imagem" alt="${noticia.titulo}">` : ""}
+          <div class="noticia-corpo" id="corpoNoticia" style="font-size:18px;line-height:1.8;color:var(--grafite);font-family:var(--fonte-corpo);">
+            ${noticia.conteudo.split("\n").map(p => `<p>${p}</p>`).join("")}
+          </div>
+
+          <div class="compartilhar">
+            <strong>Compartilhar:</strong>
+            <a href="#" class="btn-wpp" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' - '+window.location.href),'_blank');return false;">WhatsApp</a>
+            <a href="#" class="btn-fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href),'_blank');return false;">Facebook</a>
+            <a href="#" class="btn-copy" onclick="navigator.clipboard.writeText(window.location.href);alert('Link copiado!');return false;">Copiar link</a>
+          </div>
         </div>
       `;
+
+      document.getElementById("secaoComentarios").style.display = "block";
+      document.getElementById("secaoUltimas").style.display = "block";
+      carregarComentarios(id);
+      carregarUltimas(id);
+    }
+
+    window.mudarFonte = function(delta) {
+      tamanhoFonte = Math.min(26, Math.max(14, tamanhoFonte + delta));
+      const corpo = document.getElementById("corpoNoticia");
+      if (corpo) corpo.style.fontSize = tamanhoFonte + "px";
+    };
+
+    async function carregarComentarios(noticiaId) {
+      const formDiv = document.getElementById("formComentario");
+      const lista = document.getElementById("listaComentarios");
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          formDiv.innerHTML = `
+            <div class="form-comentario">
+              <textarea id="textoComentario" placeholder="Escreva seu comentário..."></textarea>
+              <button class="btn-comentar" onclick="enviarComentario('${noticiaId}')">Publicar comentário</button>
+            </div>
+          `;
+        } else {
+          formDiv.innerHTML = `<div class="aviso-login">Faça <a href="login.html">login</a> ou <a href="cadastro.html">cadastre-se</a> para comentar.</div>`;
+        }
+      });
+
+      try {
+        const q = query(collection(db, "noticias", noticiaId, "comentarios"), orderBy("criadoEm", "desc"));
+        const snap = await getDocs(q);
+        lista.innerHTML = "";
+        snap.forEach(d => {
+          const com = d.data();
+          const div = document.createElement("div");
+          div.className = "comentario-item";
+          div.innerHTML = `<div class="autor">${com.autorNome || "Leitor"}<span class="data">${formatarData(com.criadoEm)}</span></div><p>${com.texto}</p>`;
+          lista.appendChild(div);
+        });
+      } catch (e) { lista.innerHTML = "<p style='color:#777;font-size:13px;'>Erro ao carregar comentários.</p>"; }
+    }
+
+    window.enviarComentario = async function(noticiaId) {
+      const texto = document.getElementById("textoComentario")?.value.trim();
+      try {
+        await addDoc(collection(db, "noticias", noticiaId, "comentarios"), {
+          texto,
+          autorUid: usuarioAtual.uid,
+          autorNome: usuarioAtual.displayName || usuarioAtual.email,
+          criadoEm: serverTimestamp()
+        });
+        document.getElementById("textoComentario").value = "";
+        carregarComentarios(noticiaId);
+      } catch (e) { alert("Erro ao publicar comentário: " + e.message); }
+    };
+
+    async function carregarUltimas(noticiaAtualId) {
+      const lista = document.getElementById("listaUltimas");
+      try {
+        const noticias = await listarPublicadas(6);
+        const filtradas = noticias.filter(n => n.id !== noticiaAtualId).slice(0, 5);
+        if (filtradas.length === 0) { lista.innerHTML = ""; return; }
+        lista.innerHTML = filtradas.map(n => `
+          <a href="noticia.html?id=${n.id}" class="ultima-card">
+            <div class="ultima-thumb" style="${n.imagemUrl ? 'background-image:url(' + n.imagemUrl + ')' : ''}"></div>
+            <div>
+              <h4>${n.titulo}</h4>
+              <span>${n.categoria || ""}</span>
+            </div>
+          </a>
+        `).join("");
+      } catch (e) { lista.innerHTML = ""; }
     }
 
     carregar();
   </script>
-
-  <style>
-    .noticia-conteudo { max-width: 760px; margin: 40px auto; padding: 0 20px 60px; }
-    .noticia-wrap { background: var(--branco); }
-    .noticia-titulo { font-family: var(--fonte-titulo); font-size: 34px; line-height: 1.2; margin: 12px 0 16px; }
-    .noticia-meta { font-size: 13px; color: var(--cinza-claro); margin-bottom: 24px; }
-    .noticia-imagem { width: 100%; margin-bottom: 24px; }
-    .noticia-corpo { font-family: var(--fonte-corpo); font-size: 18px; line-height: 1.8; color: var(--grafite); }
-    .noticia-corpo p { margin-bottom: 18px; }
-  </style>
 </body>
 </html>
