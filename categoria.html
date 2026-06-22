@@ -41,7 +41,6 @@
 
     async function carregar() {
       try {
-        // Pega o nome da categoria do Firestore
         const snapCats = await getDocs(collection(db, "categorias"));
         let nomeCategoria = slug;
         snapCats.forEach(d => {
@@ -53,7 +52,6 @@
         document.getElementById("tituloCategoria").textContent = nomeCategoria;
         document.title = nomeCategoria + " – Santana.com";
 
-        // Busca noticias que contem esse slug no array de categorias OU no campo categoria simples
         const col = collection(db, "noticias");
         const [snap1, snap2] = await Promise.all([
           getDocs(query(col, where("status", "==", "publicado"), where("categorias", "array-contains", slug))),
@@ -64,6 +62,9 @@
         const noticias = [];
         [snap1, snap2].forEach(snap => {
           snap.forEach(d => {
+            if (ids.has(d.id)) return;
+            ids.add(d.id);
+            noticias.push({ id: d.id, ...d.data() });
           });
         });
 
