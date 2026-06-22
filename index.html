@@ -524,6 +524,7 @@ carregarNoticias();
             el.rel = 'noopener noreferrer';
           }
         });
+        if (c.breakingNews) { const el = document.querySelector('.breaking-scroll span'); if (el) el.textContent = c.breakingNews; }
       } catch (e) { console.error('Erro ao carregar configuracoes gerais:', e); }
     })();
   </script>
