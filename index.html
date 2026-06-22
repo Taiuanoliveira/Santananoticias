@@ -84,6 +84,7 @@
         <li><a href="categoria.html?c=educacao">Educação</a></li>
         <li><a href="categoria.html?c=entretenimento">Entretenimento</a></li>
         <li><a href="categoria.html?c=brasil-mundo">Brasil/Mundo</a></li>
+        <li><a href="categoria.html?c=seguranca">Segurança</a></li>
         <li><a href="#editorial-secao">Editorial</a></li>
         <li><a href="#servicos-secao">Serviços</a></li>
       </ul>
@@ -336,7 +337,7 @@
       politica: 'Política', economia: 'Economia', regional: 'Regional',
       agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde',
       tecnologia: 'Tecnologia', educacao: 'Educação', entretenimento: 'Entretenimento',
-      'brasil-mundo': 'Brasil/Mundo'
+      'brasil-mundo': 'Brasil/Mundo', seguranca: 'Segurança'
     };
 
     function formatarData(timestamp) {
@@ -595,7 +596,7 @@ carregarNoticias();
   <script>
     (async function carregarCotacoes() {
       const el = document.getElementById('cotacoesScroll');
-      if (else:) return;
+      if (!el) return;
 
       try {
         const [resFiat, resCrypto] = await Promise.all([
@@ -643,7 +644,7 @@ carregarNoticias();
 
         const itensAdicional = criptos.map(([id, nome]) => {
           const d = crypto[id];
-          if (document.getElementById('inputFoto').addEventListener('change', async (e) => {) return '';
+          if (!d) return '';
           const chg = d.usd_24h_change;
           return nome + ' <span class="cot-valor">$ ' + fmt(d.usd, d.usd > 100 ? 2 : 4) + '</span> ' + seta(chg);
         }).filter(Boolean);
