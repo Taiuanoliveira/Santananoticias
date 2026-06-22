@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categorias – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Categorias</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+      <section class="admin-bloco">
+        <div id="msgSucesso" class="auth-msg sucesso" style="display:none;"></div>
+        <div id="msgErro" class="auth-msg erro" style="display:none;"></div>
+        <label>Nome da categoria</label>
+        <input type="text" id="nomeCategoria" placeholder="Ex: Saúde, Tecnologia, Cultura">
+        <label>Emoji (opcional)</label>
+        <input type="text" id="emojiCategoria" placeholder="Ex: 💊 🖥️ 🎭">
+        <label>Ordem de exibição no menu</label>
+        <input type="number" id="ordemCategoria" value="1" min="1">
+        <div class="form-acoes">
+          <button class="btn-primario" onclick="adicionarCategoria()">Adicionar categoria</button>
+        </div>
+        <p style="font-size:12px;color:#777;margin-top:12px;">As categorias padrão já estão no banco. Você pode adicionar novas ou remover as existentes.</p>
+      </section>
+      <section class="admin-bloco">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">Categorias ativas</h2>
+        <div id="listaCategorias">Carregando...</div>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    function montarMenu(cargo) {
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      document.getElementById('menuAdmin').innerHTML = itens
+        .filter(i => i.cargos.includes(cargo))
+        .map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function msg(id, texto) {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function carregarCategorias() {
+      const lista = document.getElementById('listaCategorias');
+      const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
+      if (snap.empty) {
+        lista.innerHTML = '<p style="color:#777;font-size:13px;">Nenhuma categoria ainda. Adicione as categorias padrão abaixo.</p>';
+        return;
+      }
+      lista.innerHTML = '';
+      snap.forEach(d => {
+        const cat = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #eee;';
+        div.innerHTML = `
+          <span style="font-size:22px;">${cat.emoji || '📰'}</span>
+          <div style="flex-grow:1;"><strong>${cat.nome}</strong><div style="font-size:12px;color:#777;">slug: ${cat.slug || ''} — posição ${cat.ordem}</div></div>
+          <button data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;">Remover</button>
+        `;
+        div.querySelector('button').onclick = async () => {
+          if (confirm('Remover categoria "' + cat.nome + '"? As notícias com essa categoria não serão apagadas.')) {
+            await deleteDoc(doc(db, 'categorias', d.id));
+            carregarCategorias();
+          }
+        };
+        lista.appendChild(div);
+      });
+    }
+
+    window.adicionarCategoria = async function() {
+      const nome = document.getElementById('nomeCategoria').value.trim();
+      const emoji = document.getElementById('emojiCategoria').value.trim();
+      const ordem = parseInt(document.getElementById('ordemCategoria').value) || 1;
+      if (!nome) { msg('msgErro', 'Preencha o nome da categoria.'); return; }
+      const slug = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      try {
+        await addDoc(collection(db, 'categorias'), { nome, emoji, slug, ordem });
+        msg('msgSucesso', 'Categoria "' + nome + '" adicionada!');
+        document.getElementById('nomeCategoria').value = '';
+        document.getElementById('emojiCategoria').value = '';
+        carregarCategorias();
+      } catch (e) { msg('msgErro', 'Erro: ' + e.message); }
+    };
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarCategorias();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair(); window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>

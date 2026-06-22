@@ -535,5 +535,43 @@ carregarNoticias();
       } catch (e) { grid.innerHTML = ''; console.error('Erro ao carregar equipe:', e); }
     })();
   </script>
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    (async function carregarMenuCategorias() {
+      try {
+        const q = query(collection(db, 'categorias'), orderBy('ordem'));
+        const snap = await getDocs(q);
+        if (snap.empty) return;
+
+        const menuPrincipal = document.getElementById('menuCategorias');
+        const menuLateral = document.getElementById('sidebarCategorias');
+
+        snap.forEach(d => {
+          const cat = d.data();
+          const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+          const href = 'categoria.html?c=' + slug;
+
+          if (menuPrincipal) {
+            const li = document.createElement('li');
+            li.innerHTML = '<a href="' + href + '">' + cat.nome + '</a>';
+            const editorial = menuPrincipal.querySelector('a[href="edicoes.html"]')?.parentElement;
+            if (editorial) menuPrincipal.insertBefore(li, editorial);
+            else menuPrincipal.appendChild(li);
+          }
+
+          if (menuLateral) {
+            const a = document.createElement('a');
+            a.href = href;
+            a.textContent = (cat.emoji || '') + ' ' + cat.nome;
+            const editorial = menuLateral.querySelector('a[href="edicoes.html"]');
+            if (editorial) menuLateral.insertBefore(a, editorial);
+            else menuLateral.appendChild(a);
+          }
+        });
+      } catch (e) { console.error('Erro ao carregar categorias:', e); }
+    })();
+  </script>
 </body>
 </html>
