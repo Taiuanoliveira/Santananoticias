@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Categoria – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-divider"><span id="tituloCategoria">Categoria</span></div>
+    <section class="news-grid-section" style="display:block;">
+      <div class="news-grid" id="gridCategoria">
+        <p class="admin-carregando">Carregando...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { db } from "./js/firebase-config.js";
+    import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("c") || "";
+    const grid = document.getElementById("gridCategoria");
+
+    async function carregar() {
+      try {
+        // Pega o nome da categoria do Firestore
+        const snapCats = await getDocs(collection(db, "categorias"));
+        let nomeCategoria = slug;
+        snapCats.forEach(d => {
+          const cat = d.data();
+          if ((cat.slug || "") === slug || cat.nome.toLowerCase() === slug) {
+            nomeCategoria = cat.nome;
+          }
+        });
+        document.getElementById("tituloCategoria").textContent = nomeCategoria;
+        document.title = nomeCategoria + " – Santana.com";
+
+        // Busca noticias que contem esse slug no array de categorias OU no campo categoria simples
+        const col = collection(db, "noticias");
+        const [snap1, snap2] = await Promise.all([
+          getDocs(query(col, where("status", "==", "publicado"), where("categorias", "array-contains", slug))),
+          getDocs(query(col, where("status", "==", "publicado"), where("categoria", "==", slug)))
+        ]);
+
+        const ids = new Set();
+        const noticias = [];
+        [snap1, snap2].forEach(snap => {
+          snap.forEach(d => {
+          });
+        });
+
+        noticias.sort((a, b) => {
+          const ta = a.criadoEm?.seconds || 0;
+          const tb = b.criadoEm?.seconds || 0;
+          return tb - ta;
+        });
+
+        if (noticias.length === 0) {
+          grid.innerHTML = "<p class='admin-vazio'>Nenhuma notícia publicada nesta categoria ainda.</p>";
+          return;
+        }
+
+        grid.innerHTML = noticias.map(n => `
+          <article class="news-card">
+            ${n.imagemUrl ? `<div class="card-img-placeholder small" style="background-image:url('${n.imagemUrl}');background-size:cover;"></div>` : "<div class='card-img-placeholder small'></div>"}
+            <div class="card-content">
+              <span class="tag-categoria">${nomeCategoria}</span>
+              <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+              <p>${n.resumo || ""}</p>
+            </div>
+          </article>
+        `).join("");
+      } catch (e) {
+        grid.innerHTML = "<p class='admin-vazio'>Erro ao carregar notícias: " + e.message + "</p>";
+      }
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

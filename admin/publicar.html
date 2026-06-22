@@ -76,6 +76,27 @@
     import { db } from "../js/firebase-config.js";
     import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    async function carregarCategoriasCheckboxes() {
+      const container = document.getElementById('containerCategorias');
+      try {
+        const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
+        if (snap.empty) {
+          container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma categoria cadastrada. Crie categorias no painel.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(d => {
+          const cat = d.data();
+          const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;background:#f4f4f4;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;';
+          label.innerHTML = '<input type="checkbox" value="' + slug + '" style="width:auto;"> ' + (cat.emoji || '') + ' ' + cat.nome;
+          container.appendChild(label);
+        });
+      } catch (e) { container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar categorias.</p>'; }
+    }
+    carregarCategoriasCheckboxes();
+
     async function carregarEdicoesNoSelect() {
       const select = document.getElementById('edicao');
       try {
@@ -246,6 +267,8 @@
       const categoria = document.getElementById('categoria').value;
       const resumo = document.getElementById('resumo').value.trim();
       const conteudo = document.getElementById('conteudo').value.trim();
+      const categoriasSelecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
+      const categoria = categoriasSelecionadas[0] || '';
       const edicao = document.getElementById('edicao').value;
       const ordemEdicao = document.getElementById('ordemEdicao').value ? parseInt(document.getElementById('ordemEdicao').value) : 0;
       const gratuito = edicao ? document.getElementById('gratuito').checked : true;
@@ -265,7 +288,7 @@
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
-            { titulo, categoria, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao },
+            { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao },
             usuarioAtual.uid,
             usuarioAtual.displayName || usuarioAtual.email
           );
@@ -276,7 +299,7 @@
           imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
         }
 
-        await atualizarNoticia(idNoticia, { titulo, categoria, resumo, conteudo, status, imagemUrl, edicao, gratuito, ordemEdicao });
+        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, ordemEdicao });
 
         noticiaIdEdicao = idNoticia;
         mostrarSucesso('Notícia salva com sucesso!');
