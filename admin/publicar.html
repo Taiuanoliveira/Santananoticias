@@ -74,7 +74,7 @@
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
     import { criarNoticia, atualizarNoticia, obterNoticia, enviarImagem, STATUS } from "../js/noticias.js";
     import { db } from "../js/firebase-config.js";
-    import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, getDocs, orderBy, query, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     async function carregarEdicoesNoSelect() {
       const select = document.getElementById('edicao');
@@ -263,6 +263,16 @@
 
       try {
         let idNoticia = noticiaIdEdicao;
+
+        let cargoEditorialAutor = '';
+        try {
+          const snapUsuario = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
+          if (snapUsuario.exists()) {
+            cargoEditorialAutor = snapUsuario.data().cargoEditorial || '';
+          }
+        } catch (e) {
+          console.error('Nao foi possivel obter o cargo editorial do autor:', e);
+        }
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
