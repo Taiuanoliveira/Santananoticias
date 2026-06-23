@@ -31,8 +31,8 @@ service cloud.firestore {
     match /usuarios/{userId} {
       // Qualquer pessoa logada pode ler a própria conta; Admin pode ler todas.
       allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
-      // Criação acontece no cadastro (o próprio usuário cria seu doc com cargo "pendente").
-      allow create: if estaLogado() && request.auth.uid == userId && request.resource.data.cargo == 'pendente';
+      // Criação acontece no cadastro (o próprio usuário cria seu doc já como leitor).
+      allow create: if estaLogado() && request.auth.uid == userId && (request.resource.data.cargo == 'pendente' || request.resource.data.cargo == 'leitor');
       // Só Admin pode alterar cargos de outras pessoas. O próprio usuário pode editar nome/email.
       allow update: if ehAdmin() || (estaLogado() && request.auth.uid == userId && request.resource.data.cargo == resource.data.cargo);
       allow delete: if ehAdmin();
