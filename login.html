@@ -90,11 +90,17 @@
 
     async function redirecionar(uid) {
       const snap = await getDoc(doc(db, 'usuarios', uid));
-      if (snap.exists()) {
-        window.location.href = 'admin/dashboard.html';
-      } else {
+      if (!snap.exists()) {
         erro('Usuário sem acesso ao painel.');
         await auth.signOut();
+        return;
+      }
+      const cargo = snap.data().cargo;
+      const cargosPainel = ['administrador', 'editor', 'colunista', 'revisor'];
+      if (cargosPainel.includes(cargo)) {
+        window.location.href = 'admin/dashboard.html';
+      } else {
+        window.location.href = 'index.html';
       }
     }
 
