@@ -1,4 +1,4 @@
-# Santana.com — Guia de Configuração
+# Veritas Notícias — Guia de Configuração
 
 Este projeto usa **Firebase** (Authentication, Firestore e Storage) e é feito em
 HTML/CSS/JS puro — não precisa de Node.js nem de build para rodar.

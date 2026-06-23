@@ -1,4 +1,4 @@
-// === SANTANA.COM – Notícias (CRUD e Fluxo de Publicação) ===
+// === VERITAS NOTÍCIAS – Notícias (CRUD e Fluxo de Publicação) ===
 
 import { db, storage } from "./firebase-config.js";
 import {

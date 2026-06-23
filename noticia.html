@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notícia – Santana.com</title>
+  <title>Notícia – Veritas Notícias</title>
   <meta name="description" id="metaDescricao" content="">
   <meta property="og:title" id="metaOgTitulo" content="">
   <meta property="og:description" id="metaOgDescricao" content="">
@@ -94,7 +94,7 @@
   <header class="site-header">
     <div class="header-main" style="justify-content:center;">
       <div class="logo-area">
-        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+        <a href="index.html"><h1 class="logo">Veritas Notícias</h1></a>
       </div>
     </div>
   </header>
@@ -118,7 +118,7 @@
 
   <footer class="site-footer">
     <div class="footer-bottom">
-      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+      <span>© 2026 Veritas Notícias – Todos os direitos reservados</span>
     </div>
   </footer>
 
@@ -144,7 +144,7 @@
     async function carregar() {
       const noticia = await obterNoticia(id);
 
-      document.title = noticia.titulo + " – Santana.com";
+      document.title = noticia.titulo + " – Veritas Notícias";
       document.getElementById("metaDescricao")?.setAttribute("content", noticia.resumo || "");
       document.getElementById("metaOgTitulo")?.setAttribute("content", noticia.titulo || "");
       document.getElementById("metaOgDescricao")?.setAttribute("content", noticia.resumo || "");

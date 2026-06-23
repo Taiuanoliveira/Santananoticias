@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perfil do Autor – Santana.com</title>
+  <title>Perfil do Autor – Veritas Notícias</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -43,7 +43,7 @@
         <span></span><span></span><span></span>
       </button>
       <div class="logo-area">
-        <h1 class="logo"><span id="logoNome">Santana</span><span id="logoSufixo">.com</span></h1>
+        <h1 class="logo"><span id="logoNome">Veritas Notícias</span></h1>
         <p class="logo-tagline" id="logoTaglineTexto">A voz do Recôncavo Baiano</p>
       </div>
       <div class="header-search">
@@ -99,7 +99,7 @@
       }
 
       const u = snap.data();
-      document.title = (u.nome || 'Autor') + ' – Santana.com';
+      document.title = (u.nome || 'Autor') + ' – Veritas Notícias';
 
       const cargoLabel = LABELS_CARGO_EDITORIAL[u.cargoEditorial] || u.cargoEditorial || '';
 

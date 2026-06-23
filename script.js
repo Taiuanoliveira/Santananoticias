@@ -1,4 +1,4 @@
-// === SANTANA.COM – Script Principal ===
+// === VERITAS NOTÍCIAS – Script Principal ===
 
 // Data atual em português
 function exibirData() {

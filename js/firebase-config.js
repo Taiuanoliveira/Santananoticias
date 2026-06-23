@@ -1,4 +1,4 @@
-// === SANTANA.COM – Configuração do Firebase ===
+// === VERITAS NOTÍCIAS – Configuração do Firebase ===
 // Importa o Firebase via CDN (compatível com HTML/JS puro, sem precisar de build)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";

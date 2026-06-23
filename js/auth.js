@@ -1,4 +1,4 @@
-// === SANTANA.COM – Autenticação e Cargos (Roles) ===
+// === VERITAS NOTÍCIAS – Autenticação e Cargos (Roles) ===
 import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
