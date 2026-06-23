@@ -1,4 +1,4 @@
-// === SANTANA.COM – Autenticação, Cargos do Sistema e Cargos Editoriais ===
+// === SANTANA.COM – Autenticação e Cargos (Roles) ===
 import { auth, db } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
@@ -13,41 +13,19 @@ import {
   doc,
   setDoc,
   getDoc,
-  getDocs,
-  collection,
-  query,
-  limit,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Cargos possíveis. "pendente" é o estado inicial até um Administrador aprovar e definir o cargo real.
 export const CARGOS = {
   ADMIN: "administrador",
   EDITOR: "editor",
   COLUNISTA: "colunista",
   REVISOR: "revisor",
-  LEITOR: "leitor"
+  PENDENTE: "pendente"
 };
 
-export const CARGOS_EDITORIAIS = {
-  EDITOR_CHEFE: "editor-chefe",
-  JORNALISTA: "jornalista",
-  COLUNISTA: "colunista",
-  REVISOR: "revisor",
-  EDITOR_DE_TEXTO: "editor-de-texto",
-  CORRESPONDENTE: "correspondente",
-  EDITOR_CHEFE_JORNALISTA: "editor-chefe-jornalista"
-};
-
-export const LABELS_CARGO_EDITORIAL = {
-  "editor-chefe": "Editor-chefe",
-  "jornalista": "Jornalista",
-  "colunista": "Colunista",
-  "revisor": "Revisor",
-  "editor-de-texto": "Editor de Texto",
-  "correspondente": "Correspondente",
-  "editor-chefe-jornalista": "Editor-chefe e Jornalista"
-};
-
+// Mostra uma tela de erro visível no lugar da tela branca
 function mostrarErroFatal(titulo, detalhe) {
   document.body.innerHTML = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 30px; background: #fff3f3; border-left: 5px solid #c0392b;">
@@ -58,63 +36,60 @@ function mostrarErroFatal(titulo, detalhe) {
   `;
 }
 
-async function ehPrimeiroUsuario() {
-  const snap = await getDocs(query(collection(db, "usuarios"), limit(1)));
-  return snap.empty;
-}
-
+// --- CADASTRO COM E-MAIL/SENHA ---
 export async function cadastrarUsuario(nome, email, senha) {
   const credencial = await createUserWithEmailAndPassword(auth, email, senha);
-  const primeiro = await ehPrimeiroUsuario();
   await setDoc(doc(db, "usuarios", credencial.user.uid), {
     nome,
     email,
-    cargo: primeiro ? CARGOS.ADMIN : CARGOS.LEITOR,
-    cargoEditorial: primeiro ? CARGOS_EDITORIAIS.EDITOR_CHEFE : "",
-    ativo: true,
+    cargo: "leitor",
     criadoEm: serverTimestamp()
   });
   return credencial.user;
 }
 
+// --- LOGIN COM E-MAIL/SENHA ---
+export async function entrarComEmail(email, senha) {
+  const credencial = await signInWithEmailAndPassword(auth, email, senha);
+  return credencial.user;
+}
+
+// --- LOGIN COM GOOGLE ---
 export async function entrarComGoogle() {
   const provider = new GoogleAuthProvider();
   const credencial = await signInWithPopup(auth, provider);
+  // Se for primeiro login via Google, cria o documento do usuário como leitor
   const refUsuario = doc(db, "usuarios", credencial.user.uid);
   const snap = await getDoc(refUsuario);
   if (!snap.exists()) {
-    const primeiro = await ehPrimeiroUsuario();
     await setDoc(refUsuario, {
       nome: credencial.user.displayName || "",
       email: credencial.user.email,
-      cargo: primeiro ? CARGOS.ADMIN : CARGOS.LEITOR,
-      cargoEditorial: primeiro ? CARGOS_EDITORIAIS.EDITOR_CHEFE : "",
-      ativo: true,
+      cargo: "leitor",
       criadoEm: serverTimestamp()
     });
   }
   return credencial.user;
 }
 
-export async function entrarComEmail(email, senha) {
-  const credencial = await signInWithEmailAndPassword(auth, email, senha);
-  return credencial.user;
-}
-
+// --- RECUPERAR SENHA ---
 export async function recuperarSenha(email) {
   await sendPasswordResetEmail(auth, email);
 }
 
+// --- SAIR ---
 export async function sair() {
   await signOut(auth);
 }
 
+// --- OBTER CARGO DO USUÁRIO ---
 export async function obterCargo(uid) {
   const snap = await getDoc(doc(db, "usuarios", uid));
   if (!snap.exists()) return null;
   return snap.data().cargo || null;
 }
 
+// --- OBSERVAR LOGIN (com tratamento de erro) ---
 export function observarLogin(callback) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -127,36 +102,41 @@ export function observarLogin(callback) {
     } catch (e) {
       mostrarErroFatal(
         "Erro ao verificar permissões",
-        "Não foi possível consultar seu cadastro no banco de dados. Detalhe técnico: " + e.message
+        "Não foi possível consultar seu cadastro no banco de dados. Detalhe técnico: " + e.message +
+        "<br><br>Isso geralmente acontece quando as Regras de Segurança do Firestore estão bloqueando o acesso, ou quando o documento do usuário não existe na coleção 'usuarios'."
       );
     }
   });
 }
 
+// --- PROTEGER PÁGINA (com tratamento de erro visível) ---
 export function protegerPagina(cargosPermitidos, aoAutorizar) {
   observarLogin((user, cargo) => {
     if (!user) {
       window.location.href = "/Santananoticias/login.html";
       return;
     }
-    if (!cargo) {
+    if (cargo === CARGOS.PENDENTE || !cargo) {
       mostrarErroFatal(
-        "Conta sem cargo definido",
-        "Não foi possível identificar seu cargo do sistema."
+        "Conta aguardando aprovação",
+        "Sua conta ainda não tem um cargo definido. Peça para o administrador liberar seu acesso no Firestore (coleção 'usuarios', campo 'cargo')."
       );
       return;
     }
     if (!cargosPermitidos.includes(cargo)) {
       mostrarErroFatal(
         "Acesso negado",
-        "Seu cargo atual é <strong>" + cargo + "</strong>, e esta página exige: " + cargosPermitidos.join(", ") + "."
+        "Seu cargo atual é <strong>" + cargo + "</strong>, e esta página exige um dos seguintes cargos: " + cargosPermitidos.join(", ") + "."
       );
       return;
     }
     try {
       aoAutorizar(user, cargo);
     } catch (e) {
-      mostrarErroFatal("Erro ao carregar a página", "Detalhe técnico: " + e.message);
+      mostrarErroFatal(
+        "Erro ao carregar a página",
+        "Ocorreu um erro inesperado ao montar esta tela. Detalhe técnico: " + e.message
+      );
     }
   });
 }
