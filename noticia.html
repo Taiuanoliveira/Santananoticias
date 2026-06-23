@@ -116,7 +116,7 @@
         <div class="noticia-wrap">
           <span class="tag-categoria ${noticia.categoria}">${noticia.categoria || ""}</span>
           <h1 class="noticia-titulo">${noticia.titulo}</h1>
-          <div class="noticia-meta">Por ${noticia.autorNome || "Redação"} • ${formatarData(noticia.criadoEm)}</div>
+          <div class="noticia-meta">Por ${noticia.autorNome || "Redação"}${noticia.cargoEditorialAutor ? ' <span style="background:#f0f0f0;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#555;">' + noticia.cargoEditorialAutor + '</span>' : ''} • ${formatarData(noticia.criadoEm)}</div>
 
           <div class="fonte-controle">
             <span>Tamanho do texto:</span>

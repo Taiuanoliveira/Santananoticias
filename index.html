@@ -696,5 +696,47 @@ carregarNoticias();
       } catch(e) { el.innerHTML="<p style=color:#888>Indisponível</p>"; }
     })();
   </script>
+
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const LABELS_CARGO_EDITORIAL = {
+      "editor-chefe": "Editor-chefe",
+      "jornalista": "Jornalista",
+      "colunista": "Colunista",
+      "revisor": "Revisor",
+      "editor-de-texto": "Editor de Texto",
+      "correspondente": "Correspondente",
+      "editor-chefe-jornalista": "Editor-chefe e Jornalista"
+    };
+
+    (async function carregarEquipe() {
+      const grid = document.getElementById('equipeGrid');
+      if (!grid) return;
+      try {
+        const snap = await getDocs(collection(db, 'usuarios'));
+        const equipe = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(u => u.cargoEditorial && u.cargoEditorial.trim() !== '');
+
+        if (equipe.length === 0) {
+          grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;">Equipe ainda nao cadastrada.</p>';
+          return;
+        }
+
+        grid.innerHTML = equipe.map(u => `
+          <a href="autor.html?uid=${u.id}" class="equipe-card" style="text-decoration:none;color:inherit;">
+            <div class="equipe-avatar" ${u.fotoUrl ? `style="background-image:url('${u.fotoUrl}');background-size:cover;background-position:center;"` : ''}></div>
+            <strong>${u.nome || 'Sem nome'}</strong>
+            <span>${LABELS_CARGO_EDITORIAL[u.cargoEditorial] || u.cargoEditorial}</span>
+          </a>
+        `).join('');
+      } catch (e) {
+        console.error('Erro ao carregar equipe:', e);
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;">Nao foi possivel carregar a equipe.</p>';
+      }
+    })();
+  </script>
 </body>
 </html>

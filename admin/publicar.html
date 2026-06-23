@@ -266,7 +266,7 @@
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
-            { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao },
+            { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao, cargoEditorialAutor },
             usuarioAtual.uid,
             usuarioAtual.displayName || usuarioAtual.email
           );

@@ -7,13 +7,27 @@
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../css/admin.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .admin-item-usuario { display: grid; grid-template-columns: auto 1fr auto auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; }
+    .usuario-avatar { width: 44px; height: 44px; border-radius: 50%; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
+    .usuario-textos { display: flex; flex-direction: column; }
+    .select-cargo, .select-cargo-editorial { font-size: 13px; padding: 6px 10px; border: 1px solid #ddd; }
+    .btn-editar-perfil { background: none; border: 1px solid #ddd; padding: 6px 10px; font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .campo-label-pequeno { font-size: 11px; text-transform: uppercase; color: #888; display: block; margin-bottom: 3px; }
+    .modal-fundo { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .modal-fundo.aberto { display: flex; }
+    .modal-caixa { background: #fff; padding: 28px; max-width: 420px; width: 92%; max-height: 85vh; overflow-y: auto; }
+    .modal-caixa h3 { font-family: 'Playfair Display', serif; margin-bottom: 16px; }
+    .modal-caixa .preview-foto { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; margin-top: 8px; }
+    .modal-acoes { display: flex; gap: 10px; margin-top: 18px; }
+  </style>
 </head>
 <body class="admin-body">
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-logo">Santana<span>.com</span></div>
-      <p class="admin-cargo-label">Cargo: <strong>Administrador</strong></p>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtualLabel">Administrador</strong></p>
       <nav class="admin-nav" id="menuAdmin"></nav>
       <button id="btnSair" class="admin-btn-sair">Sair</button>
     </aside>
@@ -25,7 +39,11 @@
       </header>
 
       <section class="admin-bloco">
-        <p class="admin-explicacao">Defina o cargo de cada pessoa cadastrada. Contas novas aparecem como <strong>pendente</strong> até você escolher um cargo.</p>
+        <p class="admin-explicacao">
+          Cada pessoa tem dois cargos independentes: o <strong>Cargo do Sistema</strong> (controla o que ela pode acessar no painel)
+          e o <strong>Cargo Editorial</strong> (aparece publicamente nas matérias e na seção "Nossa Equipe" do site — não muda nenhuma permissão).
+          Contas novas aparecem como <strong>leitor</strong> até você definir um cargo do sistema.
+        </p>
         <div id="listaUsuarios" class="admin-lista-usuarios">
           <p class="admin-carregando">Carregando...</p>
         </div>
@@ -33,12 +51,42 @@
     </main>
   </div>
 
+  <div class="modal-fundo" id="modalPerfil">
+    <div class="modal-caixa">
+      <h3>Perfil público de exibição</h3>
+      <label class="campo-label-pequeno">Foto</label>
+      <input type="file" id="modalFoto" accept="image/*">
+      <img id="modalPreviewFoto" class="preview-foto">
+      <label class="campo-label-pequeno" style="margin-top:14px;">Bio / descrição curta (aparece na página da pessoa)</label>
+      <textarea id="modalBio" rows="4" placeholder="Ex: Jornalista há 10 anos, cobre política e economia regional."></textarea>
+      <div class="modal-acoes">
+        <button type="button" class="btn-primario" onclick="salvarPerfilModal()">Salvar</button>
+        <button type="button" class="btn-secundario" onclick="fecharModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
-    import { db } from "../js/firebase-config.js";
-    import { collection, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { db, storage } from "../js/firebase-config.js";
+    import { collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const CARGOS_EDITORIAIS = [
+      { valor: '', label: '— Nenhum —' },
+      { valor: 'editor-chefe', label: 'Editor-chefe' },
+      { valor: 'jornalista', label: 'Jornalista' },
+      { valor: 'colunista', label: 'Colunista' },
+      { valor: 'revisor', label: 'Revisor' },
+      { valor: 'editor-de-texto', label: 'Editor de Texto' },
+      { valor: 'correspondente', label: 'Correspondente' },
+      { valor: 'editor-chefe-jornalista', label: 'Editor-chefe e Jornalista' },
+    ];
+
+    let uidEmEdicao = null;
 
     protegerPagina([CARGOS.ADMIN], async (user, cargo) => {
+      document.getElementById('cargoAtualLabel').textContent = cargo;
       montarMenu(cargo);
       await carregarUsuarios();
     });
@@ -49,9 +97,17 @@
         <a href="dashboard.html">📊 Dashboard</a>
         <a href="publicar.html">✍️ Nova Notícia</a>
         <a href="gerenciar-noticias.html">📰 Gerenciar Notícias</a>
+        <a href="edicoes-admin.html">📚 Edições</a>
+        <a href="planos-admin.html">💳 Planos</a>
         <a href="usuarios.html">👥 Usuários</a>
         <a href="configuracoes.html">⚙️ Configurações</a>
       `;
+    }
+
+    function optionsCargoEditorial(valorAtual) {
+      return CARGOS_EDITORIAIS.map(c =>
+        `<option value="${c.valor}" ${valorAtual === c.valor ? 'selected' : ''}>${c.label}</option>`
+      ).join('');
     }
 
     async function carregarUsuarios() {
@@ -66,35 +122,120 @@
       lista.innerHTML = snap.docs.map(d => {
         const u = d.data();
         return `
-          <div class="admin-item-usuario">
-            <div>
+          <div class="admin-item-usuario" data-uid="${d.id}">
+            <div class="usuario-avatar" style="${u.fotoUrl ? `background-image:url('${u.fotoUrl}')` : ''}"></div>
+            <div class="usuario-textos">
               <strong>${u.nome || 'Sem nome'}</strong>
-              <span class="admin-email-pequeno">${u.email}</span>
+              <span class="admin-email-pequeno">${u.email || ''}</span>
             </div>
-            <select data-uid="${d.id}" class="select-cargo">
-              <option value="pendente" ${u.cargo === 'pendente' ? 'selected' : ''}>Pendente</option>
-              <option value="administrador" ${u.cargo === 'administrador' ? 'selected' : ''}>Administrador</option>
-              <option value="editor" ${u.cargo === 'editor' ? 'selected' : ''}>Editor</option>
-              <option value="colunista" ${u.cargo === 'colunista' ? 'selected' : ''}>Colunista</option>
-              <option value="revisor" ${u.cargo === 'revisor' ? 'selected' : ''}>Revisor</option>
-            </select>
+            <div>
+              <span class="campo-label-pequeno">Cargo do Sistema</span>
+              <select data-uid="${d.id}" class="select-cargo">
+                <option value="leitor" ${u.cargo === 'leitor' ? 'selected' : ''}>Leitor</option>
+                <option value="administrador" ${u.cargo === 'administrador' ? 'selected' : ''}>Administrador</option>
+                <option value="editor" ${u.cargo === 'editor' ? 'selected' : ''}>Editor</option>
+                <option value="colunista" ${u.cargo === 'colunista' ? 'selected' : ''}>Colunista</option>
+                <option value="revisor" ${u.cargo === 'revisor' ? 'selected' : ''}>Revisor</option>
+              </select>
+              <br><br>
+              <span class="campo-label-pequeno">Cargo Editorial</span>
+              <select data-uid="${d.id}" class="select-cargo-editorial">
+                ${optionsCargoEditorial(u.cargoEditorial || '')}
+              </select>
+            </div>
+            <button type="button" class="btn-editar-perfil" data-uid="${d.id}">📷 Foto / Bio</button>
           </div>
         `;
       }).join('');
 
-      lista.querySelectorAll('.select-cargo').forEach(select => {
+      lista.querySelectorAll('.select-cargo-editorial').forEach(select => {
         select.addEventListener('change', async () => {
           const uid = select.dataset.uid;
-          const novoCargo = select.value;
+          const novoCargoEditorial = select.value;
           try {
-            await updateDoc(doc(db, 'usuarios', uid), { cargo: novoCargo });
+            await updateDoc(doc(db, 'usuarios', uid), { cargoEditorial: novoCargoEditorial });
+          } catch (e) { alert('Não foi possível atualizar o cargo editorial.'); }
+        });
+      });
+
+      lista.querySelectorAll('.select-cargo').forEach(select => {
+        select.addEventListener('change', async () => {
+          try {
+            await updateDoc(doc(db, 'usuarios', select.dataset.uid), { cargo: select.value });
           } catch (err) {
-            alert('Não foi possível atualizar o cargo.');
+            alert('Não foi possível atualizar o cargo do sistema.');
             console.error(err);
           }
         });
       });
+
+      lista.querySelectorAll('.select-cargo-editorial').forEach(select => {
+        select.addEventListener('change', async () => {
+          try {
+            await updateDoc(doc(db, 'usuarios', select.dataset.uid), { cargoEditorial: select.value });
+          } catch (err) {
+            alert('Não foi possível atualizar o cargo editorial.');
+            console.error(err);
+          }
+        });
+      });
+
+      lista.querySelectorAll('.btn-editar-perfil').forEach(btn => {
+        btn.addEventListener('click', () => abrirModal(btn.dataset.uid));
+      });
     }
+
+    async function abrirModal(uid) {
+      uidEmEdicao = uid;
+      const snap = await getDoc(doc(db, 'usuarios', uid));
+      const u = snap.exists() ? snap.data() : {};
+      document.getElementById('modalBio').value = u.bio || '';
+      const preview = document.getElementById('modalPreviewFoto');
+      if (u.fotoUrl) {
+        preview.src = u.fotoUrl;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+      document.getElementById('modalFoto').value = '';
+      document.getElementById('modalPerfil').classList.add('aberto');
+    }
+
+    window.fecharModal = function() {
+      document.getElementById('modalPerfil').classList.remove('aberto');
+      uidEmEdicao = null;
+    };
+
+    document.getElementById('modalFoto').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const preview = document.getElementById('modalPreviewFoto');
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+      }
+    });
+
+    window.salvarPerfilModal = async function() {
+      if (!uidEmEdicao) return;
+      try {
+        const bio = document.getElementById('modalBio').value.trim();
+        const arquivo = document.getElementById('modalFoto').files[0];
+        const dadosParaSalvar = { bio };
+
+        if (arquivo) {
+          const storageRef = ref(storage, 'equipe/' + uidEmEdicao + '_' + Date.now() + '_' + arquivo.name);
+          await uploadBytes(storageRef, arquivo);
+          dadosParaSalvar.fotoUrl = await getDownloadURL(storageRef);
+        }
+
+        await updateDoc(doc(db, 'usuarios', uidEmEdicao), dadosParaSalvar);
+        fecharModal();
+        await carregarUsuarios();
+      } catch (err) {
+        alert('Erro ao salvar perfil: ' + err.message);
+        console.error(err);
+      }
+    };
 
     document.getElementById('btnSair').addEventListener('click', async () => {
       await sair();

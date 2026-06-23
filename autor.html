@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Autor – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .perfil-autor-wrap { max-width: 760px; margin: 48px auto; padding: 0 20px; }
+    .perfil-autor-topo { display: flex; gap: 24px; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 28px; margin-bottom: 28px; }
+    .perfil-autor-foto { width: 110px; height: 110px; border-radius: 50%; background: #eee; background-size: cover; background-position: center; flex-shrink: 0; }
+    .perfil-autor-nome { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 6px; }
+    .perfil-autor-cargo { display: inline-block; background: var(--acento); color: #fff; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 12px; }
+    .perfil-autor-bio { font-family: 'Source Serif 4', serif; font-size: 16px; line-height: 1.7; color: #333; margin-bottom: 40px; }
+    .perfil-autor-materias h2 { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 16px; border-left: 4px solid var(--acento); padding-left: 12px; }
+    .lista-materias-autor { display: flex; flex-direction: column; gap: 18px; }
+    .materia-autor-card { display: flex; gap: 14px; text-decoration: none; color: inherit; border-bottom: 1px solid #f0f0f0; padding-bottom: 14px; }
+    .materia-autor-card img { width: 90px; height: 64px; object-fit: cover; flex-shrink: 0; background: #eee; }
+    .materia-autor-card h3 { font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+    .materia-autor-card span { font-size: 12px; color: #888; }
+    .perfil-vazio { text-align: center; padding: 60px 20px; color: #888; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-top">
+      <div class="header-meta">
+        <span id="data-atual"></span>
+        <span class="separator">|</span>
+        <span id="cidadeRegiao">Santana de Ipanema, Alagoas</span>
+      </div>
+      <nav class="header-links">
+        <img id="avatarHeader" style="display:none;width:26px;height:26px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid #00cc66;">
+        <a href="login.html" id="linkLogin">Entrar</a>
+        <a href="cadastro.html" id="linkCadastro">Cadastre-se</a>
+        <a href="#contato">Fale Conosco</a>
+      </nav>
+    </div>
+    <div class="header-main">
+      <button class="menu-toggle" onclick="toggleMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="logo-area">
+        <h1 class="logo"><span id="logoNome">Santana</span><span id="logoSufixo">.com</span></h1>
+        <p class="logo-tagline" id="logoTaglineTexto">A voz do Recôncavo Baiano</p>
+      </div>
+      <div class="header-search">
+        <input type="text" placeholder="Buscar notícias…" id="searchInput">
+        <button onclick="window.buscar && window.buscar()">&#128269;</button>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="categoria.html?c=politica">Política</a></li>
+        <li><a href="categoria.html?c=economia">Economia</a></li>
+        <li><a href="categoria.html?c=regional">Regional</a></li>
+        <li><a href="categoria.html?c=agro">Agro</a></li>
+        <li><a href="categoria.html?c=esportes">Esportes</a></li>
+        <li><a href="categoria.html?c=cultura">Cultura</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="perfil-autor-wrap" id="conteudoPerfil">
+    <p class="perfil-vazio">Carregando perfil...</p>
+  </main>
+
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const LABELS_CARGO_EDITORIAL = {
+      "editor-chefe": "Editor-chefe",
+      "jornalista": "Jornalista",
+      "colunista": "Colunista",
+      "revisor": "Revisor",
+      "editor-de-texto": "Editor de Texto",
+      "correspondente": "Correspondente",
+      "editor-chefe-jornalista": "Editor-chefe e Jornalista"
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid');
+    const container = document.getElementById('conteudoPerfil');
+
+    async function carregar() {
+      if (!uid) {
+        container.innerHTML = '<p class="perfil-vazio">Autor não especificado.</p>';
+        return;
+      }
+
+      const snap = await getDoc(doc(db, 'usuarios', uid));
+      if (!snap.exists()) {
+        container.innerHTML = '<p class="perfil-vazio">Autor não encontrado.</p>';
+        return;
+      }
+
+      const u = snap.data();
+      document.title = (u.nome || 'Autor') + ' – Santana.com';
+
+      const cargoLabel = LABELS_CARGO_EDITORIAL[u.cargoEditorial] || u.cargoEditorial || '';
+
+      let materiasHtml = '';
+      try {
+        const q = query(
+          collection(db, 'noticias'),
+          where('autorUid', '==', uid),
+          where('status', '==', 'publicado'),
+          orderBy('criadoEm', 'desc'),
+          limit(10)
+        );
+        const materiasSnap = await getDocs(q);
+        if (!materiasSnap.empty) {
+          materiasHtml = `
+            <div class="perfil-autor-materias">
+              <h2>Matérias publicadas</h2>
+              <div class="lista-materias-autor">
+                ${materiasSnap.docs.map(d => {
+                  const m = d.data();
+                  return `
+                    <a class="materia-autor-card" href="noticia.html?id=${d.id}">
+                      <img src="${m.imagemUrl || ''}" alt="">
+                      <div>
+                        <h3>${m.titulo || ''}</h3>
+                        <span>${m.categoria || ''}</span>
+                      </div>
+                    </a>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar matérias do autor:', e);
+      }
+
+      container.innerHTML = `
+        <div class="perfil-autor-topo">
+          <div class="perfil-autor-foto" ${u.fotoUrl ? `style="background-image:url('${u.fotoUrl}')"` : ''}></div>
+          <div>
+            <h1 class="perfil-autor-nome">${u.nome || 'Sem nome'}</h1>
+            ${cargoLabel ? `<span class="perfil-autor-cargo">${cargoLabel}</span>` : ''}
+          </div>
+        </div>
+        ${u.bio ? `<p class="perfil-autor-bio">${u.bio}</p>` : ''}
+        ${materiasHtml}
+      `;
+    }
+
+    carregar();
+  </script>
+</body>
+</html>
