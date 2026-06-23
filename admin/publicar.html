@@ -47,9 +47,7 @@
           <select id="edicao">
             <option value="">Nenhuma (notícia avulsa)</option>
           </select>
-
-          <label for="ordemEdicao">Ordem dentro da edição</label>
-          <input type="number" id="ordemEdicao" placeholder="Ex: 1, 2, 3..." min="0">
+          <p style="font-size:12px;color:#888;margin-top:-4px;">Só aparecem edições ainda não publicadas. A ordem das matérias dentro da edição é definida pelo administrador na tela de Edições.</p>
 
           <div id="containerGratuito" style="display:none;">
             <label style="display:flex;align-items:center;gap:8px;margin-top:14px;">
@@ -83,6 +81,7 @@
         const snap = await getDocs(q);
         snap.forEach(d => {
           const ed = d.data();
+          if (ed.status === 'publicada') return;
           const opt = document.createElement('option');
           opt.value = ed.nome;
           opt.textContent = ed.nome;
@@ -92,7 +91,6 @@
     }
     carregarEdicoesNoSelect();
 
-    // Categorias padrão do site (mesmas usadas no menu e na página inicial)
     const categoriasPadrao = [
       { valor: 'politica', nome: 'Política' },
       { valor: 'economia', nome: 'Economia' },
@@ -248,7 +246,6 @@
       const conteudo = document.getElementById('conteudo').value.trim();
       const categoriasSelecionadas = categoria ? [categoria] : [];
       const edicao = document.getElementById('edicao').value;
-      const ordemEdicao = document.getElementById('ordemEdicao').value ? parseInt(document.getElementById('ordemEdicao').value) : 0;
       const gratuito = edicao ? document.getElementById('gratuito').checked : true;
       const arquivoImagem = document.getElementById('imagem').files[0];
 
@@ -271,12 +268,12 @@
             cargoEditorialAutor = snapUsuario.data().cargoEditorial || '';
           }
         } catch (e) {
-          console.error('Nao foi possivel obter o cargo editorial do autor:', e);
+          console.error('Não foi possível obter o cargo editorial do autor:', e);
         }
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
-            { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao, cargoEditorialAutor },
+            { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao: 0, cargoEditorialAutor },
             usuarioAtual.uid,
             usuarioAtual.displayName || usuarioAtual.email
           );
@@ -287,7 +284,7 @@
           imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
         }
 
-        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, ordemEdicao });
+        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, cargoEditorialAutor });
 
         noticiaIdEdicao = idNoticia;
         mostrarSucesso('Notícia salva com sucesso!');

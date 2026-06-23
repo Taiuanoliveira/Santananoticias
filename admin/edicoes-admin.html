@@ -7,6 +7,29 @@
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../css/admin.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .edicao-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; }
+    .edicao-cabecalho { display: flex; gap: 14px; align-items: flex-start; }
+    .edicao-cabecalho img { width: 56px; height: 74px; object-fit: cover; flex-shrink: 0; }
+    .edicao-cabecalho-textos { flex-grow: 1; }
+    .tag-status { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 10px; letter-spacing: 0.5px; }
+    .tag-status.rascunho { background: #fff3cd; color: #8a6d1d; }
+    .tag-status.publicada { background: #d4edda; color: #1a5c2a; }
+    .edicao-acoes { display: flex; gap: 8px; margin-top: 10px; }
+    .edicao-acoes button { font-size: 12px; font-weight: 600; padding: 7px 14px; cursor: pointer; border: 1px solid #ddd; background: #fff; }
+    .edicao-acoes button.publicar { background: #00cc66; color: #fff; border-color: #00cc66; }
+    .edicao-acoes button.despublicar { background: #fff3cd; border-color: #d8b94a; color: #8a6d1d; }
+    .edicao-acoes button.excluir { color: #b3261e; }
+    .toggle-materias { font-size: 12px; color: #00cc66; font-weight: 600; cursor: pointer; margin-top: 10px; display: inline-block; }
+    .lista-materias-edicao { display: none; margin-top: 14px; border-top: 1px solid #f0f0f0; padding-top: 12px; }
+    .lista-materias-edicao.aberta { display: block; }
+    .materia-ordem-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+    .materia-ordem-item input[type="number"] { width: 56px; padding: 5px; text-align: center; }
+    .materia-ordem-item .materia-titulo { flex-grow: 1; font-size: 13px; }
+    .materia-ordem-item .materia-status-mini { font-size: 11px; color: #888; }
+    .btn-salvar-ordem { margin-top: 10px; font-size: 12px; background: #0a0a0a; color: #fff; border: none; padding: 8px 14px; cursor: pointer; }
+    .aviso-sem-materias { font-size: 13px; color: #888; padding: 10px 0; }
+  </style>
 </head>
 <body class="admin-body">
 
@@ -57,13 +80,18 @@
           <img id="previewCapa" style="display:none;max-width:160px;margin-top:10px;border:1px solid #ddd;">
 
           <div class="form-acoes">
-            <button type="button" class="btn-primario" onclick="criarEdicao()">Criar edição</button>
+            <button type="button" class="btn-primario" onclick="criarEdicao()">Criar edição (como rascunho)</button>
           </div>
         </form>
       </section>
 
       <section class="admin-bloco">
-        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">Edições existentes</h2>
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;">Edições existentes</h2>
+        <p style="font-size:13px;color:#888;margin-bottom:16px;">
+          Uma edição em <strong>rascunho</strong> pode receber novas matérias e ter sua capa/carta editadas.
+          Depois de <strong>publicada</strong>, ela trava: ninguém mais consegue vincular novas matérias a ela
+          (use "Voltar para rascunho" se precisar corrigir algo antes do público ver).
+        </p>
         <div id="listaEdicoes">Carregando...</div>
       </section>
     </main>
@@ -71,12 +99,12 @@
 
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
-    import { db } from "../js/firebase-config.js";
-    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { storage } from "../js/firebase-config.js";
+    import { db, storage } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     let usuarioAtual = null;
+    let arquivoCapaSelecionado = null;
 
     function montarMenu(cargo) {
       const menu = document.getElementById('menuAdmin');
@@ -111,16 +139,19 @@
       document.getElementById('mensagemSucesso').style.display = 'none';
       el.textContent = texto;
       el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth' });
     }
     function mostrarSucesso(texto) {
       const el = document.getElementById('mensagemSucesso');
       document.getElementById('mensagemErro').style.display = 'none';
       el.textContent = texto;
       el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth' });
     }
 
     document.getElementById('capaEdicao').addEventListener('change', function(e) {
       const file = e.target.files[0];
+      arquivoCapaSelecionado = file || null;
       const preview = document.getElementById('previewCapa');
       if (file) {
         preview.src = URL.createObjectURL(file);
@@ -132,6 +163,7 @@
       const nome = document.getElementById('nomeEdicao').value.trim();
       const tema = document.getElementById('temaEdicao').value;
       const descricao = document.getElementById('descricaoEdicao').value.trim();
+      const cartaLeitor = document.getElementById('cartaLeitor').value.trim();
 
       if (!nome || !tema) {
         mostrarErro('Preencha ao menos o nome e o tema da edição.');
@@ -139,13 +171,26 @@
       }
 
       try {
+        let capaUrl = null;
+        if (arquivoCapaSelecionado) {
+          const caminho = `edicoes/${Date.now()}_${arquivoCapaSelecionado.name}`;
+          const storageRef = ref(storage, caminho);
+          await uploadBytes(storageRef, arquivoCapaSelecionado);
+          capaUrl = await getDownloadURL(storageRef);
+        }
+
         await addDoc(collection(db, 'edicoes'), {
-          nome, tema, descricao,
+          nome, tema, descricao, cartaLeitor,
+          capaUrl,
+          status: 'rascunho',
           criadoEm: new Date().toISOString(),
           criadoPor: usuarioAtual.displayName || usuarioAtual.email
         });
-        mostrarSucesso('Edição criada com sucesso!');
+
+        mostrarSucesso('Edição criada como rascunho! Adicione matérias a ela em "Nova Notícia" antes de publicar.');
         document.getElementById('formEdicao').reset();
+        document.getElementById('previewCapa').style.display = 'none';
+        arquivoCapaSelecionado = null;
         carregarEdicoes();
       } catch (err) {
         mostrarErro('Erro ao criar edição: ' + err.message);
@@ -164,26 +209,105 @@
         container.innerHTML = '';
         snap.forEach(d => {
           const ed = d.data();
+          const status = ed.status || 'rascunho';
           const div = document.createElement('div');
-          div.style.cssText = 'padding:14px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;';
+          div.className = 'edicao-item';
           div.innerHTML = `
-            ${ed.capaUrl ? `<img src="${ed.capaUrl}" style="width:50px;height:66px;object-fit:cover;margin-right:14px;">` : ''}
-            <div style="flex-grow:1;">
-              <strong>${ed.nome}</strong>
-              <div style="font-size:12px;color:#777;">${ed.tema} ${ed.descricao ? '— ' + ed.descricao : ''}</div>
+            <div class="edicao-cabecalho">
+              ${ed.capaUrl ? `<img src="${ed.capaUrl}">` : ''}
+              <div class="edicao-cabecalho-textos">
+                <span class="tag-status ${status}">${status === 'publicada' ? 'Publicada' : 'Rascunho'}</span>
+                <div><strong>${ed.nome}</strong></div>
+                <div style="font-size:12px;color:#777;">${ed.tema}${ed.descricao ? ' — ' + ed.descricao : ''}</div>
+              </div>
             </div>
-            <button data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-size:12px;font-weight:600;text-transform:uppercase;cursor:pointer;">Excluir</button>
+            <div class="edicao-acoes">
+              ${status === 'rascunho'
+                ? `<button class="publicar" data-id="${d.id}" data-nome="${ed.nome}">Publicar edição</button>`
+                : `<button class="despublicar" data-id="${d.id}">Voltar para rascunho</button>`
+              }
+              <button class="excluir" data-id="${d.id}" data-nome="${ed.nome}">Excluir</button>
+            </div>
+            <span class="toggle-materias" data-id="${d.id}" data-nome="${ed.nome}">▾ Ver / ordenar matérias desta edição</span>
+            <div class="lista-materias-edicao" id="materias-${d.id}"></div>
           `;
-          div.querySelector('button').addEventListener('click', async () => {
-            if (confirm('Excluir a edição "' + ed.nome + '"? Os artigos já escritos não serão apagados.')) {
+
+          div.querySelector('.publicar')?.addEventListener('click', async (e) => {
+            if (confirm('Publicar a edição "' + ed.nome + '"? Depois de publicada, ela trava: não será mais possível vincular novas matérias a ela diretamente na tela de Nova Notícia.')) {
+              await updateDoc(doc(db, 'edicoes', d.id), { status: 'publicada' });
+              carregarEdicoes();
+            }
+          });
+
+          div.querySelector('.despublicar')?.addEventListener('click', async () => {
+            if (confirm('Voltar a edição "' + ed.nome + '" para rascunho? Ela deixará de aparecer publicamente até ser publicada de novo.')) {
+              await updateDoc(doc(db, 'edicoes', d.id), { status: 'rascunho' });
+              carregarEdicoes();
+            }
+          });
+
+          div.querySelector('.excluir').addEventListener('click', async () => {
+            if (confirm('Excluir a edição "' + ed.nome + '"? As matérias já escritas não serão apagadas, só deixam de pertencer a esta edição.')) {
               await deleteDoc(doc(db, 'edicoes', d.id));
               carregarEdicoes();
             }
           });
+
+          div.querySelector('.toggle-materias').addEventListener('click', () => abrirOuFecharMaterias(d.id, ed.nome));
+
           container.appendChild(div);
         });
       } catch (err) {
         container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar edições: ' + err.message + '</p>';
+      }
+    }
+
+    async function abrirOuFecharMaterias(edicaoId, nomeEdicao) {
+      const container = document.getElementById('materias-' + edicaoId);
+      const aberta = container.classList.contains('aberta');
+      if (aberta) {
+        container.classList.remove('aberta');
+        return;
+      }
+      container.classList.add('aberta');
+      container.innerHTML = '<p class="aviso-sem-materias">Carregando matérias...</p>';
+
+      try {
+        const q = query(collection(db, 'noticias'), where('edicao', '==', nomeEdicao));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          container.innerHTML = '<p class="aviso-sem-materias">Nenhuma matéria vinculada a esta edição ainda. Crie uma em "Nova Notícia" e selecione esta edição.</p>';
+          return;
+        }
+
+        const materias = snap.docs
+          .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+          .sort((a, b) => (a.ordemEdicao || 0) - (b.ordemEdicao || 0));
+
+        container.innerHTML = materias.map(m => `
+          <div class="materia-ordem-item" data-id="${m.id}">
+            <input type="number" class="input-ordem" value="${m.ordemEdicao || 0}" min="0">
+            <span class="materia-titulo">${m.titulo || '(sem título)'}</span>
+            <span class="materia-status-mini">${m.status || ''}</span>
+          </div>
+        `).join('') + '<button type="button" class="btn-salvar-ordem">Salvar ordem desta edição</button>';
+
+        container.querySelector('.btn-salvar-ordem').addEventListener('click', async () => {
+          const itens = container.querySelectorAll('.materia-ordem-item');
+          try {
+            for (const item of itens) {
+              const id = item.dataset.id;
+              const ordem = parseInt(item.querySelector('.input-ordem').value) || 0;
+              await updateDoc(doc(db, 'noticias', id), { ordemEdicao: ordem });
+            }
+            mostrarSucesso('Ordem das matérias atualizada com sucesso!');
+          } catch (err) {
+            mostrarErro('Erro ao salvar ordem: ' + err.message);
+          }
+        });
+      } catch (err) {
+        container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar matérias: ' + err.message + '</p>';
       }
     }
   </script>

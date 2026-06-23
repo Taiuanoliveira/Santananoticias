@@ -58,11 +58,14 @@ async function carregar() {
     const capasPorNome = {};
     const dataLancamentoPorNome = {};
     const descricaoPorNome = {};
+    const edicoesPublicadas = new Set();
     try {
       const snapEdicoes = await getDocs(collection(db, 'edicoes'));
       snapEdicoes.forEach(d => {
         const ed = d.data();
+        if (ed.status !== 'publicada') return;
         if (ed.nome) {
+          edicoesPublicadas.add(ed.nome);
           capasPorNome[ed.nome] = ed.capaUrl || null;
           dataLancamentoPorNome[ed.nome] = ed.dataLancamento || null;
           descricaoPorNome[ed.nome] = ed.descricao || '';
@@ -70,7 +73,7 @@ async function carregar() {
       });
     } catch (e) { /* segue sem capas/datas/descricoes se der erro */ }
 
-    const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '');
+    const comEdicao = noticias.filter(n => n.edicao && n.edicao.trim() !== '' && edicoesPublicadas.has(n.edicao));
 
     if (comEdicao.length === 0) {
       container.innerHTML = '<div class="vazio">Nenhuma edição publicada ainda.</div>';

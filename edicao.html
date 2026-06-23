@@ -71,6 +71,11 @@
         let edicao = null;
         snapEdicoes.forEach(d => { if (d.data().nome === nomeEdicao) edicao = d.data(); });
 
+        if (!edicao || edicao.status !== 'publicada') {
+          container.innerHTML = '<div class="vazio">Esta edição ainda não foi publicada.</div>';
+          return;
+        }
+
         const snapNoticias = await getDocs(query(
           collection(db, "noticias"),
           where("edicao", "==", nomeEdicao),
