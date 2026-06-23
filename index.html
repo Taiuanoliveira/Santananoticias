@@ -22,6 +22,19 @@
     .agro-cot-valor { font-size: 15px; font-weight: 700; color: #0a0a0a; margin-bottom: 2px; }
     .agro-cot-unidade { font-size: 10px; color: #888; margin-bottom: 4px; }
     .agro-cot-variacao { font-size: 12px; font-weight: 600; min-height: 16px; }
+
+    .ultima-edicao-wrap { max-width: 1200px; margin: 28px auto 40px; padding: 0 20px; }
+    .ultima-edicao-numero { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; margin-bottom: 2px; }
+    .ultima-edicao-data { font-size: 13px; color: #888; margin-bottom: 18px; }
+    .ultima-edicao-corpo { display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+    .ultima-edicao-capa img { width: 200px; box-shadow: 0 10px 30px rgba(0,0,0,.18); display: block; }
+    .ultima-edicao-artigos { flex: 1; min-width: 280px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+    .ultima-edicao-artigo { text-decoration: none; color: #0a0a0a; }
+    .ultima-edicao-artigo .img-mini { width: 100%; height: 110px; background: #eee; background-size: cover; background-position: center; margin-bottom: 8px; }
+    .ultima-edicao-artigo h4 { font-family: 'Playfair Display', serif; font-size: 14px; line-height: 1.3; margin-bottom: 4px; }
+    .ultima-edicao-artigo .autor-mini { font-size: 11px; color: #888; }
+    .ultima-edicao-artigo .tag-gratis-mini { display: inline-block; background: #00cc66; color: #0a0a0a; font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; letter-spacing: .4px; margin-top: 4px; }
+    .ultima-edicao-ver-todas { display: inline-block; margin-top: 16px; font-size: 13px; font-weight: 700; color: #00cc66; text-decoration: none; }
   </style></head>
 <body>
 
@@ -133,8 +146,10 @@
   </aside>
   <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-  <!-- HERO / MANCHETE PRINCIPAL -->
+  <!-- ULTIMA EDICAO PUBLICADA (estilo Revista Oeste) -->
   <main>
+    <section id="ultimaEdicaoSection" style="display:none;"></section>
+
     <section class="hero-section" id="heroSection">
       <p class="admin-carregando">Carregando manchete...</p>
     </section>
@@ -735,6 +750,84 @@ carregarNoticias();
       } catch (e) {
         console.error('Erro ao carregar equipe:', e);
         grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;">Nao foi possivel carregar a equipe.</p>';
+      }
+    })();
+  </script>
+
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    function formatarDataEdicao(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    (async function carregarUltimaEdicao() {
+      const section = document.getElementById('ultimaEdicaoSection');
+      if (!section) return;
+      try {
+        const snapEdicoes = await getDocs(collection(db, 'edicoes'));
+        const edicoesPublicadas = snapEdicoes.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(ed => ed.status === 'publicada')
+          .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+
+        if (edicoesPublicadas.length === 0) {
+          section.style.display = 'none';
+          return;
+        }
+
+        const edicao = edicoesPublicadas[0];
+
+        const snapNoticias = await getDocs(query(
+          collection(db, 'noticias'),
+          where('edicao', '==', edicao.nome),
+          where('status', '==', 'publicado')
+        ));
+        const artigos = snapNoticias.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.ordemEdicao || 0) - (b.ordemEdicao || 0));
+
+        if (artigos.length === 0) {
+          section.style.display = 'none';
+          return;
+        }
+
+        const dataExibida = edicao.dataLancamento
+          ? new Date(edicao.dataLancamento + 'T00:00:00').toLocaleDateString('pt-BR')
+          : formatarDataEdicao(edicao.criadoEm);
+
+        section.style.display = 'block';
+        section.innerHTML = `
+          <div class="ultima-edicao-wrap">
+            <div class="ultima-edicao-numero">${edicao.nome}</div>
+            <div class="ultima-edicao-data">${dataExibida}</div>
+            <div class="ultima-edicao-corpo">
+              <div class="ultima-edicao-capa">
+                ${edicao.capaUrl
+                  ? `<img src="${edicao.capaUrl}" alt="Capa da ${edicao.nome}">`
+                  : `<div style="width:200px;height:266px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;">Sem capa</div>`
+                }
+              </div>
+              <div class="ultima-edicao-artigos">
+                ${artigos.map(a => `
+                  <a href="noticia.html?id=${a.id}" class="ultima-edicao-artigo">
+                    <div class="img-mini" style="${a.imagemUrl ? `background-image:url('${a.imagemUrl}')` : ''}"></div>
+                    <h4>${a.titulo || ''}</h4>
+                    <div class="autor-mini">${a.autorNome || 'Redacao'}</div>
+                    <span class="tag-gratis-mini">${a.gratuito ? 'Gratuito' : 'Assinante'}</span>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+            <a href="edicao.html?e=${encodeURIComponent(edicao.nome)}" class="ultima-edicao-ver-todas">Ver edicao completa &rarr;</a>
+          </div>
+        `;
+      } catch (e) {
+        console.error('Erro ao carregar ultima edicao:', e);
+        section.style.display = 'none';
       }
     })();
   </script>
