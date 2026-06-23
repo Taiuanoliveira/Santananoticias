@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edição – Santana.com</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .edicao-hero { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+    .edicao-capa img { width: 220px; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
+    .edicao-info { flex: 1; min-width: 260px; }
+    .edicao-numero { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #00cc66; font-weight: 700; margin-bottom: 8px; }
+    .edicao-nome { font-family: "Playfair Display", serif; font-size: 36px; line-height: 1.2; margin-bottom: 10px; }
+    .edicao-data { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .edicao-tema { display: inline-block; background: #0a0a0a; color: #00cc66; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 12px; letter-spacing: .5px; margin-bottom: 20px; }
+    .carta-leitor { background: #f9f9f9; border-left: 4px solid #00cc66; padding: 20px 24px; margin-top: 16px; }
+    .carta-leitor h3 { font-family: "Playfair Display", serif; font-size: 16px; margin-bottom: 10px; color: #555; }
+    .carta-leitor p { font-size: 14px; line-height: 1.7; color: #444; }
+    .sumario-secao { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+    .sumario-titulo { font-family: "Playfair Display", serif; font-size: 24px; border-bottom: 3px solid #00cc66; padding-bottom: 10px; margin-bottom: 24px; }
+    .sumario-lista { list-style: none; }
+    .sumario-item { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid #eee; }
+    .sumario-num { font-size: 24px; font-weight: 900; color: #eee; font-family: "Playfair Display", serif; min-width: 40px; }
+    .sumario-item a { text-decoration: none; color: #0a0a0a; font-weight: 700; font-size: 15px; line-height: 1.3; }
+    .sumario-item a:hover { color: #00cc66; }
+    .sumario-item .autor { font-size: 12px; color: #888; margin-top: 3px; }
+    .sumario-item .tag-gratis { background: #00cc66; color: #0a0a0a; font-size: 10px; font-weight: 700; padding: 2px 8px; text-transform: uppercase; margin-left: 8px; }
+    .sumario-item .tag-paga { background: #0a0a0a; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; text-transform: uppercase; margin-left: 8px; }
+    .artigos-grid { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+    .artigos-grid h2 { font-family: "Playfair Display", serif; font-size: 24px; border-bottom: 3px solid #00cc66; padding-bottom: 10px; margin-bottom: 24px; }
+    .artigos-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .artigo-card { text-decoration: none; color: #0a0a0a; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.06); transition: transform .15s; }
+    .artigo-card:hover { transform: translateY(-3px); }
+    .artigo-card img { width: 100%; height: 130px; object-fit: cover; }
+    .artigo-card .card-body { padding: 14px; }
+    .artigo-card h3 { font-family: "Playfair Display", serif; font-size: 15px; line-height: 1.3; margin-bottom: 6px; }
+    .artigo-card .autor { font-size: 11px; color: #888; }
+    .vazio { text-align: center; color: #777; padding: 40px 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Santana<span>.com</span></h1></a>
+      </div>
+    </div>
+  </header>
+
+  <div id="conteudoEdicao"><div class="vazio">Carregando edição...</div></div>
+
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Santana.com – Todos os direitos reservados</span>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { db } from "./js/firebase-config.js";
+    import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const nomeEdicao = params.get("e") ? decodeURIComponent(params.get("e")) : null;
+    const container = document.getElementById("conteudoEdicao");
+
+    async function carregar() {
+
+      try {
+        const snapEdicoes = await getDocs(collection(db, "edicoes"));
+        let edicao = null;
+        snapEdicoes.forEach(d => { if (d.data().nome === nomeEdicao) edicao = d.data(); });
+
+        const snapNoticias = await getDocs(query(
+          collection(db, "noticias"),
+          where("edicao", "==", nomeEdicao),
+          where("status", "==", "publicado")
+        ));
+
+        const artigos = [];
+        snapNoticias.forEach(d => artigos.push({ id: d.id, ...d.data() }));
+        artigos.sort((a, b) => (a.ordemEdicao || 0) - (b.ordemEdicao || 0));
+
+        const dataFormatada = edicao?.dataLancamento
+          ? new Date(edicao.dataLancamento + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+          : "";
+
+        document.title = nomeEdicao + " – Santana.com";
+
+        container.innerHTML = `
+          <div class="edicao-hero">
+            <div class="edicao-capa">
+              ${edicao?.capaUrl ? `<img src="${edicao.capaUrl}" alt="Capa da ${nomeEdicao}">` : `<div style="width:220px;height:293px;background:#eee;display:flex;align-items:center;justify-content:center;color:#999;">Sem capa</div>`}
+            </div>
+            <div class="edicao-info">
+              <div class="edicao-numero">Editorial</div>
+              <div class="edicao-nome">${nomeEdicao}</div>
+              <div class="edicao-data">${dataFormatada}</div>
+              ${edicao?.tema ? `<div class="edicao-tema">${edicao.tema}</div>` : ""}
+              ${edicao?.descricao ? `<p style="color:#555;font-size:14px;line-height:1.7;">${edicao.descricao}</p>` : ""}
+              ${edicao?.cartaLeitor ? `
+                <div class="carta-leitor">
+                  <h3>Carta ao Leitor</h3>
+                  ${edicao.cartaLeitor.split("\n").map(p => `<p>${p}</p>`).join("")}
+                </div>
+              ` : ""}
+            </div>
+          </div>
+
+          ${artigos.length > 0 ? `
+          <div class="sumario-secao">
+            <div class="sumario-titulo">Sumário</div>
+            <ul class="sumario-lista">
+              ${artigos.map((a, i) => `
+                <li class="sumario-item">
+                  <span class="sumario-num">${String(i + 1).padStart(2, "0")}</span>
+                  <div>
+                    <a href="noticia.html?id=${a.id}">${a.titulo}<span class="${a.gratuito ? 'tag-gratis' : 'tag-paga'}">${a.gratuito ? 'Grátis' : 'Assinante'}</span></a>
+                    <div class="autor">${a.autorNome || "Redação"}${a.cargoEditorialAutor ? " · " + a.cargoEditorialAutor : ""}</div>
+                  </div>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+
+          <div class="artigos-grid">
+            <h2>Artigos desta edição</h2>
+            <div class="artigos-cards">
+              ${artigos.map(a => `
+                <a href="noticia.html?id=${a.id}" class="artigo-card">
+                  ${a.imagemUrl ? `<img src="${a.imagemUrl}" alt="${a.titulo}">` : `<div style="width:100%;height:130px;background:#eee;"></div>`}
+                  <div class="card-body">
+                    <h3>${a.titulo}</h3>
+                    <div class="autor">${a.autorNome || "Redação"}${a.cargoEditorialAutor ? " · " + a.cargoEditorialAutor : ""}</div>
+                  </div>
+                </a>
+              `).join("")}
+            </div>
+          </div>
+          ` : `<div class="vazio">Nenhum artigo publicado nesta edição ainda.</div>`}
+        `;
+      } catch (e) {
+        container.innerHTML = "<div class='vazio'>Erro ao carregar edição: " + e.message + "</div>";
+      }
+    }
+
+    carregar();
+  </script>
+</body>
+</html>

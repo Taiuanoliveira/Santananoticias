@@ -94,6 +94,8 @@ async function carregar() {
       const artigos = grupos[nomeEdicao];
       const bloco = document.createElement('div');
       bloco.className = 'edicao-bloco';
+      bloco.style.cursor = 'pointer';
+      bloco.onclick = () => window.location.href = 'edicao.html?e=' + encodeURIComponent(nomeEdicao);
 
       const dataMaisRecente = artigos.reduce((max, n) => (n.criadoEm && n.criadoEm > max ? n.criadoEm : max), '');
 
