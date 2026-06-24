@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         </div>
       </div>
       <div style="background:#f4f4f4;padding:16px 24px;font-size:12px;color:#888;text-align:center;">
-        Você recebe este e-mail porque assinou a newsletter do Santana.com.<br>
+        Você recebe este e-mail porque assinou a newsletter do Veritas Notícias.<br>
         <a href="https://santananoticias.vercel.app/perfil.html" style="color:#00cc66;">Gerenciar preferências</a>
       </div>
     </div>
@@ -40,9 +40,9 @@ export default async function handler(req, res) {
         'api-key': process.env.BREVO_API_KEY
       },
       body: JSON.stringify({
-        sender: { name: 'Santana.com', email: 'afc710001@smtp-brevo.com' },
+        sender: { name: 'Veritas Notícias', email: 'afc710001@smtp-brevo.com' },
         to: Array.isArray(para) ? para.map(e => ({ email: e })) : [{ email: para }],
-        subject: titulo + ' – Santana.com',
+        subject: titulo + ' – Veritas Notícias',
         htmlContent: corpo
       })
     });
