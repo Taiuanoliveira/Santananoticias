@@ -10,6 +10,7 @@
   <meta property="og:image" id="metaOgImg" content="">
   <meta property="og:type" content="article">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/publicidade.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     body { background: #f4f4f4; font-family: 'Inter', sans-serif; color: #0a0a0a; margin: 0; }
@@ -144,6 +145,7 @@
 
   <script type="module">
     import { obterNoticia, listarPublicadas } from './js/noticias.js';
+    import { montarBannerDeNoticia } from './js/publicidade.js';
     import { auth, db } from './js/firebase-config.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
@@ -229,6 +231,7 @@
 
           ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="artigo-img" alt="${noticia.titulo}"><p class="artigo-img-legenda">${noticia.titulo}</p>` : ''}
 
+          <div id="bannerNoticia" style="margin:20px 0;"></div>
           <div class="artigo-corpo" id="corpoNoticia">
             ${noticia.conteudo.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
           </div>
@@ -268,6 +271,15 @@
       carregarBotoes(id);
       carregarComentarios(id);
       carregarUltimas(id);
+
+      // Carrega banner de publicidade no meio do artigo
+      try {
+        const htmlBanner = await montarBannerDeNoticia(id);
+        const elBanner = document.getElementById('bannerNoticia');
+        if (elBanner && htmlBanner) {
+          elBanner.innerHTML = '<p class="secao-pub-rotulo">Publicidade</p>' + htmlBanner;
+        }
+      } catch (e) { console.error('Erro ao carregar banner:', e); }
       document.getElementById('secaoComentarios').style.display = 'block';
       document.getElementById('secaoUltimas').style.display = 'block';
     }
