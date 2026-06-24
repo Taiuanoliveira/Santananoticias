@@ -1,127 +1,55 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notícia</title>
-
-  <style>
-    .noticia-corpo p {
-      font-size: 18px;
-      line-height: 1.8;
-      margin-bottom: 16px;
-      color: #222;
-    }
-
-    /* 🔥 estilo jornal (primeira letra grande) */
-    .noticia-corpo .dropcap::first-letter {
-      float: left;
-      font-size: 70px;
-      font-weight: 900;
-      line-height: 0.8;
-      padding-right: 10px;
-      font-family: serif;
-      color: #111;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notícia</title>
 </head>
-
 <body>
 
-  <div id="conteudoNoticia">Carregando...</div>
+<div id="conteudo">Carregando notícia...</div>
 
-  <script type="module">
-    import { obterNoticia } from "./js/noticias.js";
-    import { registrarVisualizacao, listarComentarios } from "./js/interacoes.js";
-    import { montarBannerDeNoticia } from "./js/publicidade.js";
+<script type="module">
+import { obterNoticia } from "./js/noticias.js";
 
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { auth } from "./js/firebase-config.js";
+const container = document.getElementById("conteudo");
 
-    import {
-      collection,
-      getDocs,
-      orderBy,
-      query
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+async function carregar() {
+  try {
     const id = new URLSearchParams(window.location.search).get("id");
-    const container = document.getElementById("conteudoNoticia");
 
-    let usuarioAtual = null;
-
-    onAuthStateChanged(auth, u => usuarioAtual = u);
-
-    function montarCorpo(texto) {
-      const paragrafos = (texto || "").split("\n").filter(Boolean);
-
-      return paragrafos.map((p, i) => {
-        if (i === 0) {
-          return `<p class="dropcap">${p}</p>`;
-        }
-        return `<p>${p}</p>`;
-      }).join("");
+    if (!id) {
+      container.innerHTML = "Erro: ID não informado";
+      return;
     }
 
-    async function carregar() {
-      const noticia = await obterNoticia(id);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject("timeout"), 8000)
+    );
 
-      const paragrafos = (noticia.conteudo || "").split("\n");
-      const ponto = Math.max(2, Math.floor(paragrafos.length / 3));
+    const noticia = await Promise.race([
+      obterNoticia(id),
+      timeout
+    ]);
 
-      const banner = await montarBannerDeNoticia(id);
-
-      const corpo = paragrafos.map((p, i) => {
-        let bloco = i === 0
-          ? `<p class="dropcap">${p}</p>`
-          : `<p>${p}</p>`;
-
-        if (i === ponto && paragrafos.length > 3) {
-          bloco = banner + bloco;
-        }
-
-        return bloco;
-      }).join("");
-
-      container.innerHTML = `
-        <h1>${noticia.titulo}</h1>
-
-        <div id="corpoNoticia" class="noticia-corpo">
-          ${corpo}
-        </div>
-
-        <button onclick="alert('Curtir ok')">Curtir</button>
-
-        <h3>Comentários</h3>
-        <div id="listaComentariosNova"></div>
-      `;
-
-      registrarVisualizacao(id);
-
-      carregarComentarios();
+    if (!noticia) {
+      container.innerHTML = "Notícia não encontrada";
+      return;
     }
 
-    async function carregarComentarios() {
-      const el = document.getElementById("listaComentariosNova");
-      if (!el) return;
+    container.innerHTML = `
+      <h1>${noticia.titulo || ""}</h1>
+      <div>${(noticia.conteudo || "").split("\n").map(p => `<p>${p}</p>`).join("")}</div>
+    `;
 
-      const lista = await listarComentarios(id);
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = "Erro ao carregar notícia";
+  }
+}
 
-      if (!lista.length) {
-        el.innerHTML = "<p>Nenhum comentário ainda.</p>";
-        return;
-      }
-
-      el.innerHTML = lista.map(c => `
-        <div style="padding:10px 0;border-bottom:1px solid #eee;">
-          <strong>${c.autorNome}</strong>
-          <p>${c.texto}</p>
-        </div>
-      `).join("");
-    }
-
-    carregar();
-  </script>
+carregar();
+</script>
 
 </body>
 </html>
