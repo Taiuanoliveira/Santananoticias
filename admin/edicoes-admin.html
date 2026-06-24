@@ -72,8 +72,13 @@
           <label for="descricaoEdicao">Descrição resumida (aparece na lista de edições)</label>
           <textarea id="descricaoEdicao" rows="2" placeholder="Breve descrição desta edição"></textarea>
 
-          <label for="cartaLeitor">Carta ao leitor</label>
+          <label for="cartaLeitor">Carta ao leitor <small style="color:#888;font-weight:400;">(sempre gratuita, aparece antes dos artigos)</small></label>
           <textarea id="cartaLeitor" rows="6" placeholder="Escreva a carta ao leitor desta edição. Aparece no topo da edição antes dos artigos."></textarea>
+
+          <label style="display:flex;align-items:center;gap:8px;margin-top:16px;">
+            <input type="checkbox" id="edicaoGratuita" style="width:auto;">
+            <span>Edição inteiramente gratuita <small style="color:#888;font-weight:400;">(libera todos os artigos desta edição automaticamente)</small></span>
+          </label>
 
           <label for="capaEdicao">Capa da edição</label>
           <input type="file" id="capaEdicao" accept="image/*">
