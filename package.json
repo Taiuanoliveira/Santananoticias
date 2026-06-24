@@ -1,0 +1,8 @@
+{
+  "name": "veritas-noticias",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "firebase": "^10.12.2"
+  }
+}
