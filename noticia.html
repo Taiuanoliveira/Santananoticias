@@ -158,11 +158,11 @@
       criarComentario, listarComentarios
     } from "./js/interacoes.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { auth } from "./js/firebase-config.js";
+    
     import { montarBannerDeNoticia } from "./js/publicidade.js";
     import { auth, db } from "./js/firebase-config.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { collection, addDoc, getDocs, orderBy, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, addDoc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, orderBy, query, where, serverTimestamp, doc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
