@@ -102,6 +102,19 @@
       color: #0a0a0a;
     }
 </style>
+
+  <style>
+    .pub-noticia { width:100%; margin:24px 0; background:#f7f5f0; border:1px dashed #ccc; overflow:hidden; text-align:center; }
+    .pub-noticia a { display:block; }
+    .pub-noticia img { width:100%; max-height:100px; object-fit:cover; display:block; }
+    .pub-noticia .pub-placeholder { padding:20px; color:#aaa; font-size:12px; font-family:Inter,sans-serif; }
+    .pub-label-small { font-size:10px; color:#bbb; text-transform:uppercase; letter-spacing:1px; font-family:Inter,sans-serif; text-align:center; margin-bottom:2px; }
+    .pub-rodape-grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:8px; }
+    .pub-rodape-grid-5 a { display:block; background:#f0ede8; border:1px dashed #ccc; overflow:hidden; }
+    .pub-rodape-grid-5 img { width:100%; height:70px; object-fit:cover; display:block; }
+    .pub-rodape-grid-5 .pub-vazio { height:70px; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:11px; }
+    @media(max-width:600px){ .pub-rodape-grid-5{ grid-template-columns:repeat(3,1fr); } }
+  </style>
 </head>
 <body>
 
@@ -375,6 +388,73 @@
     }
 
     carregar();
+  </script>
+
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, getDocs, query, where, updateDoc, doc, increment } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    async function buscarBanners() {
+      try {
+        const q = query(collection(db, 'publicidade'), where('ativo','==',true));
+        const snap = await getDocs(q);
+        return snap.docs.map(d=>({id:d.id,...d.data()}));
+      } catch(e) { return []; }
+    }
+
+    function sortear(lista, n) {
+      return [...lista].sort(()=>Math.random()-0.5).slice(0,n);
+    }
+
+    window._regClique = async function(id) {
+      try { await updateDoc(doc(db,'publicidade',id),{cliques:increment(1)}); } catch(e){}
+    };
+
+    async function inserirBanners() {
+      const corpo = document.getElementById('corpoNoticia');
+      if (corpo === null) return;
+      const banners = await buscarBanners();
+      if (banners.length === 0) return;
+
+      const paragrafos = corpo.querySelectorAll('p');
+      let inseridos = 0;
+
+      paragrafos.forEach(function(p, i) {
+        if (inseridos >= 3) return;
+        if ((i + 1) % 4 === 0) {
+          const b = sortear(banners, 1)[0];
+          if (b) {
+            const div = document.createElement('div');
+            const img = b.imagemUrl ? '<img src="'+b.imagemUrl+'" alt="" loading="lazy">' : '<div class="pub-placeholder">Publicidade</div>';
+            div.innerHTML = '<div class="pub-label-small">Publicidade</div><div class="pub-noticia"><a href="'+(b.link||'#')+'" target="_blank" onclick="window._regClique(''+b.id+'')">'+img+'</a></div>';
+            p.after(div);
+            inseridos++;
+          }
+        }
+      });
+
+      const rodape = document.getElementById('pubRodapeNoticia');
+      if (rodape === null) return;
+      const sel = sortear(banners, 5);
+      if (sel.length === 0) { rodape.style.display='none'; return; }
+      let html = '<div class="pub-label-small" style="margin-bottom:8px;">Publicidade</div><div class="pub-rodape-grid-5">';
+      for (let i = 0; i < 5; i++) {
+        const b = sel[i];
+        if (b === undefined) { html += '<div class="pub-vazio">Em breve</div>'; continue; }
+        const img = b.imagemUrl ? '<img src="'+b.imagemUrl+'" alt="">' : '<div class="pub-vazio">Publicidade</div>';
+        html += '<a href="'+(b.link||'#')+'" target="_blank" onclick="window._regClique(''+b.id+'')">'+img+'</a>';
+      }
+      html += '</div>';
+      rodape.innerHTML = html;
+    }
+
+    const obs = new MutationObserver(function() {
+      if (document.getElementById('corpoNoticia')) {
+        obs.disconnect();
+        setTimeout(inserirBanners, 600);
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
   </script>
 </body>
 </html>
