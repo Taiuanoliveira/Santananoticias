@@ -60,7 +60,12 @@ export default async function handler(req, res) {
         included_segments: ["Subscribed Users"],
         headings: { en: "Veritas Notícias", pt: "Veritas Notícias" },
         contents: { en: tituloNotificacao, pt: tituloNotificacao },
-        url: "https://veritasnoticias.vercel.app/noticia.html?id=" + noticiaId
+        url: "https://veritasnoticias.vercel.app/noticia.html?id=" + noticiaId,
+        subtitle: { en: noticia.resumo || "", pt: noticia.resumo || "" },
+        big_picture: noticia.imagemUrl || "",
+        large_icon: noticia.imagemUrl || "",
+        chrome_web_image: noticia.imagemUrl || "",
+        web_buttons: [{ id: "ler", text: "Ler noticia completa", url: "https://veritasnoticias.vercel.app/noticia.html?id=" + noticiaId }]
       })
     });
 
