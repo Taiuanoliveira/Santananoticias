@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         app_id: "d391c7f0-84aa-434a-b6bd-efc73611e68c",
         included_segments: ["Subscribed Users"],
-        headings: { en: "Veritas Notícias", pt: "Veritas Notícias" },
+        headings: { en: "Santana.com", pt: "Santana.com" },
         contents: { en: tituloNotificacao, pt: tituloNotificacao },
         url: "https://veritasnoticias.vercel.app/noticia.html?id=" + noticiaId,
         subtitle: { en: noticia.resumo || "", pt: noticia.resumo || "" },
