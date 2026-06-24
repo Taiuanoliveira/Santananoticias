@@ -605,42 +605,67 @@ carregarNoticias();
     import { db } from './js/firebase-config.js';
     import { collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
+    // Categorias fixas do menu (as mesmas que já existem em <nav class="main-nav">).
+    // Usamos essa lista direto, sem depender de uma coleção "categorias" cadastrada à parte.
+    const CATEGORIAS_FIXAS = [
+      { nome: 'Política', slug: 'politica' },
+      { nome: 'Economia', slug: 'economia' },
+      { nome: 'Regional', slug: 'regional' },
+      { nome: 'Agro', slug: 'agro' },
+      { nome: 'Esportes', slug: 'esportes' },
+      { nome: 'Cultura', slug: 'cultura' },
+      { nome: 'Saúde', slug: 'saude' },
+      { nome: 'Tecnologia', slug: 'tecnologia' },
+      { nome: 'Educação', slug: 'educacao' },
+      { nome: 'Entretenimento', slug: 'entretenimento' },
+      { nome: 'Brasil/Mundo', slug: 'brasil-mundo' },
+      { nome: 'Segurança', slug: 'seguranca' }
+    ];
+
     (async function carregarMenuCategorias() {
       try {
+        // Tenta ler categorias cadastradas no banco (caso você cadastre futuramente);
+        // se não houver nenhuma, usa a lista fixa acima — assim nunca fica vazio.
         const q = query(collection(db, 'categorias'), orderBy('ordem'));
         const snap = await getDocs(q);
-        if (snap.empty) return;
 
-        const menuPrincipal = document.getElementById('menuCategorias');
-        const menuLateral = document.getElementById('sidebarCategorias');
-        const categoriasParaSecoes = [];
+        let categoriasParaSecoes = CATEGORIAS_FIXAS;
 
-        snap.forEach(d => {
-          const cat = d.data();
-          const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
-          const href = 'categoria.html?c=' + slug;
-          categoriasParaSecoes.push({ nome: cat.nome, slug });
+        if (!snap.empty) {
+          const menuPrincipal = document.getElementById('menuCategorias');
+          const menuLateral = document.getElementById('sidebarCategorias');
+          categoriasParaSecoes = [];
 
-          if (menuPrincipal) {
-            const li = document.createElement('li');
-            li.innerHTML = '<a href="' + href + '">' + cat.nome + '</a>';
-            const editorial = menuPrincipal.querySelector('a[href="edicoes.html"]')?.parentElement;
-            if (editorial) menuPrincipal.insertBefore(li, editorial);
-            else menuPrincipal.appendChild(li);
-          }
+          snap.forEach(d => {
+            const cat = d.data();
+            const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+            const href = 'categoria.html?c=' + slug;
+            categoriasParaSecoes.push({ nome: cat.nome, slug });
 
-          if (menuLateral) {
-            const a = document.createElement('a');
-            a.href = href;
-            a.textContent = (cat.emoji || '') + ' ' + cat.nome;
-            const editorial = menuLateral.querySelector('a[href="edicoes.html"]');
-            if (editorial) menuLateral.insertBefore(a, editorial);
-            else menuLateral.appendChild(a);
-          }
-        });
+            if (menuPrincipal) {
+              const li = document.createElement('li');
+              li.innerHTML = '<a href="' + href + '">' + cat.nome + '</a>';
+              const editorial = menuPrincipal.querySelector('a[href="edicoes.html"]')?.parentElement;
+              if (editorial) menuPrincipal.insertBefore(li, editorial);
+              else menuPrincipal.appendChild(li);
+            }
+
+            if (menuLateral) {
+              const a = document.createElement('a');
+              a.href = href;
+              a.textContent = (cat.emoji || '') + ' ' + cat.nome;
+              const editorial = menuLateral.querySelector('a[href="edicoes.html"]');
+              if (editorial) menuLateral.insertBefore(a, editorial);
+              else menuLateral.appendChild(a);
+            }
+          });
+        }
 
         montarSecoesPorCategoria(categoriasParaSecoes);
-      } catch (e) { console.error('Erro ao carregar categorias:', e); }
+      } catch (e) {
+        console.error('Erro ao carregar categorias:', e);
+        montarSecoesPorCategoria(CATEGORIAS_FIXAS);
+      }
     })();
 
     // Monta, na home, uma seção por categoria no estilo Revista Oeste:
