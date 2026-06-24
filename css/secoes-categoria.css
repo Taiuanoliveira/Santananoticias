@@ -1,0 +1,103 @@
+/* === VERITAS NOTÍCIAS – Seções por categoria (estilo Revista Oeste) === */
+
+.secao-categoria {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 20px;
+  border-top: 1px solid #eee;
+}
+.secao-categoria-titulo {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 22px;
+  position: relative;
+  display: inline-block;
+}
+.secao-categoria-titulo::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 100%;
+  height: 3px;
+  background: #00cc66;
+}
+.secao-categoria-corpo {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 30px;
+  margin-top: 28px;
+}
+
+.secao-cat-destaque {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.secao-cat-destaque img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  background: #eee;
+  margin-bottom: 14px;
+}
+.secao-cat-destaque h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.secao-cat-destaque p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.secao-cat-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.secao-cat-item {
+  display: flex;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.secao-cat-item:last-child {
+  border-bottom: none;
+}
+.secao-cat-item img {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  background: #eee;
+  flex-shrink: 0;
+}
+.secao-cat-item h4 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.secao-cat-vertodas {
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #00cc66;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+}
+.secao-cat-vertodas:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+  .secao-categoria-corpo {
+    grid-template-columns: 1fr;
+  }
+}

@@ -17,6 +17,7 @@
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/publicidade.css">
+  <link rel="stylesheet" href="css/secoes-categoria.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
@@ -219,6 +220,9 @@
 
     <!-- CARROSSEL DE PUBLICIDADE -->
     <div class="carrossel-pub-container" id="carrosselPublicidade"></div>
+
+    <!-- SEÇÕES POR CATEGORIA (estilo Revista Oeste) -->
+    <div id="secoesPorCategoria"></div>
 
     <!-- SEÇÃO EDITORIAL -->
     <div class="section-divider">
@@ -609,11 +613,13 @@ carregarNoticias();
 
         const menuPrincipal = document.getElementById('menuCategorias');
         const menuLateral = document.getElementById('sidebarCategorias');
+        const categoriasParaSecoes = [];
 
         snap.forEach(d => {
           const cat = d.data();
           const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
           const href = 'categoria.html?c=' + slug;
+          categoriasParaSecoes.push({ nome: cat.nome, slug });
 
           if (menuPrincipal) {
             const li = document.createElement('li');
@@ -632,8 +638,58 @@ carregarNoticias();
             else menuLateral.appendChild(a);
           }
         });
+
+        montarSecoesPorCategoria(categoriasParaSecoes);
       } catch (e) { console.error('Erro ao carregar categorias:', e); }
     })();
+
+    // Monta, na home, uma seção por categoria no estilo Revista Oeste:
+    // 1 notícia em destaque (maior, à esquerda) + lista vertical (à direita) + link "Ver todas".
+    async function montarSecoesPorCategoria(categorias) {
+      const container = document.getElementById('secoesPorCategoria');
+      if (!container) return;
+
+      const { listarPorCategoria } = await import('./js/noticias.js');
+      let html = '';
+
+      for (const cat of categorias) {
+        let noticias = [];
+        try {
+          noticias = await listarPorCategoria(cat.slug, 5);
+        } catch (e) {
+          console.error('Erro ao listar categoria ' + cat.slug + ':', e);
+          continue;
+        }
+        if (noticias.length === 0) continue; // categoria sem notícias não aparece na home
+
+        const destaque = noticias[0];
+        const resto = noticias.slice(1);
+
+        html += `
+          <section class="secao-categoria">
+            <h2 class="secao-categoria-titulo">${cat.nome}</h2>
+            <div class="secao-categoria-corpo">
+              <a href="noticia.html?id=${destaque.id}" class="secao-cat-destaque">
+                <img src="${destaque.imagemUrl || ''}" alt="${destaque.titulo || ''}">
+                <h3>${destaque.titulo || ''}</h3>
+                ${destaque.resumo ? `<p>${destaque.resumo}</p>` : ''}
+              </a>
+              <div class="secao-cat-lista">
+                ${resto.map(n => `
+                  <a href="noticia.html?id=${n.id}" class="secao-cat-item">
+                    <img src="${n.imagemUrl || ''}" alt="${n.titulo || ''}">
+                    <h4>${n.titulo || ''}</h4>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+            <a href="categoria.html?c=${cat.slug}" class="secao-cat-vertodas">Ver todas as notícias sobre ${cat.nome} →</a>
+          </section>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
   </script>
   <script>
     (async function carregarCotacoes() {
