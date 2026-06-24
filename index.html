@@ -469,7 +469,7 @@
       if (!linkLogin || !linkCadastro) return;
 
       if (user && cargo && cargo !== 'pendente') {
-        const cargosAdmin = ['administrador', 'admin', 'editor', 'colunista', 'revisor'];
+        const cargosAdmin = ['administrador', 'moderador', 'colaborador'];
         if (cargosAdmin.includes(cargo)) {
           linkLogin.textContent = 'Painel Administrativo';
           linkLogin.href = 'admin/dashboard.html';
@@ -499,29 +499,7 @@
     });
 
     
-    let todasNoticias = [];
-    let quantidadeMostrada = 12;
 
-    document.getElementById('btnCarregarMais')?.addEventListener('click', () => {
-      quantidadeMostrada += 12;
-      renderizarGrid();
-    });
-
-    function renderizarGrid() {
-      const grid = document.getElementById('newsGrid');
-      const btn = document.getElementById('btnCarregarMais');
-      const visiveis = todasNoticias.slice(0, quantidadeMostrada);
-      grid.innerHTML = visiveis.map(n => `
-        <a href="noticia.html?id=${n.id}" class="news-card">
-          <div class="news-card-img" style="background-image:url('${n.imagemUrl || ''}')"></div>
-          <div class="news-card-body">
-            <span class="news-card-cat">${n.categoria || ''}</span>
-            <h3>${n.titulo || ''}</h3>
-          </div>
-        </a>
-      `).join('');
-      if (btn) btn.style.display = todasNoticias.length > quantidadeMostrada ? 'inline-block' : 'none';
-    }
 
 carregarNoticias();
 
