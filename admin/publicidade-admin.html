@@ -153,7 +153,7 @@
         arquivoSelecionado = null;
         carregarAnuncios();
       } catch (err) {
-        mostrarErro('Erro ao cadastrar anúncio: ' + err.message);
+        mostrarErro('Erro ao cadastrar anúncio: ' + err.message); alert('ERRO: ' + err.message); console.error(err);
       }
     };
 
