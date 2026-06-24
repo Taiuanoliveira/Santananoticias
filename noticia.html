@@ -1,55 +1,397 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notícia</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notícia – Santana.com</title>
+  <meta name="description" id="metaDesc" content="">
+  <meta property="og:title" id="metaOgTitle" content="">
+  <meta property="og:description" id="metaOgDesc" content="">
+  <meta property="og:image" id="metaOgImg" content="">
+  <meta property="og:type" content="article">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { background: #f4f4f4; font-family: 'Inter', sans-serif; color: #0a0a0a; margin: 0; }
+
+    /* HEADER */
+    .topo { background: #0a0a0a; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+    .topo .logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 900; color: #fff; text-decoration: none; }
+    .topo .logo span { color: #00cc66; }
+    .topo a.voltar { color: #888; font-size: 13px; text-decoration: none; }
+
+    /* BREADCRUMB */
+    .breadcrumb { max-width: 800px; margin: 14px auto 0; padding: 0 20px; font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .breadcrumb a { color: #888; text-decoration: none; }
+    .breadcrumb a:hover { color: #00cc66; }
+    .breadcrumb span { color: #ccc; }
+
+    /* ARTIGO */
+    .artigo { max-width: 800px; margin: 20px auto 0; padding: 0 20px; background: #fff; box-shadow: 0 2px 16px rgba(0,0,0,.06); }
+    .artigo-inner { padding: 28px 32px 40px; }
+
+    .badge-edicao { display: inline-flex; align-items: center; gap: 8px; border-left: 3px solid #00cc66; padding-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #00cc66; margin-bottom: 14px; text-decoration: none; }
+    .badge-edicao:hover { color: #009944; }
+
+    .artigo-titulo { font-family: 'Playfair Display', serif; font-size: 32px; line-height: 1.2; margin: 0 0 12px; color: #0a0a0a; }
+    .artigo-resumo { font-size: 17px; color: #444; line-height: 1.6; margin: 0 0 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+
+    .autor-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .autor-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; border: 2px solid #00cc66; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; color: #aaa; overflow: hidden; }
+    .autor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .autor-nome { font-size: 13px; font-weight: 700; color: #0a0a0a; text-transform: uppercase; letter-spacing: .5px; }
+    .autor-cargo { font-size: 11px; color: #00cc66; font-weight: 600; }
+    .autor-data { font-size: 12px; color: #888; margin-top: 2px; }
+
+    /* CONTROLES */
+    .controles { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .btn-ctrl { display: flex; align-items: center; gap: 5px; background: #f4f4f4; border: none; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 20px; color: #555; transition: all .2s; font-family: 'Inter', sans-serif; }
+    .btn-ctrl:hover { background: #eee; }
+    .btn-ctrl.ativo { background: #0a0a0a; color: #fff; }
+    .btn-ctrl.ativo.curtir { background: #e53935; }
+    .btn-ctrl.ativo.favoritar { background: #f9a825; color: #0a0a0a; }
+    .btn-ctrl.ativo.ler-depois { background: #00cc66; color: #0a0a0a; }
+    .btn-ouvir { background: #00cc66; color: #0a0a0a; }
+    .btn-ouvir.tocando { background: #e53935; color: #fff; }
+
+    /* IMAGEM */
+    .artigo-img { width: 100%; max-height: 460px; object-fit: cover; display: block; margin-bottom: 6px; }
+    .artigo-img-legenda { font-size: 11px; color: #888; margin-bottom: 24px; text-align: center; }
+
+    /* CORPO */
+    .artigo-corpo { font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; line-height: 1.8; color: #1a1a1a; }
+    .artigo-corpo p { margin-bottom: 20px; }
+    .artigo-corpo p:first-of-type::first-letter {
+      font-family: 'Playfair Display', serif;
+      font-size: 72px;
+      font-weight: 900;
+      float: left;
+      line-height: 0.75;
+      margin: 8px 10px 0 0;
+      color: #0a0a0a;
+    }
+
+    /* COMPARTILHAR */
+    .compartilhar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 28px 0; }
+    .compartilhar strong { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #555; }
+    .btn-share { padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 3px; color: #fff; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
+    .btn-wpp { background: #25D366; }
+    .btn-fb { background: #1877F2; }
+    .btn-copy { background: #0a0a0a; }
+
+    /* COMENTARIOS */
+    .secao { max-width: 800px; margin: 0 auto; padding: 0 20px 40px; }
+    .secao-titulo { font-family: 'Playfair Display', serif; font-size: 22px; border-bottom: 3px solid #00cc66; padding-bottom: 10px; margin-bottom: 20px; }
+    .form-comentario { background: #f9f9f9; padding: 18px; margin-bottom: 24px; }
+    .form-comentario textarea { width: 100%; border: 1px solid #ddd; padding: 12px; font-size: 14px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 80px; box-sizing: border-box; }
+    .form-comentario textarea:focus { outline: none; border-color: #00cc66; }
+    .btn-comentar { background: #0a0a0a; color: #fff; border: none; padding: 11px 22px; font-size: 13px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 10px; font-family: 'Inter', sans-serif; }
+    .btn-comentar:hover { background: #00cc66; color: #0a0a0a; }
+    .aviso-login { background: #f4f4f4; padding: 16px; text-align: center; font-size: 13px; color: #555; }
+    .aviso-login a { color: #00cc66; font-weight: 700; text-decoration: none; }
+    .comentario-item { padding: 14px 0; border-bottom: 1px solid #eee; }
+    .comentario-autor { font-weight: 700; font-size: 13px; }
+    .comentario-data { font-size: 11px; color: #999; margin-left: 8px; }
+    .comentario-texto { font-size: 14px; line-height: 1.6; color: #333; margin-top: 6px; }
+
+    /* ULTIMAS */
+    .ultimas-lista { display: flex; flex-direction: column; gap: 14px; }
+    .ultima-card { display: flex; gap: 14px; text-decoration: none; color: #0a0a0a; padding-bottom: 14px; border-bottom: 1px solid #eee; }
+    .ultima-card:last-child { border-bottom: none; }
+    .ultima-card:hover h4 { color: #00cc66; }
+    .ultima-thumb { width: 80px; height: 60px; flex-shrink: 0; background: #eee; background-size: cover; background-position: center; }
+    .ultima-card h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin: 0 0 4px; }
+    .ultima-cat { font-size: 11px; color: #00cc66; font-weight: 600; text-transform: uppercase; }
+
+    .carregando { text-align: center; color: #777; padding: 60px 20px; }
+
+    @media (max-width: 600px) {
+      .artigo-inner { padding: 20px 16px 30px; }
+      .artigo-titulo { font-size: 24px; }
+      .artigo-corpo { font-size: 16px; }
+    }
+  </style>
 </head>
 <body>
 
-<div id="conteudo">Carregando notícia...</div>
+  <header class="topo">
+    <a href="index.html" class="logo">Santana<span>.com</span></a>
+    <a href="index.html" class="voltar">← Início</a>
+  </header>
 
-<script type="module">
-import { obterNoticia } from "./js/noticias.js";
+  <div class="breadcrumb" id="breadcrumb"></div>
 
-const container = document.getElementById("conteudo");
+  <article class="artigo" id="artigo">
+    <div class="artigo-inner">
+      <p class="carregando">Carregando notícia...</p>
+    </div>
+  </article>
 
-async function carregar() {
-  try {
-    const id = new URLSearchParams(window.location.search).get("id");
+  <section class="secao" id="secaoComentarios" style="display:none; margin-top:24px;">
+    <h2 class="secao-titulo">Comentários</h2>
+    <div id="formComentario"></div>
+    <div id="listaComentarios"></div>
+  </section>
 
-    if (!id) {
-      container.innerHTML = "Erro: ID não informado";
-      return;
+  <section class="secao" id="secaoUltimas" style="display:none; margin-top:8px;">
+    <h2 class="secao-titulo">Últimas notícias</h2>
+    <div class="ultimas-lista" id="listaUltimas"></div>
+  </section>
+
+  <footer style="background:#0a0a0a;padding:20px;text-align:center;margin-top:40px;">
+    <span style="color:#555;font-size:13px;">© 2026 Santana.com – Todos os direitos reservados</span>
+  </footer>
+
+  <script type="module">
+    import { obterNoticia, listarPublicadas } from './js/noticias.js';
+    import { auth, db } from './js/firebase-config.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import {
+      collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
+      addDoc, getDocs, query, orderBy, where, serverTimestamp, arrayUnion, arrayRemove
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    const artigo = document.getElementById('artigo');
+    let usuarioAtual = null;
+    let noticiaAtual = null;
+    let tamanhoFonte = 18;
+
+    onAuthStateChanged(auth, u => { usuarioAtual = u; });
+
+    function fmtData(ts) {
+      if (!ts) return '';
+      const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+      return d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
 
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject("timeout"), 8000)
-    );
+    async function carregar() {
+      if (!id) { artigo.innerHTML = '<div class="artigo-inner carregando">Notícia não encontrada.</div>'; return; }
 
-    const noticia = await Promise.race([
-      obterNoticia(id),
-      timeout
-    ]);
+      const noticia = await obterNoticia(id).catch(() => null);
+      if (!noticia) { artigo.innerHTML = '<div class="artigo-inner carregando">Notícia não encontrada.</div>'; return; }
 
-    if (!noticia) {
-      container.innerHTML = "Notícia não encontrada";
-      return;
+      noticiaAtual = noticia;
+
+      // Meta tags SEO
+      document.title = noticia.titulo + ' – Santana.com';
+      document.getElementById('metaDesc')?.setAttribute('content', noticia.resumo || '');
+      document.getElementById('metaOgTitle')?.setAttribute('content', noticia.titulo || '');
+      document.getElementById('metaOgDesc')?.setAttribute('content', noticia.resumo || '');
+      document.getElementById('metaOgImg')?.setAttribute('content', noticia.imagemUrl || '');
+
+      // Breadcrumb
+      const bc = document.getElementById('breadcrumb');
+      bc.innerHTML = `
+        <a href="index.html">🏠</a>
+        <span>›</span>
+        <a href="index.html">Notícias</a>
+        ${noticia.edicao ? `<span>›</span><a href="edicao.html?e=${encodeURIComponent(noticia.edicao)}">${noticia.edicao}</a>` : ''}
+        <span>›</span>
+        <span style="color:#333;">${noticia.titulo.substring(0,50)}${noticia.titulo.length > 50 ? '...' : ''}</span>
+      `;
+
+      // Busca foto do autor
+      let fotoAutor = '';
+      try {
+        const snapU = await getDocs(query(collection(db, 'usuarios'), where('nome', '==', noticia.autorNome)));
+        snapU.forEach(d => { if (d.data().fotoUrl || d.data().photoURL) fotoAutor = d.data().fotoUrl || d.data().photoURL; });
+      } catch (e) {}
+
+      const avatarHtml = fotoAutor
+        ? `<div class="autor-avatar"><img src="${fotoAutor}" alt="${noticia.autorNome}"></div>`
+        : `<div class="autor-avatar">${(noticia.autorNome || 'R').charAt(0).toUpperCase()}</div>`;
+
+      artigo.innerHTML = `
+        <div class="artigo-inner">
+          ${noticia.edicao ? `<a href="edicao.html?e=${encodeURIComponent(noticia.edicao)}" class="badge-edicao">📰 ${noticia.edicao}</a>` : ''}
+          <h1 class="artigo-titulo">${noticia.titulo}</h1>
+          ${noticia.resumo ? `<p class="artigo-resumo">${noticia.resumo}</p>` : ''}
+          <div class="autor-row">
+            ${avatarHtml}
+            <div>
+              <div class="autor-nome">${noticia.autorNome || 'Redação'}</div>
+              ${noticia.cargoEditorialAutor ? `<div class="autor-cargo">${noticia.cargoEditorialAutor}</div>` : ''}
+              <div class="autor-data">${fmtData(noticia.criadoEm)}</div>
+            </div>
+          </div>
+
+          <div class="controles">
+            <button class="btn-ctrl" id="btnFonte" title="Tamanho do texto">
+              A- / A+
+            </button>
+            <button class="btn-ctrl btn-ouvir" id="btnOuvir">🔊 Ouvir</button>
+            <button class="btn-ctrl curtir" id="btnCurtir">❤️ <span id="numCurtidas">0</span></button>
+            <button class="btn-ctrl favoritar" id="btnFavoritar">⭐ Favoritar</button>
+            <button class="btn-ctrl ler-depois" id="btnLerDepois">🔖 Ler depois</button>
+          </div>
+
+          ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="artigo-img" alt="${noticia.titulo}"><p class="artigo-img-legenda">${noticia.titulo}</p>` : ''}
+
+          <div class="artigo-corpo" id="corpoNoticia">
+            ${noticia.conteudo.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+          </div>
+
+          <div class="compartilhar">
+            <strong>Compartilhar:</strong>
+            <button class="btn-share btn-wpp" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' '+window.location.href),'_blank')">WhatsApp</button>
+            <button class="btn-share btn-fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href),'_blank')">Facebook</button>
+            <button class="btn-share btn-copy" onclick="navigator.clipboard.writeText(window.location.href);this.textContent='✓ Copiado!'">Copiar link</button>
+          </div>
+        </div>
+      `;
+
+      // Controle de fonte
+      document.getElementById('btnFonte').onclick = () => {
+        tamanhoFonte = tamanhoFonte === 18 ? 21 : tamanhoFonte === 21 ? 15 : 18;
+        document.getElementById('corpoNoticia').style.fontSize = tamanhoFonte + 'px';
+      };
+
+      // Ouvir
+      document.getElementById('btnOuvir').onclick = function() {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+          this.textContent = '🔊 Ouvir';
+          this.classList.remove('tocando');
+          return;
+        }
+        const fala = new SpeechSynthesisUtterance(document.getElementById('corpoNoticia').innerText);
+        fala.lang = 'pt-BR';
+        fala.rate = 0.95;
+        fala.onend = () => { this.textContent = '🔊 Ouvir'; this.classList.remove('tocando'); };
+        this.textContent = '⏹ Parar';
+        this.classList.add('tocando');
+        window.speechSynthesis.speak(fala);
+      };
+
+      carregarBotoes(id);
+      carregarComentarios(id);
+      carregarUltimas(id);
+      document.getElementById('secaoComentarios').style.display = 'block';
+      document.getElementById('secaoUltimas').style.display = 'block';
     }
 
-    container.innerHTML = `
-      <h1>${noticia.titulo || ""}</h1>
-      <div>${(noticia.conteudo || "").split("\n").map(p => `<p>${p}</p>`).join("")}</div>
-    `;
+    async function carregarBotoes(noticiaId) {
+      try {
+        const snapC = await getDocs(collection(db, 'curtidas', noticiaId, 'usuarios'));
+        document.getElementById('numCurtidas').textContent = snapC.size;
 
-  } catch (e) {
-    console.error(e);
-    container.innerHTML = "Erro ao carregar notícia";
-  }
-}
+        if (!usuarioAtual) return;
 
-carregar();
-</script>
+        const snapCurtiu = await getDoc(doc(db, 'curtidas', noticiaId, 'usuarios', usuarioAtual.uid));
+        if (snapCurtiu.exists()) document.getElementById('btnCurtir').classList.add('ativo');
 
+        const snapU = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
+        const favs = snapU.exists() ? (snapU.data().favoritos || []) : [];
+        if (favs.find(f => f.id === noticiaId)) {
+          const b = document.getElementById('btnFavoritar');
+          b.classList.add('ativo'); b.innerHTML = '⭐ Favoritado';
+        }
+
+        const snapLer = await getDoc(doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaId));
+        if (snapLer.exists()) {
+          const b = document.getElementById('btnLerDepois');
+          b.classList.add('ativo'); b.innerHTML = '🔖 Salvo';
+        }
+      } catch (e) {}
+
+      document.getElementById('btnCurtir').onclick = async () => {
+        if (!usuarioAtual) { alert('Faça login para curtir.'); return; }
+        const r = doc(db, 'curtidas', noticiaId, 'usuarios', usuarioAtual.uid);
+        const s = await getDoc(r);
+        const b = document.getElementById('btnCurtir');
+        const n = document.getElementById('numCurtidas');
+        if (s.exists()) { await deleteDoc(r); b.classList.remove('ativo'); n.textContent = Math.max(0, parseInt(n.textContent)-1); }
+        else { await setDoc(r, { em: new Date().toISOString() }); b.classList.add('ativo'); n.textContent = parseInt(n.textContent)+1; }
+      };
+
+      document.getElementById('btnFavoritar').onclick = async () => {
+        if (!usuarioAtual) { alert('Faça login para favoritar.'); return; }
+        const r = doc(db, 'usuarios', usuarioAtual.uid);
+        const s = await getDoc(r);
+        const favs = s.exists() ? (s.data().favoritos || []) : [];
+        const b = document.getElementById('btnFavoritar');
+        const ja = favs.find(f => f.id === noticiaId);
+        if (ja) { await updateDoc(r, { favoritos: arrayRemove(ja) }); b.classList.remove('ativo'); b.innerHTML = '⭐ Favoritar'; }
+        else { await updateDoc(r, { favoritos: arrayUnion({ id: noticiaId, titulo: noticiaAtual?.titulo || '', url: 'noticia.html?id='+noticiaId }) }); b.classList.add('ativo'); b.innerHTML = '⭐ Favoritado'; }
+      };
+
+      document.getElementById('btnLerDepois').onclick = async () => {
+        if (!usuarioAtual) { alert('Faça login para salvar.'); return; }
+        const r = doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaId);
+        const s = await getDoc(r);
+        const b = document.getElementById('btnLerDepois');
+        if (s.exists()) { await deleteDoc(r); b.classList.remove('ativo'); b.innerHTML = '🔖 Ler depois'; }
+        else { await setDoc(r, { titulo: noticiaAtual?.titulo || '', url: 'noticia.html?id='+noticiaId, em: new Date().toISOString() }); b.classList.add('ativo'); b.innerHTML = '🔖 Salvo'; }
+      };
+    }
+
+    async function carregarComentarios(noticiaId) {
+      const formDiv = document.getElementById('formComentario');
+      const lista = document.getElementById('listaComentarios');
+
+      onAuthStateChanged(auth, user => {
+        if (user) {
+          formDiv.innerHTML = `
+            <div class="form-comentario">
+              <textarea id="textoComentario" placeholder="Escreva seu comentário..."></textarea>
+              <button class="btn-comentar" id="btnEnviarComentario">Publicar comentário</button>
+            </div>
+          `;
+          document.getElementById('btnEnviarComentario').onclick = async () => {
+            const texto = document.getElementById('textoComentario').value.trim();
+            if (!texto) return;
+            await addDoc(collection(db, 'noticias', noticiaId, 'comentarios'), {
+              texto, autorUid: user.uid, autorNome: user.displayName || user.email, criadoEm: serverTimestamp()
+            });
+            document.getElementById('textoComentario').value = '';
+            carregarListaComentarios(noticiaId, lista);
+          };
+        } else {
+          formDiv.innerHTML = `<div class="aviso-login">Faça <a href="login.html">login</a> para comentar.</div>`;
+        }
+      });
+
+      carregarListaComentarios(noticiaId, lista);
+    }
+
+    async function carregarListaComentarios(noticiaId, lista) {
+      try {
+        const q = query(collection(db, 'noticias', noticiaId, 'comentarios'), orderBy('criadoEm', 'desc'));
+        const snap = await getDocs(q);
+        if (snap.empty) { lista.innerHTML = '<p style="color:#777;font-size:13px;">Seja o primeiro a comentar!</p>'; return; }
+        lista.innerHTML = '';
+        snap.forEach(d => {
+          const c = d.data();
+          const div = document.createElement('div');
+          div.className = 'comentario-item';
+          const ts = c.criadoEm?.toDate ? c.criadoEm.toDate().toLocaleDateString('pt-BR') : '';
+          div.innerHTML = `<div><span class="comentario-autor">${c.autorNome || 'Leitor'}</span><span class="comentario-data">${ts}</span></div><p class="comentario-texto">${c.texto}</p>`;
+          lista.appendChild(div);
+        });
+      } catch (e) { lista.innerHTML = ''; }
+    }
+
+    async function carregarUltimas(noticiaAtualId) {
+      try {
+        const noticias = await listarPublicadas(6);
+        const filtradas = noticias.filter(n => n.id !== noticiaAtualId).slice(0, 5);
+        const lista = document.getElementById('listaUltimas');
+        if (!filtradas.length) { lista.innerHTML = ''; return; }
+        lista.innerHTML = filtradas.map(n => `
+          <a href="noticia.html?id=${n.id}" class="ultima-card">
+            <div class="ultima-thumb" style="${n.imagemUrl ? 'background-image:url('+n.imagemUrl+')' : ''}"></div>
+            <div>
+              <div class="ultima-cat">${n.categoria || ''}</div>
+              <h4>${n.titulo}</h4>
+            </div>
+          </a>
+        `).join('');
+      } catch (e) {}
+    }
+
+    carregar();
+  </script>
 </body>
 </html>
