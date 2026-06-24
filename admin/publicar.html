@@ -293,6 +293,14 @@
 
         await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, cargoEditorialAutor });
 
+        if (status === STATUS.PUBLICADO) {
+          fetch('/api/notificar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ noticiaId: idNoticia })
+          }).catch(e => console.error('Não foi possível enviar a notificação push:', e));
+        }
+
         noticiaIdEdicao = idNoticia;
         mostrarSucesso('Notícia salva com sucesso!');
         setTimeout(() => window.location.href = 'gerenciar-noticias.html', 1500);
