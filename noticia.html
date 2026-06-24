@@ -22,6 +22,13 @@
     .fonte-controle button { background: #0a0a0a; color: #fff; border: none; width: 32px; height: 32px; font-size: 16px; cursor: pointer; border-radius: 3px; font-weight: 700; }
     .fonte-controle button:hover { background: #00cc66; color: #0a0a0a; }
     .fonte-controle span { font-size: 13px; color: #777; }
+    .acoes-noticia { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 0; border-bottom: 1px solid #eee; margin-bottom: 20px; }
+    .btn-acao { display: flex; align-items: center; gap: 6px; background: #f4f4f4; border: none; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: all .2s; color: #555; }
+    .btn-acao:hover { background: #eee; }
+    .btn-acao.ativo { background: #0a0a0a; color: #fff; }
+    .btn-acao.ativo.curtir { background: #e53935; color: #fff; }
+    .btn-acao.ativo.favoritar { background: #f9a825; color: #0a0a0a; }
+    .btn-acao.ativo.ler-depois { background: #00cc66; color: #0a0a0a; }
     .compartilhar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 24px 0; }
     .compartilhar strong { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
     .compartilhar a { padding: 8px 14px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 3px; color: #fff; }
@@ -168,6 +175,12 @@
             ${noticia.conteudo.split("\n").map(p => `<p>${p}</p>`).join("")}
           </div>
 
+          <div class="acoes-noticia" id="acoesNoticia">
+            <button class="btn-acao curtir" id="btnCurtir" onclick="toggleCurtir()">❤️ <span id="numCurtidas">0</span></button>
+            <button class="btn-acao favoritar" id="btnFavoritar" onclick="toggleFavoritar()">⭐ Favoritar</button>
+            <button class="btn-acao ler-depois" id="btnLerDepois" onclick="toggleLerDepois()">🔖 Ler depois</button>
+          </div>
+
           <div class="compartilhar">
             <strong>Compartilhar:</strong>
             <a href="#" class="btn-wpp" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' - '+window.location.href),'_blank');return false;">WhatsApp</a>
@@ -179,8 +192,91 @@
 
       document.getElementById("secaoComentarios").style.display = "block";
       document.getElementById("secaoUltimas").style.display = "block";
+      carregarEstadoBotoes(id);
       carregarComentarios(id);
       carregarUltimas(id);
+    }
+
+    let noticiaIdAtual = null;
+
+    window.toggleCurtir = async function() {
+      const ref = doc(db, 'curtidas', noticiaIdAtual, 'usuarios', usuarioAtual.uid);
+      const snap = await getDoc(ref);
+      const btn = document.getElementById('btnCurtir');
+      const num = document.getElementById('numCurtidas');
+      if (snap.exists()) {
+        await deleteDoc(ref);
+        btn.classList.remove('ativo');
+        num.textContent = Math.max(0, parseInt(num.textContent) - 1);
+      } else {
+        await setDoc(ref, { curtidoEm: new Date().toISOString() });
+        btn.classList.add('ativo');
+        num.textContent = parseInt(num.textContent) + 1;
+      }
+    };
+
+    window.toggleFavoritar = async function() {
+      const ref = doc(db, 'usuarios', usuarioAtual.uid);
+      const snap = await getDoc(ref);
+      const favs = snap.exists() ? (snap.data().favoritos || []) : [];
+      const btn = document.getElementById('btnFavoritar');
+      const jaFav = favs.find(f => f.id === noticiaIdAtual);
+      if (jaFav) {
+        await updateDoc(ref, { favoritos: arrayRemove(jaFav) });
+        btn.classList.remove('ativo');
+        btn.innerHTML = '⭐ Favoritar';
+      } else {
+        const novoFav = { id: noticiaIdAtual, titulo: document.querySelector('.noticia-titulo')?.textContent || '', url: 'noticia.html?id=' + noticiaIdAtual };
+        await updateDoc(ref, { favoritos: arrayUnion(novoFav) });
+        btn.classList.add('ativo');
+        btn.innerHTML = '⭐ Favoritado';
+      }
+    };
+
+    window.toggleLerDepois = async function() {
+      const ref = doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaIdAtual);
+      const snap = await getDoc(ref);
+      const btn = document.getElementById('btnLerDepois');
+      if (snap.exists()) {
+        await deleteDoc(ref);
+        btn.classList.remove('ativo');
+        btn.innerHTML = '🔖 Ler depois';
+      } else {
+        await setDoc(ref, { titulo: document.querySelector('.noticia-titulo')?.textContent || '', url: 'noticia.html?id=' + noticiaIdAtual, salvoEm: new Date().toISOString() });
+        btn.classList.add('ativo');
+        btn.innerHTML = '🔖 Salvo';
+      }
+    };
+
+    async function carregarEstadoBotoes(noticiaId) {
+      noticiaIdAtual = noticiaId;
+      try {
+        // Carrega curtidas
+        const snapCurtidas = await getDocs(collection(db, 'curtidas', noticiaId, 'usuarios'));
+        document.getElementById('numCurtidas').textContent = snapCurtidas.size;
+
+
+        // Verifica se o usuario curtiu
+        const snapCurtiu = await getDoc(doc(db, 'curtidas', noticiaId, 'usuarios', usuarioAtual.uid));
+        if (snapCurtiu.exists()) document.getElementById('btnCurtir').classList.add('ativo');
+
+        // Verifica favoritos
+        const snapUser = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
+        const favs = snapUser.exists() ? (snapUser.data().favoritos || []) : [];
+        if (favs.find(f => f.id === noticiaId)) {
+          const btn = document.getElementById('btnFavoritar');
+          btn.classList.add('ativo');
+          btn.innerHTML = '⭐ Favoritado';
+        }
+
+        // Verifica ler mais tarde
+        const snapLer = await getDoc(doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaId));
+        if (snapLer.exists()) {
+          const btn = document.getElementById('btnLerDepois');
+          btn.classList.add('ativo');
+          btn.innerHTML = '🔖 Salvo';
+        }
+      } catch (e) { console.error('Erro ao carregar estado dos botoes:', e); }
     }
 
     window.ouvirNoticia = function() {

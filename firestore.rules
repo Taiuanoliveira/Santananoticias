@@ -32,7 +32,7 @@ service cloud.firestore {
       // Qualquer pessoa logada pode ler a própria conta; Admin pode ler todas.
       allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
       // Criação acontece no cadastro (o próprio usuário cria seu doc já como leitor).
-      allow create: if estaLogado() && request.auth.uid == userId && (request.resource.data.cargo == 'pendente' || request.resource.data.cargo == 'leitor');
+      allow create: if estaLogado() && request.auth.uid == userId && (request.resource.data.cargo == 'pendente' || request.resource.data.cargo == 'leitor' || request.resource.data.cargo == 'usuario');
       // Só Admin pode alterar cargos de outras pessoas. O próprio usuário pode editar nome/email.
       allow update: if ehAdmin() || (estaLogado() && request.auth.uid == userId && request.resource.data.cargo == resource.data.cargo);
       allow delete: if ehAdmin();
@@ -102,6 +102,24 @@ service cloud.firestore {
     match /usuarios/{userId}/favoritos/{favId} {
       allow read: if estaLogado() && request.auth.uid == userId;
       allow write: if estaLogado() && request.auth.uid == userId;
+    }
+
+    // --- COLEÇÃO: curtidas ---
+    match /curtidas/{noticiaId}/usuarios/{userId} {
+      allow read: if true;
+      allow write: if estaLogado() && request.auth.uid == userId;
+    }
+
+    // --- COLEÇÃO: ler_mais_tarde ---
+    match /ler_mais_tarde/{userId}/noticias/{noticiaId} {
+      allow read: if estaLogado() && request.auth.uid == userId;
+      allow write: if estaLogado() && request.auth.uid == userId;
+    }
+
+    // --- COLEÇÃO: estatisticas ---
+    match /estatisticas/{noticiaId} {
+      allow read: if true;
+      allow write: if estaLogado();
     }
   }
 }

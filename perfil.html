@@ -61,7 +61,8 @@ input:checked + .slider:before{transform:translateX(20px)}
 <div class="wrap">
   <div class="tabs">
     <div class="tab ativa" data-painel="dados">Meus Dados</div>
-    <div class="tab" data-painel="favoritos">Favoritos</div>
+    <div class="tab" data-painel="favoritos">⭐ Favoritos</div>
+    <div class="tab" data-painel="lerDepois">🔖 Ler depois</div>
     <div class="tab" data-painel="notif">Notificações</div>
     <div class="tab" data-painel="plano">Assinatura</div>
   </div>
@@ -81,6 +82,12 @@ input:checked + .slider:before{transform:translateX(20px)}
     <input type="email" id="emailInput" disabled>
     <button class="btn-salvar" onclick="salvarDados()">Salvar alterações</button>
     <div id="msgDados" class="msg"></div>
+  </div>
+
+  <div class="painel" id="painel-lerDepois">
+    <h2>Ler mais tarde</h2>
+    <ul class="lista-fav" id="listaLerDepois"></ul>
+    <div class="vazio" id="lerDepoisVazio" style="display:none">Nenhuma notícia salva para ler depois.</div>
   </div>
 
   <div class="painel" id="painel-favoritos">
@@ -122,7 +129,7 @@ input:checked + .slider:before{transform:translateX(20px)}
 <script type="module">
 import { auth, db, storage } from './js/firebase-config.js';
 import { onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { doc, getDoc, setDoc, updateDoc, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { doc, getDoc, setDoc, updateDoc, arrayRemove, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { enviarImagemCloudinary } from './js/cloudinary.js';
 
 document.querySelectorAll('.tab').forEach(tab => {
