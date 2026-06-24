@@ -72,9 +72,9 @@
 
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
-    import { db, storage } from "../js/firebase-config.js";
+    import { db } from "../js/firebase-config.js";
     import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { enviarImagemCloudinary } from "../js/cloudinary.js";
 
     let arquivoSelecionado = null;
 
@@ -136,10 +136,7 @@
       }
 
       try {
-        const caminho = `publicidade/${Date.now()}_${arquivoSelecionado.name}`;
-        const storageRef = ref(storage, caminho);
-        await uploadBytes(storageRef, arquivoSelecionado);
-        const imagemUrl = await getDownloadURL(storageRef);
+        const imagemUrl = await enviarImagemCloudinary(arquivoSelecionado);
 
         await addDoc(collection(db, 'publicidade'), {
           nomeAnunciante, link, imagemUrl,
@@ -153,7 +150,8 @@
         arquivoSelecionado = null;
         carregarAnuncios();
       } catch (err) {
-        mostrarErro('Erro ao cadastrar anúncio: ' + err.message); alert('ERRO: ' + err.message); console.error(err);
+        mostrarErro('Erro ao cadastrar anúncio: ' + err.message);
+        console.error(err);
       }
     };
 
