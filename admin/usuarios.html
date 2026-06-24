@@ -148,6 +148,15 @@
         `;
       }).join('');
 
+      lista.querySelectorAll('.input-premium').forEach(input => {
+        input.addEventListener('change', async () => {
+          const uid = input.dataset.uid;
+          const data = input.value;
+          await updateDoc(doc(db, 'usuarios', uid), { premiumAte: data });
+          console.log('Premium atualizado para', uid, data);
+        });
+      });
+
       lista.querySelectorAll('.select-cargo-editorial').forEach(select => {
         select.addEventListener('change', async () => {
           const uid = select.dataset.uid;
@@ -166,6 +175,15 @@
             alert('Não foi possível atualizar o cargo do sistema.');
             console.error(err);
           }
+        });
+      });
+
+      lista.querySelectorAll('.input-premium').forEach(input => {
+        input.addEventListener('change', async () => {
+          const uid = input.dataset.uid;
+          const data = input.value;
+          await updateDoc(doc(db, 'usuarios', uid), { premiumAte: data });
+          console.log('Premium atualizado para', uid, data);
         });
       });
 
