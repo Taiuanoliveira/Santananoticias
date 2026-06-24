@@ -1,649 +1,127 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.init({ appId: "d391c7f0-84aa-434a-b6bd-efc73611e68c" });
-    });
-  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notícia – Veritas Notícias</title>
-  <meta name="description" id="metaDescricao" content="">
-  <meta property="og:title" id="metaOgTitulo" content="">
-  <meta property="og:description" id="metaOgDescricao" content="">
-  <meta property="og:image" id="metaOgImagem" content="">
-  <meta property="og:type" content="article">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="css/publicidade.css">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    .noticia-conteudo { max-width: 760px; margin: 40px auto; padding: 0 20px 60px; }
-    .noticia-wrap { background: var(--branco); }
-    .noticia-titulo { font-family: var(--fonte-titulo); font-size: 34px; line-height: 1.2; margin: 12px 0 16px; }
-    .noticia-meta { font-size: 13px; color: var(--cinza-claro); margin-bottom: 24px; }
-    .noticia-imagem { width: 100%; margin-bottom: 24px; }
-    .noticia-corpo p { margin-bottom: 18px; }
-    .fonte-controle { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-    .fonte-controle button { background: #0a0a0a; color: #fff; border: none; width: 32px; height: 32px; font-size: 16px; cursor: pointer; border-radius: 3px; font-weight: 700; }
-    .fonte-controle button:hover { background: #00cc66; color: #0a0a0a; }
-    .fonte-controle span { font-size: 13px; color: #777; }
-    .acoes-noticia { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 16px 0; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-    .btn-acao { display: flex; align-items: center; gap: 6px; background: #f4f4f4; border: none; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: all .2s; color: #555; }
-    .btn-acao:hover { background: #eee; }
-    .btn-acao.ativo { background: #0a0a0a; color: #fff; }
-    .btn-acao.ativo.curtir { background: #e53935; color: #fff; }
-    .btn-acao.ativo.favoritar { background: #f9a825; color: #0a0a0a; }
-    .btn-acao.ativo.ler-depois { background: #00cc66; color: #0a0a0a; }
-    .compartilhar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 18px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin: 24px 0; }
-    .compartilhar strong { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
-    .compartilhar a { padding: 8px 14px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 3px; color: #fff; }
-    .btn-wpp { background: #25D366; }
-    .btn-fb { background: #1877F2; }
-    .btn-copy { background: #0a0a0a; }
-    .secao-comentarios { max-width: 760px; margin: 0 auto 40px; padding: 0 20px; }
-    .secao-comentarios h2 { font-family: var(--fonte-titulo); font-size: 22px; margin-bottom: 20px; }
-    .form-comentario { background: #f9f9f9; padding: 20px; margin-bottom: 24px; }
-    .form-comentario textarea { width: 100%; border: 1px solid #ddd; padding: 12px; font-family: var(--fonte-ui); font-size: 14px; resize: vertical; min-height: 90px; }
-    .form-comentario textarea:focus { outline: none; border-color: #00cc66; }
-    .btn-comentar { background: #0a0a0a; color: #fff; border: none; padding: 11px 22px; font-size: 13px; font-weight: 700; text-transform: uppercase; cursor: pointer; margin-top: 10px; }
-    .btn-comentar:hover { background: #00cc66; color: #0a0a0a; }
-    .comentario-item { padding: 16px 0; border-bottom: 1px solid #eee; }
-    .comentario-item .autor { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
-    .comentario-item .data { font-size: 11px; color: #999; margin-left: 8px; }
-    .comentario-item p { font-size: 14px; line-height: 1.6; color: #333; }
-    .secao-ultimas { max-width: 760px; margin: 0 auto 60px; padding: 0 20px; }
-    .secao-ultimas h2 { font-family: var(--fonte-titulo); font-size: 22px; border-bottom: 3px solid #00cc66; padding-bottom: 10px; margin-bottom: 20px; }
-    .ultimas-lista { display: flex; flex-direction: column; gap: 16px; }
-    .ultima-card { display: flex; gap: 14px; text-decoration: none; color: #0a0a0a; }
-    .ultima-card:hover h4 { color: #00cc66; }
-    .ultima-thumb { width: 80px; height: 60px; flex-shrink: 0; background: #eee; background-size: cover; background-position: center; }
-    .ultima-card h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
-    .ultima-card span { font-size: 11px; color: #999; }
-    .aviso-login { background: #f4f4f4; padding: 16px; text-align: center; font-size: 13px; color: #555; }
-    .aviso-login a { color: #00cc66; font-weight: 700; text-decoration: none; }
-  
-    .breadcrumb { max-width: 760px; margin: 16px auto 0; padding: 0 20px; font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .breadcrumb a { color: #888; text-decoration: none; }
-    .breadcrumb a:hover { color: #00cc66; }
-    .breadcrumb span { color: #ccc; }
-    .badge-edicao { display: inline-block; border-left: 3px solid #00cc66; padding-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #00cc66; margin-bottom: 10px; }
-    .autor-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-    .autor-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
-    .autor-info strong { font-size: 13px; font-weight: 700; color: #0a0a0a; text-transform: uppercase; letter-spacing: .5px; }
-    .autor-info .data-hora { font-size: 12px; color: #888; margin-top: 2px; }
-    .noticia-corpo p:first-of-type::first-letter {
-      font-family: "Playfair Display", serif;
-      font-size: 72px;
-      font-weight: 900;
-      float: left;
-      line-height: 0.75;
-      margin: 8px 10px 0 0;
-      color: #0a0a0a;
-    }
-
-    .breadcrumb { max-width: 760px; margin: 16px auto 0; padding: 0 20px; font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .breadcrumb a { color: #888; text-decoration: none; }
-    .breadcrumb a:hover { color: #00cc66; }
-    .breadcrumb span { color: #ccc; }
-    .badge-edicao { display: inline-block; border-left: 3px solid #00cc66; padding-left: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #00cc66; margin-bottom: 10px; }
-    .autor-row { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-    .autor-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; flex-shrink: 0; }
-    .autor-info strong { font-size: 13px; font-weight: 700; color: #0a0a0a; text-transform: uppercase; letter-spacing: .5px; }
-    .autor-info .data-hora { font-size: 12px; color: #888; margin-top: 2px; }
-    .noticia-corpo p:first-of-type::first-letter {
-      font-family: "Playfair Display", serif;
-      font-size: 72px;
-      font-weight: 900;
-      float: left;
-      line-height: 0.75;
-      margin: 8px 10px 0 0;
-      color: #0a0a0a;
-    }
-</style>
+  <title>Notícia</title>
 
   <style>
-    .pub-noticia { width:100%; margin:24px 0; background:#f7f5f0; border:1px dashed #ccc; overflow:hidden; text-align:center; }
-    .pub-noticia a { display:block; }
-    .pub-noticia img { width:100%; max-height:100px; object-fit:cover; display:block; }
-    .pub-noticia .pub-placeholder { padding:20px; color:#aaa; font-size:12px; font-family:Inter,sans-serif; }
-    .pub-label-small { font-size:10px; color:#bbb; text-transform:uppercase; letter-spacing:1px; font-family:Inter,sans-serif; text-align:center; margin-bottom:2px; }
-    .pub-rodape-grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:8px; }
-    .pub-rodape-grid-5 a { display:block; background:#f0ede8; border:1px dashed #ccc; overflow:hidden; }
-    .pub-rodape-grid-5 img { width:100%; height:70px; object-fit:cover; display:block; }
-    .pub-rodape-grid-5 .pub-vazio { height:70px; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:11px; }
-    @media(max-width:600px){ .pub-rodape-grid-5{ grid-template-columns:repeat(3,1fr); } }
+    .noticia-corpo p {
+      font-size: 18px;
+      line-height: 1.8;
+      margin-bottom: 16px;
+      color: #222;
+    }
+
+    /* 🔥 estilo jornal (primeira letra grande) */
+    .noticia-corpo .dropcap::first-letter {
+      float: left;
+      font-size: 70px;
+      font-weight: 900;
+      line-height: 0.8;
+      padding-right: 10px;
+      font-family: serif;
+      color: #111;
+    }
   </style>
 </head>
+
 <body>
 
-  <header class="site-header">
-    <div class="header-main" style="justify-content:center;">
-      <div class="logo-area">
-        <a href="index.html"><h1 class="logo">Veritas Notícias</h1></a>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="noticia-conteudo" id="conteudoNoticia">
-      <p class="admin-carregando">Carregando notícia...</p>
-    </section>
-  </main>
-
-  <section class="secao-comentarios" id="secaoComentarios" style="display:none;">
-    <h2>Comentários</h2>
-    <div id="formComentario"></div>
-    <div id="listaComentarios"><p style="color:#777;font-size:13px;">Carregando comentários...</p></div>
-  </section>
-
-  <section class="secao-ultimas" id="secaoUltimas" style="display:none;">
-    <h2>Últimas notícias</h2>
-    <div class="ultimas-lista" id="listaUltimas"></div>
-  </section>
-
-  <footer class="site-footer">
-    <div class="footer-bottom">
-      <span>© 2026 Veritas Notícias – Todos os direitos reservados</span>
-    </div>
-  </footer>
+  <div id="conteudoNoticia">Carregando...</div>
 
   <script type="module">
-    import { obterNoticia, listarPublicadas } from "./js/noticias.js";
-    import {
-      registrarVisualizacao, curtidaDoUsuario, contarCurtidas, alternarCurtida,
-      estaSalvoParaDepois, alternarSalvarParaDepois,
-      criarComentario, listarComentarios
-    } from "./js/interacoes.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    
+    import { obterNoticia } from "./js/noticias.js";
+    import { registrarVisualizacao, listarComentarios } from "./js/interacoes.js";
     import { montarBannerDeNoticia } from "./js/publicidade.js";
-    import { auth, db } from "./js/firebase-config.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { collection, addDoc, getDocs, getDoc, setDoc, deleteDoc, updateDoc, orderBy, query, where, serverTimestamp, doc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { auth } from "./js/firebase-config.js";
+
+    import {
+      collection,
+      getDocs,
+      orderBy,
+      query
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const id = new URLSearchParams(window.location.search).get("id");
     const container = document.getElementById("conteudoNoticia");
-    let tamanhoFonte = 18;
+
     let usuarioAtual = null;
 
-    onAuthStateChanged(auth, u => { usuarioAtual = u; });
+    onAuthStateChanged(auth, u => usuarioAtual = u);
 
-    function formatarData(timestamp) {
-      const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
-      return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+    function montarCorpo(texto) {
+      const paragrafos = (texto || "").split("\n").filter(Boolean);
+
+      return paragrafos.map((p, i) => {
+        if (i === 0) {
+          return `<p class="dropcap">${p}</p>`;
+        }
+        return `<p>${p}</p>`;
+      }).join("");
     }
 
     async function carregar() {
       const noticia = await obterNoticia(id);
 
-      document.title = noticia.titulo + " – Veritas Notícias";
-      document.getElementById("metaDescricao")?.setAttribute("content", noticia.resumo || "");
-      document.getElementById("metaOgTitulo")?.setAttribute("content", noticia.titulo || "");
-      document.getElementById("metaOgDescricao")?.setAttribute("content", noticia.resumo || "");
-      document.getElementById("metaOgImagem")?.setAttribute("content", noticia.imagemUrl || "");
+      const paragrafos = (noticia.conteudo || "").split("\n");
+      const ponto = Math.max(2, Math.floor(paragrafos.length / 3));
 
-      const paragrafos = noticia.conteudo.split("\n");
-      const pontoInsercao = Math.max(2, Math.floor(paragrafos.length / 3));
-      const bannerNoticiaHtml = await montarBannerDeNoticia(id);
-      const corpoComBanner = paragrafos
-        .map((p, i) => i === pontoInsercao && paragrafos.length > 3 ? bannerNoticiaHtml + `<p>${p}</p>` : `<p>${p}</p>`)
-        .join("");
+      const banner = await montarBannerDeNoticia(id);
+
+      const corpo = paragrafos.map((p, i) => {
+        let bloco = i === 0
+          ? `<p class="dropcap">${p}</p>`
+          : `<p>${p}</p>`;
+
+        if (i === ponto && paragrafos.length > 3) {
+          bloco = banner + bloco;
+        }
+
+        return bloco;
+      }).join("");
 
       container.innerHTML = `
-        <div class="noticia-wrap">
-          <span class="tag-categoria ${noticia.categoria}">${noticia.categoria || ""}</span>
-          <h1 class="noticia-titulo">${noticia.titulo}</h1>
-          <div class="noticia-meta">Por ${noticia.autorNome || "Redação"}${noticia.cargoEditorialAutor ? ' <span style="background:#f0f0f0;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;color:#555;">' + noticia.cargoEditorialAutor + '</span>' : ''} • ${formatarData(noticia.criadoEm)}</div>
+        <h1>${noticia.titulo}</h1>
 
-          <div class="fonte-controle">
-            <span>Tamanho do texto:</span>
-            <button onclick="mudarFonte(-2)">A-</button>
-            <button onclick="mudarFonte(2)">A+</button>
-            <button id="btnOuvir" onclick="ouvirNoticia()" style="width:auto;padding:0 14px;background:#00cc66;color:#0a0a0a;">🔊 Ouvir</button>
-          </div>
-
-          ${noticia.imagemUrl ? `<img src="${noticia.imagemUrl}" class="noticia-imagem" alt="${noticia.titulo}">` : ""}
-          <div class="noticia-corpo" id="corpoNoticia" style="font-size:18px;line-height:1.8;color:var(--grafite);font-family:var(--fonte-corpo);">
-            ${corpoComBanner}
-          </div>
-
-          <div class="acoes-noticia" id="acoesNoticia">
-            <button class="btn-acao curtir" id="btnCurtir" onclick="toggleCurtir()">❤️ <span id="numCurtidas">0</span></button>
-            <button class="btn-acao favoritar" id="btnFavoritar" onclick="toggleFavoritar()">⭐ Favoritar</button>
-            <button class="btn-acao ler-depois" id="btnLerDepois" onclick="toggleLerDepois()">🔖 Ler depois</button>
-          </div>
-
-          <div class="compartilhar">
-            <strong>Compartilhar:</strong>
-            <a href="#" class="btn-wpp" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.title+' - '+window.location.href),'_blank');return false;">WhatsApp</a>
-            <a href="#" class="btn-fb" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href),'_blank');return false;">Facebook</a>
-            <a href="#" class="btn-copy" onclick="navigator.clipboard.writeText(window.location.href);alert('Link copiado!');return false;">Copiar link</a>
-          </div>
-
-          <div class="interacoes-leitor" style="display:flex;gap:12px;margin:20px 0;padding:16px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;">
-            <button id="btnCurtirNovo" type="button" style="border:1px solid #ddd;background:#fff;padding:8px 16px;cursor:pointer;border-radius:4px;font-size:14px;">
-              🤍 Curtir <span id="contadorCurtidasNovo">0</span>
-            </button>
-            <button id="btnSalvarNovo" type="button" style="border:1px solid #ddd;background:#fff;padding:8px 16px;cursor:pointer;border-radius:4px;font-size:14px;">
-              🔖 Ler mais tarde
-            </button>
-          </div>
-
-          <div class="comentarios-secao-nova" style="margin-top:30px;">
-            <h3 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:16px;">Comentários</h3>
-            <div id="areaComentarNovo" style="display:none;margin-bottom:20px;">
-              <textarea id="textoComentarioNovo" rows="3" placeholder="Escreva seu comentário..." style="width:100%;padding:10px;border:1px solid #ddd;font-family:inherit;"></textarea>
-              <button id="btnEnviarComentarioNovo" type="button" style="margin-top:8px;background:#00cc66;color:#0a0a0a;border:none;padding:8px 18px;font-weight:600;cursor:pointer;">Comentar</button>
-            </div>
-            <p id="avisoLoginComentarNovo" style="display:none;font-size:13px;color:#888;">
-              <a href="login.html">Entre na sua conta</a> para comentar.
-            </p>
-            <div id="listaComentariosNova"></div>
-          </div>
+        <div id="corpoNoticia" class="noticia-corpo">
+          ${corpo}
         </div>
+
+        <button onclick="alert('Curtir ok')">Curtir</button>
+
+        <h3>Comentários</h3>
+        <div id="listaComentariosNova"></div>
       `;
 
-      document.getElementById("secaoComentarios").style.display = "block";
-
-      // --- INTERAÇÕES: curtir, salvar para depois, comentar ---
       registrarVisualizacao(id);
 
-      let usuarioLogadoNovo = null;
-      onAuthStateChanged(auth, async (user) => {
-        usuarioLogadoNovo = user;
-
-        const btnCurtir = document.getElementById("btnCurtirNovo");
-        const contadorCurtidas = document.getElementById("contadorCurtidasNovo");
-        const btnSalvar = document.getElementById("btnSalvarNovo");
-        const areaComentar = document.getElementById("areaComentarNovo");
-        const avisoLogin = document.getElementById("avisoLoginComentarNovo");
-
-        const totalCurtidas = await contarCurtidas(id);
-        contadorCurtidas.textContent = totalCurtidas;
-
-        if (user) {
-          areaComentar.style.display = "block";
-          avisoLogin.style.display = "none";
-
-          const jaCurtiu = await curtidaDoUsuario(id, user.uid);
-          if (jaCurtiu) btnCurtir.innerHTML = "❤️ Curtido <span id='contadorCurtidasNovo'>" + totalCurtidas + "</span>";
-
-          const jaSalvo = await estaSalvoParaDepois(id, user.uid);
-          if (jaSalvo) btnSalvar.innerHTML = "✅ Salvo para depois";
-        } else {
-          areaComentar.style.display = "none";
-          avisoLogin.style.display = "block";
-        }
-
-        btnCurtir.onclick = async () => {
-          if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-          const curtiuAgora = await alternarCurtida(id, usuarioLogadoNovo.uid);
-          const novoTotal = await contarCurtidas(id);
-          document.getElementById("contadorCurtidasNovo").textContent = novoTotal;
-          btnCurtir.innerHTML = curtiuAgora
-            ? "❤️ Curtido <span id='contadorCurtidasNovo'>" + novoTotal + "</span>"
-            : "🤍 Curtir <span id='contadorCurtidasNovo'>" + novoTotal + "</span>";
-        };
-
-        btnSalvar.onclick = async () => {
-          if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-          const salvouAgora = await alternarSalvarParaDepois(id, usuarioLogadoNovo.uid, noticia);
-          btnSalvar.innerHTML = salvouAgora ? "✅ Salvo para depois" : "🔖 Ler mais tarde";
-        };
-      });
-
-      document.getElementById("btnEnviarComentarioNovo").addEventListener("click", async () => {
-        if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-        const texto = document.getElementById("textoComentarioNovo").value.trim();
-        if (!texto) return;
-        await criarComentario(id, usuarioLogadoNovo.uid, usuarioLogadoNovo.displayName || usuarioLogadoNovo.email, texto);
-        document.getElementById("textoComentarioNovo").value = "";
-        await carregarListaComentariosNova();
-      });
-
-      async function carregarListaComentariosNova() {
-        const lista = await listarComentarios(id);
-        const container = document.getElementById("listaComentariosNova");
-        if (lista.length === 0) {
-          container.innerHTML = '<p style="color:#888;font-size:13px;">Nenhum comentário ainda. Seja o primeiro a comentar.</p>';
-          return;
-        }
-        container.innerHTML = lista.map(com => {
-          const data = com.criadoEm && com.criadoEm.toDate ? com.criadoEm.toDate().toLocaleDateString("pt-BR") : "";
-          return `
-            <div style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
-              <strong style="font-size:13px;">${com.autorNome}</strong>
-              <span style="font-size:11px;color:#999;margin-left:8px;">${data}</span>
-              <p style="font-size:14px;margin-top:4px;color:#333;">${com.texto}</p>
-            </div>
-          `;
-        }).join("");
-      }
-      carregarListaComentariosNova();
-
-      // --- INTERAÇÕES: curtir, salvar para depois, comentar ---
-      registrarVisualizacao(id);
-
-      let usuarioLogadoNovo = null;
-      onAuthStateChanged(auth, async (user) => {
-        usuarioLogadoNovo = user;
-
-        const btnCurtir = document.getElementById("btnCurtirNovo");
-        const contadorCurtidas = document.getElementById("contadorCurtidasNovo");
-        const btnSalvar = document.getElementById("btnSalvarNovo");
-        const areaComentar = document.getElementById("areaComentarNovo");
-        const avisoLogin = document.getElementById("avisoLoginComentarNovo");
-
-        const totalCurtidas = await contarCurtidas(id);
-        contadorCurtidas.textContent = totalCurtidas;
-
-        if (user) {
-          areaComentar.style.display = "block";
-          avisoLogin.style.display = "none";
-
-          const jaCurtiu = await curtidaDoUsuario(id, user.uid);
-          if (jaCurtiu) btnCurtir.innerHTML = "❤️ Curtido <span id='contadorCurtidasNovo'>" + totalCurtidas + "</span>";
-
-          const jaSalvo = await estaSalvoParaDepois(id, user.uid);
-          if (jaSalvo) btnSalvar.innerHTML = "✅ Salvo para depois";
-        } else {
-          areaComentar.style.display = "none";
-          avisoLogin.style.display = "block";
-        }
-
-        btnCurtir.onclick = async () => {
-          if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-          const curtiuAgora = await alternarCurtida(id, usuarioLogadoNovo.uid);
-          const novoTotal = await contarCurtidas(id);
-          document.getElementById("contadorCurtidasNovo").textContent = novoTotal;
-          btnCurtir.innerHTML = curtiuAgora
-            ? "❤️ Curtido <span id='contadorCurtidasNovo'>" + novoTotal + "</span>"
-            : "🤍 Curtir <span id='contadorCurtidasNovo'>" + novoTotal + "</span>";
-        };
-
-        btnSalvar.onclick = async () => {
-          if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-          const salvouAgora = await alternarSalvarParaDepois(id, usuarioLogadoNovo.uid, noticia);
-          btnSalvar.innerHTML = salvouAgora ? "✅ Salvo para depois" : "🔖 Ler mais tarde";
-        };
-      });
-
-      document.getElementById("btnEnviarComentarioNovo").addEventListener("click", async () => {
-        if (!usuarioLogadoNovo) { window.location.href = "login.html"; return; }
-        const texto = document.getElementById("textoComentarioNovo").value.trim();
-        if (!texto) return;
-        await criarComentario(id, usuarioLogadoNovo.uid, usuarioLogadoNovo.displayName || usuarioLogadoNovo.email, texto);
-        document.getElementById("textoComentarioNovo").value = "";
-        await carregarListaComentariosNova();
-      });
-
-      async function carregarListaComentariosNova() {
-        const lista = await listarComentarios(id);
-        const container = document.getElementById("listaComentariosNova");
-        if (lista.length === 0) {
-          container.innerHTML = '<p style="color:#888;font-size:13px;">Nenhum comentário ainda. Seja o primeiro a comentar.</p>';
-          return;
-        }
-        container.innerHTML = lista.map(com => {
-          const data = com.criadoEm && com.criadoEm.toDate ? com.criadoEm.toDate().toLocaleDateString("pt-BR") : "";
-          return `
-            <div style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
-              <strong style="font-size:13px;">${com.autorNome}</strong>
-              <span style="font-size:11px;color:#999;margin-left:8px;">${data}</span>
-              <p style="font-size:14px;margin-top:4px;color:#333;">${com.texto}</p>
-            </div>
-          `;
-        }).join("");
-      }
-      carregarListaComentariosNova();
-      document.getElementById("secaoUltimas").style.display = "block";
-      carregarEstadoBotoes(id);
-      carregarComentarios(id);
-      carregarUltimas(id);
+      carregarComentarios();
     }
 
-    let noticiaIdAtual = null;
+    async function carregarComentarios() {
+      const el = document.getElementById("listaComentariosNova");
+      if (!el) return;
 
-    window.toggleCurtir = async function() {
-      const ref = doc(db, 'curtidas', noticiaIdAtual, 'usuarios', usuarioAtual.uid);
-      const snap = await getDoc(ref);
-      const btn = document.getElementById('btnCurtir');
-      const num = document.getElementById('numCurtidas');
-      if (snap.exists()) {
-        await deleteDoc(ref);
-        btn.classList.remove('ativo');
-        num.textContent = Math.max(0, parseInt(num.textContent) - 1);
-      } else {
-        await setDoc(ref, { curtidoEm: new Date().toISOString() });
-        btn.classList.add('ativo');
-        num.textContent = parseInt(num.textContent) + 1;
-      }
-    };
+      const lista = await listarComentarios(id);
 
-    window.toggleFavoritar = async function() {
-      const ref = doc(db, 'usuarios', usuarioAtual.uid);
-      const snap = await getDoc(ref);
-      const favs = snap.exists() ? (snap.data().favoritos || []) : [];
-      const btn = document.getElementById('btnFavoritar');
-      const jaFav = favs.find(f => f.id === noticiaIdAtual);
-      if (jaFav) {
-        await updateDoc(ref, { favoritos: arrayRemove(jaFav) });
-        btn.classList.remove('ativo');
-        btn.innerHTML = '⭐ Favoritar';
-      } else {
-        const novoFav = { id: noticiaIdAtual, titulo: document.querySelector('.noticia-titulo')?.textContent || '', url: 'noticia.html?id=' + noticiaIdAtual };
-        await updateDoc(ref, { favoritos: arrayUnion(novoFav) });
-        btn.classList.add('ativo');
-        btn.innerHTML = '⭐ Favoritado';
-      }
-    };
-
-    window.toggleLerDepois = async function() {
-      const ref = doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaIdAtual);
-      const snap = await getDoc(ref);
-      const btn = document.getElementById('btnLerDepois');
-      if (snap.exists()) {
-        await deleteDoc(ref);
-        btn.classList.remove('ativo');
-        btn.innerHTML = '🔖 Ler depois';
-      } else {
-        await setDoc(ref, { titulo: document.querySelector('.noticia-titulo')?.textContent || '', url: 'noticia.html?id=' + noticiaIdAtual, salvoEm: new Date().toISOString() });
-        btn.classList.add('ativo');
-        btn.innerHTML = '🔖 Salvo';
-      }
-    };
-
-    async function carregarEstadoBotoes(noticiaId) {
-      noticiaIdAtual = noticiaId;
-      try {
-        // Carrega curtidas
-        const snapCurtidas = await getDocs(collection(db, 'curtidas', noticiaId, 'usuarios'));
-        document.getElementById('numCurtidas').textContent = snapCurtidas.size;
-
-
-        // Verifica se o usuario curtiu
-        const snapCurtiu = await getDoc(doc(db, 'curtidas', noticiaId, 'usuarios', usuarioAtual.uid));
-        if (snapCurtiu.exists()) document.getElementById('btnCurtir').classList.add('ativo');
-
-        // Verifica favoritos
-        const snapUser = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
-        const favs = snapUser.exists() ? (snapUser.data().favoritos || []) : [];
-        if (favs.find(f => f.id === noticiaId)) {
-          const btn = document.getElementById('btnFavoritar');
-          btn.classList.add('ativo');
-          btn.innerHTML = '⭐ Favoritado';
-        }
-
-        // Verifica ler mais tarde
-        const snapLer = await getDoc(doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaId));
-        if (snapLer.exists()) {
-          const btn = document.getElementById('btnLerDepois');
-          btn.classList.add('ativo');
-          btn.innerHTML = '🔖 Salvo';
-        }
-      } catch (e) { console.error('Erro ao carregar estado dos botoes:', e); }
-    }
-
-    window.ouvirNoticia = function() {
-      const btn = document.getElementById('btnOuvir');
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        btn.textContent = '🔊 Ouvir';
-        btn.style.background = '#00cc66';
+      if (!lista.length) {
+        el.innerHTML = "<p>Nenhum comentário ainda.</p>";
         return;
       }
-      const corpo = document.getElementById('corpoNoticia');
-      const texto = corpo.innerText;
-      const fala = new SpeechSynthesisUtterance(texto);
-      fala.lang = 'pt-BR';
-      fala.rate = 0.95;
-      fala.onend = () => { btn.textContent = '🔊 Ouvir'; btn.style.background = '#00cc66'; };
-      btn.textContent = '⏹ Parar';
-      btn.style.background = '#b3261e';
-      window.speechSynthesis.speak(fala);
-    };
 
-    window.mudarFonte = function(delta) {
-      tamanhoFonte = Math.min(26, Math.max(14, tamanhoFonte + delta));
-      const corpo = document.getElementById("corpoNoticia");
-      if (corpo) corpo.style.fontSize = tamanhoFonte + "px";
-    };
-
-    async function carregarComentarios(noticiaId) {
-      const formDiv = document.getElementById("formComentario");
-      const lista = document.getElementById("listaComentarios");
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          formDiv.innerHTML = `
-            <div class="form-comentario">
-              <textarea id="textoComentario" placeholder="Escreva seu comentário..."></textarea>
-              <button class="btn-comentar" onclick="enviarComentario('${noticiaId}')">Publicar comentário</button>
-            </div>
-          `;
-        } else {
-          formDiv.innerHTML = `<div class="aviso-login">Faça <a href="login.html">login</a> ou <a href="cadastro.html">cadastre-se</a> para comentar.</div>`;
-        }
-      });
-
-      try {
-        const q = query(collection(db, "noticias", noticiaId, "comentarios"), orderBy("criadoEm", "desc"));
-        const snap = await getDocs(q);
-        lista.innerHTML = "";
-        snap.forEach(d => {
-          const com = d.data();
-          const div = document.createElement("div");
-          div.className = "comentario-item";
-          div.innerHTML = `<div class="autor">${com.autorNome || "Leitor"}<span class="data">${formatarData(com.criadoEm)}</span></div><p>${com.texto}</p>`;
-          lista.appendChild(div);
-        });
-      } catch (e) { lista.innerHTML = "<p style='color:#777;font-size:13px;'>Erro ao carregar comentários.</p>"; }
-    }
-
-    window.enviarComentario = async function(noticiaId) {
-      const texto = document.getElementById("textoComentario")?.value.trim();
-      try {
-        await addDoc(collection(db, "noticias", noticiaId, "comentarios"), {
-          texto,
-          autorUid: usuarioAtual.uid,
-          autorNome: usuarioAtual.displayName || usuarioAtual.email,
-          criadoEm: serverTimestamp()
-        });
-        document.getElementById("textoComentario").value = "";
-        carregarComentarios(noticiaId);
-      } catch (e) { alert("Erro ao publicar comentário: " + e.message); }
-    };
-
-    async function carregarUltimas(noticiaAtualId) {
-      const lista = document.getElementById("listaUltimas");
-      try {
-        const noticias = await listarPublicadas(6);
-        const filtradas = noticias.filter(n => n.id !== noticiaAtualId).slice(0, 5);
-        if (filtradas.length === 0) { lista.innerHTML = ""; return; }
-        lista.innerHTML = filtradas.map(n => `
-          <a href="noticia.html?id=${n.id}" class="ultima-card">
-            <div class="ultima-thumb" style="${n.imagemUrl ? 'background-image:url(' + n.imagemUrl + ')' : ''}"></div>
-            <div>
-              <h4>${n.titulo}</h4>
-              <span>${n.categoria || ""}</span>
-            </div>
-          </a>
-        `).join("");
-      } catch (e) { lista.innerHTML = ""; }
+      el.innerHTML = lista.map(c => `
+        <div style="padding:10px 0;border-bottom:1px solid #eee;">
+          <strong>${c.autorNome}</strong>
+          <p>${c.texto}</p>
+        </div>
+      `).join("");
     }
 
     carregar();
   </script>
 
-  <script type="module">
-    import { db } from './js/firebase-config.js';
-    import { collection, getDocs, query, where, updateDoc, doc, increment } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-    async function buscarBanners() {
-      try {
-        const q = query(collection(db, 'publicidade'), where('ativo','==',true));
-        const snap = await getDocs(q);
-        return snap.docs.map(d=>({id:d.id,...d.data()}));
-      } catch(e) { return []; }
-    }
-
-    function sortear(lista, n) {
-      return [...lista].sort(()=>Math.random()-0.5).slice(0,n);
-    }
-
-    window._regClique = async function(id) {
-      try { await updateDoc(doc(db,'publicidade',id),{cliques:increment(1)}); } catch(e){}
-    };
-
-    async function inserirBanners() {
-      const corpo = document.getElementById('corpoNoticia');
-      if (corpo === null) return;
-      const banners = await buscarBanners();
-      if (banners.length === 0) return;
-
-      const paragrafos = corpo.querySelectorAll('p');
-      let inseridos = 0;
-
-      paragrafos.forEach(function(p, i) {
-        if (inseridos >= 3) return;
-        if ((i + 1) % 4 === 0) {
-          const b = sortear(banners, 1)[0];
-          if (b) {
-            const div = document.createElement('div');
-            const img = b.imagemUrl ? '<img src="'+b.imagemUrl+'" alt="" loading="lazy">' : '<div class="pub-placeholder">Publicidade</div>';
-            div.innerHTML = '<div class="pub-label-small">Publicidade</div><div class="pub-noticia"><a href="'+(b.link||'#')+'" target="_blank" onclick="window._regClique(''+b.id+'')">'+img+'</a></div>';
-            p.after(div);
-            inseridos++;
-          }
-        }
-      });
-
-      const rodape = document.getElementById('pubRodapeNoticia');
-      if (rodape === null) return;
-      const sel = sortear(banners, 5);
-      if (sel.length === 0) { rodape.style.display='none'; return; }
-      let html = '<div class="pub-label-small" style="margin-bottom:8px;">Publicidade</div><div class="pub-rodape-grid-5">';
-      for (let i = 0; i < 5; i++) {
-        const b = sel[i];
-        if (b === undefined) { html += '<div class="pub-vazio">Em breve</div>'; continue; }
-        const img = b.imagemUrl ? '<img src="'+b.imagemUrl+'" alt="">' : '<div class="pub-vazio">Publicidade</div>';
-        html += '<a href="'+(b.link||'#')+'" target="_blank" onclick="window._regClique(''+b.id+'')">'+img+'</a>';
-      }
-      html += '</div>';
-      rodape.innerHTML = html;
-    }
-
-    const obs = new MutationObserver(function() {
-      if (document.getElementById('corpoNoticia')) {
-        obs.disconnect();
-        setTimeout(inserirBanners, 600);
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-  </script>
 </body>
 </html>
