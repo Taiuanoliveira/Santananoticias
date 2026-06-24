@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publicidade – Painel Veritas Notícias</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .anuncio-item { display: grid; grid-template-columns: 90px 1fr auto auto; gap: 14px; align-items: center; padding: 14px 0; border-bottom: 1px solid #eee; }
+    .anuncio-item img { width: 90px; height: 60px; object-fit: cover; background: #eee; }
+    .anuncio-textos strong { display: block; }
+    .anuncio-textos a { font-size: 12px; color: #888; word-break: break-all; }
+    .tag-ativo-inativo { font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 3px 10px; }
+    .tag-ativo-inativo.ativo { background: #d4edda; color: #1a5c2a; }
+    .tag-ativo-inativo.inativo { background: #f0f0f0; color: #888; }
+    .anuncio-acoes button { font-size: 12px; padding: 6px 12px; border: 1px solid #ddd; background: #fff; cursor: pointer; margin-left: 6px; }
+    .anuncio-acoes button.excluir { color: #b3261e; }
+  </style>
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Veritas Notícias</div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Publicidade</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <p class="admin-explicacao">
+          Cadastre aqui os anúncios. Depois de salvo, o anúncio entra automaticamente no rodízio em todo o site:
+          carrossel no topo, blocos entre as notícias, dentro das matérias e no rodapé — sem precisar configurar nada
+          em outro lugar.
+        </p>
+
+        <div id="mensagemErro" class="auth-msg erro" style="display:none;"></div>
+        <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
+
+        <form id="formAnuncio" class="form-noticia">
+          <label for="nomeAnunciante">Nome do anunciante</label>
+          <input type="text" id="nomeAnunciante" required placeholder="Ex: Loja do João, Auto Peças Silva">
+
+          <label for="linkAnuncio">Link de destino</label>
+          <input type="url" id="linkAnuncio" required placeholder="https://instagram.com/seuanunciante">
+
+          <label for="imagemAnuncio">Imagem do banner</label>
+          <input type="file" id="imagemAnuncio" accept="image/*" required>
+          <img id="previewAnuncio" style="display:none;max-width:240px;margin-top:10px;border:1px solid #ddd;">
+
+          <div class="form-acoes">
+            <button type="button" class="btn-primario" onclick="salvarAnuncio()">Cadastrar anúncio</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="admin-bloco">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px;">Anúncios cadastrados</h2>
+        <div id="listaAnuncios">Carregando...</div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db, storage } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    let arquivoSelecionado = null;
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarAnuncios();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair();
+      window.location.href = '../index.html';
+    });
+
+    function mostrarErro(texto) {
+      document.getElementById('mensagemSucesso').style.display = 'none';
+      const el = document.getElementById('mensagemErro');
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+    function mostrarSucesso(texto) {
+      document.getElementById('mensagemErro').style.display = 'none';
+      const el = document.getElementById('mensagemSucesso');
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    document.getElementById('imagemAnuncio').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      arquivoSelecionado = file || null;
+      if (file) {
+        const preview = document.getElementById('previewAnuncio');
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+      }
+    });
+
+    window.salvarAnuncio = async function() {
+      const nomeAnunciante = document.getElementById('nomeAnunciante').value.trim();
+      const link = document.getElementById('linkAnuncio').value.trim();
+
+      if (!nomeAnunciante || !link || !arquivoSelecionado) {
+        mostrarErro('Preencha o nome, o link e escolha uma imagem.');
+        return;
+      }
+
+      try {
+        const caminho = `publicidade/${Date.now()}_${arquivoSelecionado.name}`;
+        const storageRef = ref(storage, caminho);
+        await uploadBytes(storageRef, arquivoSelecionado);
+        const imagemUrl = await getDownloadURL(storageRef);
+
+        await addDoc(collection(db, 'publicidade'), {
+          nomeAnunciante, link, imagemUrl,
+          ativo: true,
+          criadoEm: new Date().toISOString()
+        });
+
+        mostrarSucesso('Anúncio cadastrado! Já está rodando automaticamente em todo o site.');
+        document.getElementById('formAnuncio').reset();
+        document.getElementById('previewAnuncio').style.display = 'none';
+        arquivoSelecionado = null;
+        carregarAnuncios();
+      } catch (err) {
+        mostrarErro('Erro ao cadastrar anúncio: ' + err.message);
+      }
+    };
+
+    async function carregarAnuncios() {
+      const container = document.getElementById('listaAnuncios');
+      try {
+        const q = query(collection(db, 'publicidade'), orderBy('criadoEm', 'desc'));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          container.innerHTML = '<p style="color:#888;font-size:13px;">Nenhum anúncio cadastrado ainda.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(d => {
+          const a = d.data();
+          const div = document.createElement('div');
+          div.className = 'anuncio-item';
+          div.innerHTML = `
+            <img src="${a.imagemUrl || ''}" alt="">
+            <div class="anuncio-textos">
+              <strong>${a.nomeAnunciante}</strong>
+              <a href="${a.link}" target="_blank">${a.link}</a>
+            </div>
+            <span class="tag-ativo-inativo ${a.ativo ? 'ativo' : 'inativo'}">${a.ativo ? 'Ativo' : 'Inativo'}</span>
+            <div class="anuncio-acoes">
+              <button class="toggle" data-id="${d.id}" data-ativo="${a.ativo}">${a.ativo ? 'Desativar' : 'Ativar'}</button>
+              <button class="excluir" data-id="${d.id}" data-nome="${a.nomeAnunciante}">Excluir</button>
+            </div>
+          `;
+          div.querySelector('.toggle').addEventListener('click', async () => {
+            await updateDoc(doc(db, 'publicidade', d.id), { ativo: !a.ativo });
+            carregarAnuncios();
+          });
+          div.querySelector('.excluir').addEventListener('click', async () => {
+            if (confirm('Excluir o anúncio de "' + a.nomeAnunciante + '"?')) {
+              await deleteDoc(doc(db, 'publicidade', d.id));
+              carregarAnuncios();
+            }
+          });
+          container.appendChild(div);
+        });
+      } catch (err) {
+        container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar anúncios: ' + err.message + '</p>';
+      }
+    }
+  </script>
+</body>
+</html>

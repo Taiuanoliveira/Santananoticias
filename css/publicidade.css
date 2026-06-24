@@ -1,0 +1,104 @@
+/* === VERITAS NOTÍCIAS – Estilos do sistema de publicidade === */
+
+.banner-pub {
+  display: block;
+  text-decoration: none;
+  overflow: hidden;
+  background: #f4f4f4;
+}
+.banner-pub img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.banner-pub-vazio {
+  background: transparent;
+}
+
+.secao-pub-rotulo {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.carrossel-pub-container {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 20px;
+}
+.carrossel-pub-wrap {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background: #eee;
+}
+.carrossel-pub-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.carrossel-pub-slide.ativo {
+  opacity: 1;
+}
+.carrossel-pub-slide .banner-pub {
+  width: 100%;
+  height: 100%;
+}
+
+.bloco-pub-entre-noticias {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 18px 0;
+}
+.banner-pub-bloco {
+  height: 90px;
+}
+@media (max-width: 700px) {
+  .bloco-pub-entre-noticias {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.banner-pub-noticia {
+  margin: 28px 0;
+  text-align: center;
+}
+.banner-pub-noticia .banner-pub {
+  display: inline-block;
+  max-width: 100%;
+  height: 100px;
+  margin: 0 auto;
+}
+
+.rodape-pub-container {
+  display: flex;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto 20px;
+  padding: 0 20px;
+  flex-wrap: wrap;
+}
+.banner-pub-rodape {
+  flex: 1;
+  min-width: 140px;
+  height: 70px;
+}
+@media (max-width: 700px) {
+  .rodape-pub-container {
+    flex-wrap: wrap;
+  }
+  .banner-pub-rodape {
+    min-width: 45%;
+  }
+}
+
+.widget-pub-lateral .banner-pub {
+  width: 100%;
+  height: 160px;
+}

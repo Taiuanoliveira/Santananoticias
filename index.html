@@ -16,6 +16,7 @@
   <meta property="og:description" content="Portal de notícias de Santana de Ipanema e região.">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/publicidade.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
@@ -208,16 +209,16 @@
           <button>Assinar Newsletter</button>
         </div>
 
-        <div class="widget">
+        <div class="widget widget-pub-lateral">
           <div class="widget-title">Publicidade</div>
-          <div class="ad-placeholder">
-            <span>Seu anúncio aqui</span>
-            <small>Fale com nossa equipe comercial</small>
-          </div>
+          <div id="bannerLateral"></div>
         </div>
 
       </aside>
     </section>
+
+    <!-- CARROSSEL DE PUBLICIDADE -->
+    <div class="carrossel-pub-container" id="carrosselPublicidade"></div>
 
     <!-- SEÇÃO EDITORIAL -->
     <div class="section-divider">
@@ -318,6 +319,9 @@
 
   </main>
 
+  <!-- PUBLICIDADE NO RODAPÉ -->
+  <div class="rodape-pub-container" id="rodapePublicidade"></div>
+
   <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-top">
@@ -368,6 +372,7 @@
 
   <script type="module">
     import { listarPublicadas } from "./js/noticias.js";
+    import { montarCarrossel, montarBannersRodape, reiniciarRodizioBlocos, montarProximoBlocoDeBanners, obterBannersAtivos } from "./js/publicidade.js";
     import { observarLogin, sair } from "./js/auth.js";
 
     const nomesCategorias = {
@@ -428,17 +433,24 @@
         return;
       }
 
-      grid.innerHTML = restoGrid.map((n, idx) => `
-        <article class="news-card ${idx === 0 ? 'grande' : ''}">
-          <div class="card-img-placeholder ${idx === 0 ? '' : 'small'}" ${n.imagemUrl ? `style="background-image:url('${n.imagemUrl}');background-size:cover;"` : ''}></div>
-          <div class="card-content">
-            <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
-            <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
-            ${idx === 0 && n.resumo ? `<p>${n.resumo}</p>` : ''}
-            <div class="card-meta"><span>${formatarData(n.criadoEm)}</span></div>
-          </div>
-        </article>
-      `).join('');
+      reiniciarRodizioBlocos();
+      const partesGrid = [];
+      for (let idx = 0; idx < restoGrid.length; idx++) {
+        const n = restoGrid[idx];
+        partesGrid.push(`
+          <article class="news-card ${idx === 0 ? 'grande' : ''}">
+            <div class="card-img-placeholder ${idx === 0 ? '' : 'small'}" ${n.imagemUrl ? `style="background-image:url('${n.imagemUrl}');background-size:cover;"` : ''}></div>
+            <div class="card-content">
+              <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
+              <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
+              ${idx === 0 && n.resumo ? `<p>${n.resumo}</p>` : ''}
+              <div class="card-meta"><span>${formatarData(n.criadoEm)}</span></div>
+            </div>
+          </article>
+        `);
+        partesGrid.push(await montarProximoBlocoDeBanners());
+      }
+      grid.innerHTML = partesGrid.join('');
     }
 
     // Busca via Enter ou botão
@@ -512,6 +524,20 @@
     }
 
 carregarNoticias();
+
+    montarCarrossel(document.getElementById('carrosselPublicidade'));
+    montarBannersRodape(document.getElementById('rodapePublicidade'));
+    (async function carregarBannerLateral() {
+      const banners = await obterBannersAtivos();
+      const el = document.getElementById('bannerLateral');
+      if (!el) return;
+      if (banners.length === 0) {
+        el.innerHTML = '<div class="ad-placeholder"><span>Seu anúncio aqui</span><small>Fale com nossa equipe comercial</small></div>';
+        return;
+      }
+      const escolhido = banners[Math.floor(Math.random() * banners.length)];
+      el.innerHTML = `<a href="${escolhido.link}" target="_blank" rel="noopener noreferrer" class="banner-pub"><img src="${escolhido.imagemUrl}" alt="${escolhido.nomeAnunciante}"></a>`;
+    })();
   </script>
   <script type="module">
     import { db } from './js/firebase-config.js';

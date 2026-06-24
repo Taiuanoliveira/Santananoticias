@@ -138,26 +138,6 @@ Produção agrícola do município bate recorde histórico"></textarea>
       </section>
 
       <section class="admin-bloco">
-        <h2>Publicidade (lateral)</h2>
-        <p class="admin-explicacao">O quadro de anúncio que aparece na coluna lateral da página inicial.</p>
-        <form id="formAd" class="form-noticia">
-          <label for="adTitulo">Título</label>
-          <input type="text" id="adTitulo" placeholder="Seu anúncio aqui">
-
-          <label for="adTexto">Texto</label>
-          <input type="text" id="adTexto" placeholder="Fale com nossa equipe comercial">
-
-          <label for="adLink">Link do anúncio (opcional)</label>
-          <input type="url" id="adLink" placeholder="https://...">
-
-          <label for="adImagem">Imagem do anúncio (opcional)</label>
-          <input type="file" id="adImagem" accept="image/*">
-
-          <button type="submit" class="btn-auth">Salvar publicidade</button>
-        </form>
-      </section>
-
-      <section class="admin-bloco">
         <h2>Agronegócio Regional</h2>
         <p class="admin-explicacao">Os cards da seção de Agronegócio. Use um emoji como ícone (ex: 🌾).</p>
         <div id="listaAgro" class="lista-categorias"></div>
@@ -259,6 +239,8 @@ Produção agrícola do município bate recorde histórico"></textarea>
         <a href="dashboard.html">📊 Dashboard</a>
         <a href="publicar.html">✍️ Nova Notícia</a>
         <a href="gerenciar-noticias.html">📰 Gerenciar Notícias</a>
+        <a href="edicoes-admin.html">📚 Edições</a>
+        <a href="publicidade-admin.html">📢 Publicidade</a>
         <a href="usuarios.html">👥 Usuários</a>
         <a href="configuracoes.html">⚙️ Configurações</a>
       `;
@@ -291,9 +273,6 @@ Produção agrícola do município bate recorde histórico"></textarea>
       if (c.editorialAutorNome) document.getElementById('editorialAutorNome').value = c.editorialAutorNome;
       if (c.editorialAutorCargo) document.getElementById('editorialAutorCargo').value = c.editorialAutorCargo;
       if (c.editorialAutorBio) document.getElementById('editorialAutorBio').value = c.editorialAutorBio;
-      if (c.adTitulo) document.getElementById('adTitulo').value = c.adTitulo;
-      if (c.adTexto) document.getElementById('adTexto').value = c.adTexto;
-      if (c.adLink) document.getElementById('adLink').value = c.adLink;
       if (c.footerDescricao) document.getElementById('footerDescricao').value = c.footerDescricao;
       if (c.footerCnpj) document.getElementById('footerCnpj').value = c.footerCnpj;
     }
@@ -366,19 +345,6 @@ Produção agrícola do município bate recorde histórico"></textarea>
       if (foto) dados.editorialAutorFotoUrl = await enviarImagemCloudinary(foto);
       await salvarCampo(dados);
       mostrarSucesso('Editorial salvo!');
-    });
-
-    document.getElementById('formAd').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const dados = {
-        adTitulo: document.getElementById('adTitulo').value.trim(),
-        adTexto: document.getElementById('adTexto').value.trim(),
-        adLink: document.getElementById('adLink').value.trim()
-      };
-      const imagem = document.getElementById('adImagem').files[0];
-      if (imagem) dados.adImagemUrl = await enviarImagemCloudinary(imagem);
-      await salvarCampo(dados);
-      mostrarSucesso('Publicidade salva!');
     });
 
     document.getElementById('formRodape').addEventListener('submit', async (e) => {

@@ -98,6 +98,12 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
+    // --- COLEÇÃO: publicidade (banners de anunciantes) ---
+    match /publicidade/{anuncioId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
     // --- COLEÇÃO: favoritos por usuario ---
     match /usuarios/{userId}/favoritos/{favId} {
       allow read: if estaLogado() && request.auth.uid == userId;
