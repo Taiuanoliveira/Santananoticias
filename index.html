@@ -107,18 +107,7 @@
     <nav class="main-nav">
       <ul>
         <li><a href="index.html" class="active">Início</a></li>
-        <li><a href="categoria.html?c=politica">Política</a></li>
-        <li><a href="categoria.html?c=economia">Economia</a></li>
-        <li><a href="categoria.html?c=regional">Regional</a></li>
-        <li><a href="categoria.html?c=agro">Agro</a></li>
-        <li><a href="categoria.html?c=esportes">Esportes</a></li>
-        <li><a href="categoria.html?c=cultura">Cultura</a></li>
-        <li><a href="categoria.html?c=saude">Saúde</a></li>
-        <li><a href="categoria.html?c=tecnologia">Tecnologia</a></li>
-        <li><a href="categoria.html?c=educacao">Educação</a></li>
-        <li><a href="categoria.html?c=entretenimento">Entretenimento</a></li>
-        <li><a href="categoria.html?c=brasil-mundo">Brasil/Mundo</a></li>
-        <li><a href="categoria.html?c=seguranca">Segurança</a></li>
+        <li><a href="index.html" class="active">Início</a></li>
         <li><a href="#editorial-secao">Editorial</a></li>
         <li><a href="#servicos-secao">Serviços</a></li>
       </ul>
@@ -133,16 +122,8 @@
       <a href="index.html">&#127968; Início</a>
       <a href="index.html#newsGrid">&#128240; Últimas Notícias</a>
       <a href="index.html#emAlta">&#128293; Em Alta</a>
-      <a href="categoria.html?c=politica">&#127963; Política</a>
-      <a href="categoria.html?c=economia">&#128200; Economia</a>
-      <a href="categoria.html?c=agro">&#127807; Agro</a>
-      <a href="categoria.html?c=esportes">&#9917; Esportes</a>
-      <a href="categoria.html?c=cultura">&#127925; Cultura</a>
-      <a href="categoria.html?c=saude">&#10084; Saúde</a>
-      <a href="edicoes.html">&#9997; Editorial</a>
-      <a href="#equipe-secao">&#128101; Equipe</a>
-      <a href="#servicos-secao">&#128295; Serviços</a>
-    </nav>
+      <!-- categorias carregadas dinamicamente -->
+      </nav>
     <div class="sidebar-social">
       <p>Nos siga</p>
       <div class="social-icons">
@@ -346,12 +327,16 @@
     import { montarCarrossel, montarBannersRodape, reiniciarRodizioBlocos, montarProximoBlocoDeBanners, obterBannersAtivos } from "./js/publicidade.js";
     import { observarLogin, sair } from "./js/auth.js";
 
-    const nomesCategorias = {
-      politica: 'Política', economia: 'Economia', regional: 'Regional',
-      agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde',
-      tecnologia: 'Tecnologia', educacao: 'Educação', entretenimento: 'Entretenimento',
-      'brasil-mundo': 'Brasil/Mundo', seguranca: 'Segurança'
-    };
+    // Mapeamento de categorias carregado do Firestore
+    const nomesCategorias = {};
+    try {
+      const snapCats = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
+      snapCats.forEach(d => {
+        const cat = d.data();
+        const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+        nomesCategorias[slug] = (cat.emoji ? cat.emoji + ' ' : '') + cat.nome;
+      });
+    } catch (e) { console.error('Erro ao carregar categorias:', e); }
 
     function formatarData(timestamp) {
       if (!timestamp) return '';

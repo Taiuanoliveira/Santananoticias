@@ -52,7 +52,7 @@
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
     import { db } from "../js/firebase-config.js";
-    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     function montarMenu(cargo) {
       const itens = [
@@ -93,9 +93,20 @@
         div.innerHTML = `
           <span style="font-size:22px;">${cat.emoji || '📰'}</span>
           <div style="flex-grow:1;"><strong>${cat.nome}</strong><div style="font-size:12px;color:#777;">slug: ${cat.slug || ''} — posição ${cat.ordem}</div></div>
-          <button data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;">Remover</button>
+          <button class="btn-editar" data-id="${d.id}" style="background:none;border:none;color:#00cc66;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;margin-right:8px;">Editar</button>
+          <button class="btn-remover" data-id="${d.id}" style="background:none;border:none;color:#b3261e;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;">Remover</button>
         `;
-        div.querySelector('button').onclick = async () => {
+        // Botao editar
+        const btnEditar = div.querySelector('.btn-editar');
+        btnEditar.onclick = async () => {
+          const novoNome = prompt('Novo nome para a categoria:', cat.nome);
+          const novoEmoji = prompt('Emoji (opcional):', cat.emoji || '');
+          const novoSlug = novoNome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+          await updateDoc(doc(db, 'categorias', d.id), { nome: novoNome, emoji: novoEmoji || '', slug: novoSlug });
+          carregarCategorias();
+        };
+
+        div.querySelector('.btn-remover').onclick = async () => {
           if (confirm('Remover categoria "' + cat.nome + '"? As notícias com essa categoria não serão apagadas.')) {
             await deleteDoc(doc(db, 'categorias', d.id));
             carregarCategorias();
