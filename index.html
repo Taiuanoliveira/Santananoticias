@@ -254,31 +254,7 @@
 
     <section class="agro-section">
       <div class="agro-grid">
-        <article class="agro-card destaque">
-          <div class="agro-icon">&#127807;</div>
-          <span class="tag-categoria agro">Agro</span>
-          <h3>Safra de feijão supera expectativas e garante renda para pequenos agricultores</h3>
-          <p>Produtores do entorno de Santana colhem resultados acima da média após temporada de chuvas bem distribuídas.</p>
-          <a href="#">Leia mais →</a>
-        </article>
-        <article class="agro-card">
-          <span class="tag-categoria agro">Agro</span>
-          <h3>Mercado Agro</h3>
-          <p>Cotações e análises do mercado regional.</p>
-          <a href="#">Ver cotações →</a>
-        </article>
-        <article class="agro-card">
-          <span class="tag-categoria agro">Agro</span>
-          <h3>Pecuária</h3>
-          <p>Notícias e tendências do setor pecuário no sertão.</p>
-          <a href="#">Ver mais →</a>
-        </article>
-        <article class="agro-card">
-          <span class="tag-categoria agro">Agro</span>
-          <h3>Tecnologia Rural</h3>
-          <p>Inovações que chegam ao campo santanense.</p>
-          <a href="#">Ver mais →</a>
-        </article>
+        <div id="agroGrid"><p style="color:#888;font-size:13px;">Carregando...</p></div>
       </div>
     </section>
 
@@ -299,26 +275,7 @@
     </div>
 
     <section class="servicos-section">
-      <div class="servicos-grid">
-        <div class="servico-card">
-          <div class="servico-icon">&#128227;</div>
-          <h3>Publicidade Comercial</h3>
-          <p>Anuncie no maior portal de notícias de Amargosa, Bahia. Alcance direto ao público local.</p>
-          <a href="#" class="btn-servico">Saiba mais</a>
-        </div>
-        <div class="servico-card">
-          <div class="servico-icon">&#127881;</div>
-          <h3>Divulgação de Eventos</h3>
-          <p>Seu evento com visibilidade regional. Formaturas, feiras, shows e muito mais.</p>
-          <a href="#" class="btn-servico">Saiba mais</a>
-        </div>
-        <div class="servico-card">
-          <div class="servico-icon">&#128200;</div>
-          <h3>Marketing Local</h3>
-          <p>Estratégias de comunicação pensadas para o mercado do sertão alagoano.</p>
-          <a href="#" class="btn-servico">Saiba mais</a>
-        </div>
-      </div>
+      <div class="servicos-grid" id="servicoGrid"></div>
     </section>
 
   </main>
@@ -376,6 +333,8 @@
 
   <script type="module">
     import { listarPublicadas } from "./js/noticias.js";
+    import { db } from "./js/firebase-config.js";
+    import { collection, query, where, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { montarCarrossel, montarBannersRodape, reiniciarRodizioBlocos, montarProximoBlocoDeBanners, obterBannersAtivos } from "./js/publicidade.js";
     import { observarLogin, sair } from "./js/auth.js";
 
@@ -506,6 +465,52 @@
 
 
 carregarNoticias();
+
+    async function carregarAgroNoticias() {
+      const grid = document.getElementById('agroGrid');
+      if (!grid) return;
+      try {
+        const q = query(collection(db,'noticias'),where('categoria','==','agro'),where('status','==','publicada'),orderBy('criadoEm','desc'),limit(2));
+        const snap = await getDocs(q);
+        if (snap.empty){grid.innerHTML='<p style="color:#888;font-size:13px;">Nenhuma notícia de agro ainda.</p>';return;}
+        grid.innerHTML='';
+        snap.forEach((d,i)=>{
+          const n=d.data();
+          const art=document.createElement('article');
+          art.className='agro-card'+(i===0?' destaque':'');
+          art.innerHTML=`${n.imagemUrl?`<div style="width:100%;height:160px;background:url('${n.imagemUrl}') center/cover;margin-bottom:12px;"></div>`:'<div class="agro-icon">🌿</div>'}<span class="tag-categoria agro">Agro</span><h3>${n.titulo||''}</h3><p>${(n.resumo||n.conteudo||'').substring(0,100)}...</p><a href="noticia.html?id=${d.id}">Leia mais →</a>`;
+          grid.appendChild(art);
+        });
+      } catch(e){grid.innerHTML='';}
+    }
+
+    async function carregarCartaAoLeitor() {
+      try {
+        const q = query(collection(db,'edicoes'),where('status','==','publicada'),orderBy('criadoEm','desc'),limit(1));
+        const snap = await getDocs(q);
+        if(snap.empty) return;
+        const ed = snap.docs[0].data();
+        if(!ed.cartaLeitor) return;
+        document.getElementById('cartaLeitorEdicao').textContent = ed.nome||'Edição Atual';
+        document.getElementById('cartaLeitorTexto').textContent = ed.cartaLeitor.substring(0,400)+(ed.cartaLeitor.length>400?'...':'');
+        document.getElementById('cartaLeitorSection').style.display='block';
+      } catch(e){}
+    }
+
+    async function carregarServico() {
+      try {
+        const snap = await getDoc(doc(db,'config','servico'));
+        if(!snap.exists()) return;
+        const s = snap.data();
+        if(!s.titulo) return;
+        document.getElementById('servicoGrid').innerHTML=`<div class="servico-card"><div class="servico-icon">${s.icone||'📢'}</div><h3>${s.titulo}</h3><p>${s.descricao||''}</p><a href="${s.link||'#'}" class="btn-servico">${s.botaoTexto||'Saiba mais'}</a></div>`;
+      } catch(e){}
+    }
+
+    carregarAgroNoticias();
+    carregarCartaAoLeitor();
+    carregarServico();
+
 
     montarCarrossel(document.getElementById('carrosselPublicidade'));
     montarBannersRodape(document.getElementById('rodapePublicidade'));
