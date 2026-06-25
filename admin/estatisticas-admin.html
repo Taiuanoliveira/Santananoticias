@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estatísticas – Painel Veritas Notícias</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .stats-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:32px;}
+    .stat-card{background:#fff;border:1px solid #eee;border-top:3px solid #00cc66;padding:18px 16px;text-align:center;}
+    .stat-card.azul{border-top-color:#0066cc;}.stat-card.roxo{border-top-color:#9b59b6;}.stat-card.laranja{border-top-color:#e67e22;}.stat-card.vermelho{border-top-color:#e74c3c;}
+    .stat-numero{font-size:28px;font-weight:900;font-family:'Playfair Display',serif;color:#0a0a0a;}
+    .stat-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-top:4px;}
+    .tabela-stats{width:100%;border-collapse:collapse;font-size:13px;}
+    .tabela-stats th{background:#0a0a0a;color:#fff;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+    .tabela-stats td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+    .tabela-stats tr:hover td{background:#f9f9f9;}
+    .titulo-noticia{font-weight:600;max-width:280px;}.titulo-noticia a{color:#0a0a0a;text-decoration:none;}.titulo-noticia a:hover{color:#00cc66;}
+    .badge-num{display:inline-block;background:#f0f0f0;color:#333;font-weight:700;padding:3px 10px;border-radius:20px;min-width:36px;text-align:center;}
+    .badge-num.verde{background:#d4edda;color:#1a5c2a;}.badge-num.azul{background:#d0e8ff;color:#0055aa;}.badge-num.roxo{background:#ead6ff;color:#6a0dad;}.badge-num.laranja{background:#fde8cc;color:#a05000;}
+    .filtro-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+    .filtro-bar select,.filtro-bar input{padding:8px 12px;border:1px solid #ddd;font-size:13px;font-family:Inter,sans-serif;}
+    .btn-exportar{background:#0a0a0a;color:#fff;border:none;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+    .tag-cat{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;background:#f0f0f0;color:#555;}
+  </style>
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Veritas Notícias</div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>📈 Estatísticas</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+      <div class="stats-cards">
+        <div class="stat-card"><div class="stat-numero" id="totalVisualizacoes">—</div><div class="stat-label">👁 Visualizações</div></div>
+        <div class="stat-card azul"><div class="stat-numero" id="totalCurtidas">—</div><div class="stat-label">❤️ Curtidas</div></div>
+        <div class="stat-card roxo"><div class="stat-numero" id="totalComentarios">—</div><div class="stat-label">💬 Comentários</div></div>
+        <div class="stat-card laranja"><div class="stat-numero" id="totalSalvos">—</div><div class="stat-label">🔖 Salvos</div></div>
+        <div class="stat-card vermelho"><div class="stat-numero" id="totalNoticias">—</div><div class="stat-label">📰 Notícias</div></div>
+      </div>
+      <section class="admin-bloco">
+        <div class="filtro-bar">
+          <select id="filtroOrdem"><option value="visualizacoes">Ordenar: Visualizações</option><option value="curtidas">Ordenar: Curtidas</option><option value="comentarios">Ordenar: Comentários</option><option value="salvos">Ordenar: Salvos</option></select>
+          <select id="filtroCategoria"><option value="">Todas categorias</option><option value="politica">Política</option><option value="economia">Economia</option><option value="regional">Regional</option><option value="agro">Agro</option><option value="esportes">Esportes</option><option value="cultura">Cultura</option><option value="saude">Saúde</option><option value="tecnologia">Tecnologia</option></select>
+          <input type="text" id="filtroBusca" placeholder="Buscar notícia...">
+          <button class="btn-exportar" onclick="exportarCSV()">⬇ Exportar CSV</button>
+        </div>
+        <div id="tabelaContainer"><p style="color:#888;padding:20px;">Carregando...</p></div>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    let todasNoticias=[],todasStats={};
+    function montarMenu(cargo){
+      const menu=document.getElementById('menuAdmin');
+      const itens=[
+        {href:'dashboard.html',label:'📊 Dashboard',cargos:['administrador','editor','colunista','revisor']},
+        {href:'publicar.html',label:'✍️ Nova Notícia',cargos:['administrador','editor','colunista']},
+        {href:'gerenciar-noticias.html',label:'📰 Gerenciar Notícias',cargos:['administrador','editor','colunista','revisor']},
+        {href:'edicoes-admin.html',label:'📚 Edições',cargos:['administrador','editor']},
+        {href:'estatisticas-admin.html',label:'📈 Estatísticas',cargos:['administrador','editor']},
+        {href:'publicidade-admin.html',label:'📢 Publicidade',cargos:['administrador']},
+        {href:'usuarios.html',label:'👥 Usuários',cargos:['administrador']},
+        {href:'configuracoes.html',label:'⚙️ Configurações',cargos:['administrador']},
+      ];
+      menu.innerHTML=itens.filter(i=>i.cargos.includes(cargo)).map(i=>`<a href="${i.href}">${i.label}</a>`).join('');
+    }
+    protegerPagina([CARGOS.ADMIN,CARGOS.EDITOR],async(user,cargo)=>{
+      document.getElementById('cargoAtual').textContent=cargo;
+      montarMenu(cargo);
+      await carregarDados();
+    });
+    document.getElementById('btnSair').addEventListener('click',async()=>{await sair();window.location.href='../index.html';});
+    async function carregarDados(){
+      try{
+        const snap1=await getDocs(query(collection(db,'noticias'),where('status','==','publicada'),orderBy('criadoEm','desc')));
+        todasNoticias=snap1.docs.map(d=>({id:d.id,...d.data()}));
+        const snap2=await getDocs(collection(db,'estatisticas'));
+        snap2.forEach(d=>{todasStats[d.id]=d.data();});
+        let v=0,c=0,com=0,s=0;
+        todasNoticias.forEach(n=>{const st=todasStats[n.id]||{};v+=st.visualizacoes||0;c+=st.curtidas||0;com+=st.comentarios||0;s+=st.salvos||0;});
+        document.getElementById('totalVisualizacoes').textContent=v.toLocaleString('pt-BR');
+        document.getElementById('totalCurtidas').textContent=c.toLocaleString('pt-BR');
+        document.getElementById('totalComentarios').textContent=com.toLocaleString('pt-BR');
+        document.getElementById('totalSalvos').textContent=s.toLocaleString('pt-BR');
+        document.getElementById('totalNoticias').textContent=todasNoticias.length;
+        renderTabela();
+      }catch(e){document.getElementById('tabelaContainer').innerHTML=`<p style="color:#b3261e;">Erro: ${e.message}</p>`;}
+    }
+    function getDados(){
+      const ordem=document.getElementById('filtroOrdem').value;
+      const cat=document.getElementById('filtroCategoria').value;
+      const busca=document.getElementById('filtroBusca').value.toLowerCase();
+      let lista=todasNoticias.map(n=>({...n,stats:todasStats[n.id]||{visualizacoes:0,curtidas:0,comentarios:0,salvos:0}}));
+      if(cat) lista=lista.filter(n=>n.categoria===cat);
+      if(busca) lista=lista.filter(n=>(n.titulo||'').toLowerCase().includes(busca));
+      lista.sort((a,b)=>(b.stats[ordem]||0)-(a.stats[ordem]||0));
+      return lista;
+    }
+    window.renderTabela=function(){
+      const lista=getDados();
+      const c=document.getElementById('tabelaContainer');
+      if(!lista.length){c.innerHTML='<p style="color:#888;padding:20px;">Nenhuma notícia encontrada.</p>';return;}
+      c.innerHTML=`<table class="tabela-stats"><thead><tr><th>#</th><th>Notícia</th><th>Categoria</th><th>👁 Views</th><th>❤️ Curtidas</th><th>💬 Coments</th><th>🔖 Salvos</th></tr></thead><tbody>${lista.map((n,i)=>`<tr><td style="color:#888;font-size:12px;">${i+1}</td><td class="titulo-noticia"><a href="../noticia.html?id=${n.id}" target="_blank">${n.titulo||'(sem título)'}</a></td><td><span class="tag-cat">${n.categoria||'—'}</span></td><td><span class="badge-num verde">${(n.stats.visualizacoes||0).toLocaleString('pt-BR')}</span></td><td><span class="badge-num azul">${n.stats.curtidas||0}</span></td><td><span class="badge-num roxo">${n.stats.comentarios||0}</span></td><td><span class="badge-num laranja">${n.stats.salvos||0}</span></td></tr>`).join('')}</tbody></table>`;
+    };
+    window.exportarCSV=function(){
+      const lista=getDados();
+      const linhas=[['Título','Categoria','Visualizações','Curtidas','Comentários','Salvos']];
+      lista.forEach(n=>linhas.push([`"${(n.titulo||'').replace(/"/g,'""')}"`,n.categoria||'',n.stats.visualizacoes||0,n.stats.curtidas||0,n.stats.comentarios||0,n.stats.salvos||0]));
+      const blob=new Blob([linhas.map(l=>l.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='estatisticas-veritas.csv';a.click();
+    };
+    document.getElementById('filtroOrdem').addEventListener('change',renderTabela);
+    document.getElementById('filtroCategoria').addEventListener('change',renderTabela);
+    document.getElementById('filtroBusca').addEventListener('input',renderTabela);
+  </script>
+</body>
+</html>
