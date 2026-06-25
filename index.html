@@ -224,29 +224,24 @@
     <!-- SEÇÕES POR CATEGORIA (estilo Revista Oeste) -->
     <div id="secoesPorCategoria"></div>
 
-    <!-- SEÇÃO EDITORIAL -->
-    <div class="section-divider">
-      <span>Editorial da Semana</span>
-    </div>
-
-    <section class="editorial-section" id="editorialSection" style="display:none;">
-      <div class="editorial-card">
-        <div class="eyebrow">✏️ Editorial</div>
-        <h2 id="editorialTitulo"></h2>
-        <p id="editorialTexto" style="white-space:pre-line;"></p>
-        <a id="editorialLink" href="edicoes.html" class="btn-leia-mais secundario">Leia o editorial completo →</a>
-      </div>
-      <div class="editorial-author">
-        <div class="author-avatar" id="editorialAvatar" style="background-size:cover;background-position:center;"></div>
-        <strong id="editorialAutorNome"></strong>
-        <span id="editorialAutorCargo"></span>
-        <p class="author-bio" id="editorialAutorBio"></p>
-        <div class="agro-cotacoes-wrapper">
-          <div class="agro-cotacoes-titulo">📊 Cotações do Agronegócio <span class="agro-cot-fonte">Atualiza a cada 5 min</span></div>
-          <div id="cotacoesAgroSlide" class="agro-cotacoes-grid"><div style="color:#888;padding:20px;">Carregando...</div></div>
+    <!-- EDITORIAL DINAMICO -->
+    <div id="cartaLeitorSection" style="display:none;">
+      <div class="section-divider"><span>Carta ao Leitor</span></div>
+      <section class="editorial-section">
+        <div class="editorial-card">
+          <div class="eyebrow">✏️ Carta ao Leitor</div>
+          <h2 id="cartaLeitorEdicao"></h2>
+          <p id="cartaLeitorTexto" style="white-space:pre-line;"></p>
+          <a href="edicoes.html" class="btn-leia-mais secundario">Ver edição completa →</a>
         </div>
-      </div>
-    </section>
+        <div class="editorial-author">
+          <div class="agro-cotacoes-wrapper">
+            <div class="agro-cotacoes-titulo">📊 Cotações do Agronegócio <span class="agro-cot-fonte">Atualiza a cada 5 min</span></div>
+            <div id="cotacoesAgroSlide" class="agro-cotacoes-grid"><div style="color:#888;padding:20px;">Carregando...</div></div>
+          </div>
+        </div>
+      </section>
+    </div>
     <!-- SEÇÃO AGRO -->
     <div class="section-divider">
       <span>Agronegócio Regional</span>
