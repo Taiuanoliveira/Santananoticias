@@ -111,9 +111,9 @@
 
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
-    import { db, storage } from "../js/firebase-config.js";
+    import { db } from "../js/firebase-config.js";
     import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { enviarImagemCloudinary } from "../js/cloudinary.js";
 
     let usuarioAtual = null;
     let arquivoCapaSelecionado = null;
@@ -185,10 +185,7 @@
       try {
         let capaUrl = null;
         if (arquivoCapaSelecionado) {
-          const caminho = `edicoes/${Date.now()}_${arquivoCapaSelecionado.name}`;
-          const storageRef = ref(storage, caminho);
-          await uploadBytes(storageRef, arquivoCapaSelecionado);
-          capaUrl = await getDownloadURL(storageRef);
+          capaUrl = await enviarImagemCloudinary(arquivoCapaSelecionado);
         }
 
         await addDoc(collection(db, 'edicoes'), {
