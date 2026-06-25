@@ -157,7 +157,20 @@
 
   <!-- ULTIMA EDICAO PUBLICADA (estilo Revista Oeste) -->
   <main>
-    <section id="ultimaEdicaoSection" style="display:none;"></section>
+    <!-- ULTIMA EDICAO - estilo Revista Oeste -->
+    <div id="ultimaEdicaoWrap" style="display:none;max-width:1200px;margin:28px auto 0;padding:0 20px;">
+      <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#888;margin-bottom:8px;">Última Edição</div>
+      <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+        <div id="edicaoCapaWrap"></div>
+        <div style="flex:1;min-width:280px;">
+          <div id="edicaoNome" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:900;margin-bottom:4px;"></div>
+          <div id="edicaoData" style="font-size:13px;color:#888;margin-bottom:16px;"></div>
+          <div id="edicaoArtigos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;"></div>
+          <a href="edicoes.html" style="display:inline-block;margin-top:16px;font-size:13px;font-weight:700;color:#00cc66;text-decoration:none;">Ver edições anteriores →</a>
+        </div>
+      </div>
+    </div>
+    <div style="border-bottom:1px solid #eee;margin:28px 0;"></div>
 
     <section class="hero-section" id="heroSection">
       <p class="admin-carregando">Carregando manchete...</p>
