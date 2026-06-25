@@ -208,6 +208,28 @@
       acoes.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao));
       });
+
+      // Troca botao quando seleciona edicao
+      document.getElementById('edicao').addEventListener('change', function() {
+        const temEdicao = this.value !== '';
+        const acoes = document.getElementById('formAcoes');
+        if (cargo === CARGOS.COLUNISTA) {
+          acoes.innerHTML = temEdicao
+            ? `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>`
+            : `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>`;
+        } else {
+          acoes.innerHTML = temEdicao
+            ? `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="indexar" style="background:#5c4a00;">Indexar na Edição</button>`
+            : `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>`;
+        }
+        acoes.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao));
+        });
+      });
     }
 
     async function carregarNoticia(id) {
@@ -265,6 +287,7 @@
       let status = STATUS.RASCUNHO;
       if (acao === 'enviar_revisao') status = STATUS.EM_REVISAO;
       if (acao === 'publicar') status = STATUS.PUBLICADO;
+      if (acao === 'indexar') status = STATUS.RASCUNHO; // indexada na edicao mas nao publica avulsamente
 
       try {
         let idNoticia = noticiaIdEdicao;
