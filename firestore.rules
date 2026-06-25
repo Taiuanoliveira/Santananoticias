@@ -42,6 +42,7 @@ service cloud.firestore {
     match /noticias/{noticiaId} {
       // Leitura pública apenas de notícias publicadas. Logados podem ver as próprias/em revisão conforme cargo.
       allow read: if resource.data.status == 'publicado'
+                  || resource.data.status == 'indexado'
                   || ehAdmin() || ehEditor() || ehRevisor()
                   || (estaLogado() && resource.data.autorUid == request.auth.uid);
 
