@@ -233,7 +233,7 @@
 
           <div id="bannerNoticia" style="margin:20px 0;"></div>
           <div class="artigo-corpo" id="corpoNoticia">
-            ${noticia.conteudo.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+            ${noticia.conteudo && noticia.conteudo.includes('<') ? noticia.conteudo : noticia.conteudo.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
           </div>
 
           <div class="compartilhar">
