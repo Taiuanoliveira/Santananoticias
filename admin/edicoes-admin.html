@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../css/admin.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <style>.ql-editor { min-height: 180px; line-height: 1.7; }</style>
   <style>
     .edicao-item { border: 1px solid #eee; padding: 16px; margin-bottom: 16px; }
     .edicao-cabecalho { display: flex; gap: 14px; align-items: flex-start; }
@@ -80,7 +82,7 @@
           <textarea id="descricaoEdicao" rows="2" placeholder="Breve descrição desta edição"></textarea>
 
           <label for="cartaLeitor">Carta ao leitor <small style="color:#888;font-weight:400;">(sempre gratuita, aparece antes dos artigos)</small></label>
-          <textarea id="cartaLeitor" rows="6" placeholder="Escreva a carta ao leitor desta edição. Aparece no topo da edição antes dos artigos."></textarea>
+          <div id="editorCartaLeitor" style="background:#fff;"></div>
 
           <label style="display:flex;align-items:center;gap:8px;margin-top:16px;">
             <input type="checkbox" id="edicaoGratuita" style="width:auto;">
@@ -180,7 +182,7 @@
       const nome = document.getElementById('nomeEdicao').value.trim();
       const tema = document.getElementById('temaEdicao').value;
       const descricao = document.getElementById('descricaoEdicao').value.trim();
-      const cartaLeitor = document.getElementById('cartaLeitor').value.trim();
+      const cartaLeitor = editorCartaLeitor.root.innerHTML.trim();
 
       if (!nome || !tema) {
         mostrarErro('Preencha ao menos o nome e o tema da edição.');
