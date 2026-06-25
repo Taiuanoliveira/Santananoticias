@@ -635,8 +635,10 @@ carregarNoticias();
           const menuLateral = document.getElementById('sidebarCategorias');
           categoriasParaSecoes = [];
 
-          snap.forEach(d => {
-            const cat = d.data();
+          const categoriasOrdenadas = [];
+          snap.forEach(d => categoriasOrdenadas.push(d.data()));
+
+          categoriasOrdenadas.forEach(cat => {
             const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
             const href = 'categoria.html?c=' + slug;
             categoriasParaSecoes.push({ nome: cat.nome, slug });
@@ -644,17 +646,15 @@ carregarNoticias();
             if (menuPrincipal) {
               const li = document.createElement('li');
               li.innerHTML = '<a href="' + href + '">' + cat.nome + '</a>';
-              const editorial = menuPrincipal.querySelector('a[href="edicoes.html"]')?.parentElement;
-              if (editorial) menuPrincipal.insertBefore(li, editorial);
-              else menuPrincipal.appendChild(li);
+              menuPrincipal.appendChild(li);
             }
 
             if (menuLateral) {
               const a = document.createElement('a');
               a.href = href;
               a.textContent = (cat.emoji || '') + ' ' + cat.nome;
-              const editorial = menuLateral.querySelector('a[href="edicoes.html"]');
-              if (editorial) menuLateral.insertBefore(a, editorial);
+              const editorialLink = menuLateral.querySelector('a[href="edicoes.html"]');
+              if (editorialLink) menuLateral.insertBefore(a, editorialLink);
               else menuLateral.appendChild(a);
             }
           });
