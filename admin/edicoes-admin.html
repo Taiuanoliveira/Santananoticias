@@ -111,11 +111,51 @@
     </main>
   </div>
 
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
   <script type="module">
     import { protegerPagina, sair, CARGOS } from "../js/auth.js";
     import { db } from "../js/firebase-config.js";
     import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { enviarImagemCloudinary } from "../js/cloudinary.js";
+
+    // Editor rico da Carta ao Leitor: negrito, itálico, subtítulo, citação, link e imagens no meio do texto.
+    const editorCartaLeitor = new Quill('#editorCartaLeitor', {
+      theme: 'snow',
+      placeholder: 'Escreva a carta ao leitor desta edição...',
+      modules: {
+        toolbar: {
+          container: [
+            [{ 'header': [2, 3, false] }],
+            ['bold', 'italic', 'underline'],
+            ['link', 'blockquote', 'image'],
+            ['clean']
+          ],
+          handlers: {
+            image: function() {
+              const input = document.createElement('input');
+              input.setAttribute('type', 'file');
+              input.setAttribute('accept', 'image/*');
+              input.click();
+              input.onchange = async () => {
+                const arquivo = input.files[0];
+                if (!arquivo) return;
+                const range = editorCartaLeitor.getSelection(true) || { index: editorCartaLeitor.getLength() };
+                editorCartaLeitor.insertText(range.index, 'Enviando imagem...', { italic: true });
+                try {
+                  const url = await enviarImagemCloudinary(arquivo);
+                  editorCartaLeitor.deleteText(range.index, 'Enviando imagem...'.length);
+                  editorCartaLeitor.insertEmbed(range.index, 'image', url);
+                  editorCartaLeitor.setSelection(range.index + 1);
+                } catch (e) {
+                  editorCartaLeitor.deleteText(range.index, 'Enviando imagem...'.length);
+                  alert('Erro ao enviar imagem: ' + e.message);
+                }
+              };
+            }
+          }
+        }
+      }
+    });
 
     let usuarioAtual = null;
     let arquivoCapaSelecionado = null;
@@ -205,6 +245,7 @@
 
         mostrarSucesso('Edição criada como rascunho! Adicione matérias a ela em "Nova Notícia" antes de publicar.');
         document.getElementById('formEdicao').reset();
+        editorCartaLeitor.setContents([]);
         document.getElementById('previewCapa').style.display = 'none';
         arquivoCapaSelecionado = null;
         carregarEdicoes();
