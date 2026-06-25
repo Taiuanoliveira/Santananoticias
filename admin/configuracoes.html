@@ -235,15 +235,21 @@ Produção agrícola do município bate recorde histórico"></textarea>
     });
 
     function montarMenu(cargo) {
-      document.getElementById('menuAdmin').innerHTML = `
-        <a href="dashboard.html">📊 Dashboard</a>
-        <a href="publicar.html">✍️ Nova Notícia</a>
-        <a href="gerenciar-noticias.html">📰 Gerenciar Notícias</a>
-        <a href="edicoes-admin.html">📚 Edições</a>
-        <a href="publicidade-admin.html">📢 Publicidade</a>
-        <a href="usuarios.html">👥 Usuários</a>
-        <a href="configuracoes.html">⚙️ Configurações</a>
-      `;
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador','editor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador','editor'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
     }
 
     function mostrarSucesso(texto) {

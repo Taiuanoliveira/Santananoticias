@@ -44,10 +44,11 @@
           <label for="titulo">Título</label>
           <input type="text" id="titulo" required placeholder="Título da notícia">
 
-          <label for="categoria">Categoria</label>
-          <select id="categoria" required>
-            <option value="">Selecione...</option>
-          </select>
+          <label>Categorias <span style="font-weight:400;color:#888;">(marque uma ou mais — a primeira marcada vira a categoria principal)</span></label>
+          <div id="containerCategorias" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            <p style="font-size:13px;color:#777;">Carregando categorias...</p>
+          </div>
+          <input type="hidden" id="categoria" required>
 
           <label for="resumo">Resumo (aparece nos cards)</label>
           <textarea id="resumo" rows="2" placeholder="Resumo curto da notícia"></textarea>
@@ -141,54 +142,9 @@
     }
     carregarEdicoesNoSelect();
 
-    const categoriasPadrao = [
-      { valor: 'editorial', nome: 'Editorial' },
-      { valor: 'politica', nome: 'Política' },
-      { valor: 'economia', nome: 'Economia' },
-      { valor: 'regional', nome: 'Regional' },
-      { valor: 'agro', nome: 'Agro' },
-      { valor: 'esportes', nome: 'Esportes' },
-      { valor: 'cultura', nome: 'Cultura' },
-      { valor: 'saude', nome: 'Saúde' },
-      { valor: 'tecnologia', nome: 'Tecnologia' },
-      { valor: 'educacao', nome: 'Educação' },
-      { valor: 'entretenimento', nome: 'Entretenimento' },
-      { valor: 'brasil-mundo', nome: 'Brasil/Mundo' },
-      { valor: 'seguranca', nome: 'Segurança' }
-    ];
-
     function gerarSlug(nome) {
       return nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
     }
-
-    async function carregarCategoriasNoSelect() {
-      const select = document.getElementById('categoria');
-      const valoresJaAdicionados = new Set();
-
-      categoriasPadrao.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat.valor;
-        opt.textContent = cat.nome;
-        select.appendChild(opt);
-        valoresJaAdicionados.add(cat.valor);
-      });
-
-      try {
-        const snap = await getDocs(collection(db, 'categorias'));
-        snap.forEach(d => {
-          const nome = d.data().nome;
-          if (!nome) return;
-          const valor = gerarSlug(nome);
-          if (valoresJaAdicionados.has(valor)) return;
-          const opt = document.createElement('option');
-          opt.value = valor;
-          opt.textContent = nome;
-          select.appendChild(opt);
-          valoresJaAdicionados.add(valor);
-        });
-      } catch (e) { console.error('Erro ao carregar categorias extras:', e); }
-    }
-    carregarCategoriasNoSelect();
 
     let usuarioAtual = null;
     let cargoAtual = null;
@@ -212,6 +168,8 @@
           noticiaIdEdicao = idParaEditar;
           document.getElementById('tituloPagina').textContent = 'Editar Notícia';
           await carregarNoticia(idParaEditar);
+        } else {
+          carregarCategoriasCheckboxes([]);
         }
       }
     );
@@ -227,8 +185,13 @@
         { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
         { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
         { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador','editor'] },
         { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
-        { href: 'usuarios.html', label: '👥 Usuários', cargos: ['administrador'] },
+        { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador','editor'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
         { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
       ];
       menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
@@ -322,7 +285,6 @@
 
     async function salvarNoticia(acao) {
       const titulo = document.getElementById('titulo').value.trim();
-      const categoria = document.getElementById('categoria').value;
       const resumo = document.getElementById('resumo').value.trim();
       // Pega o HTML do editor Quill
       const conteudoHtml = quillEditor.root.innerHTML;
@@ -330,14 +292,14 @@
       document.getElementById('conteudo').value = conteudoHtml;
       const conteudo = conteudoHtml;
 
-      // Pega todas as categorias selecionadas
+      // Pega todas as categorias marcadas — a primeira marcada é a principal
       const categoriasSelecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
       if (categoriasSelecionadas.length === 0) {
         mostrarErro('Selecione pelo menos uma categoria.');
         return;
       }
       const categoria = categoriasSelecionadas[0];
-      const categoriasSelecionadas = categoria ? [categoria] : [];
+      document.getElementById('categoria').value = categoria;
       const edicao = document.getElementById('edicao').value;
 
       // Se a edicao for gratuita, todos os artigos ficam gratuitos automaticamente
@@ -347,20 +309,18 @@
           const snapEdicoes = await getDocs(query(collection(db, 'edicoes'), where('nome', '==', edicao)));
           snapEdicoes.forEach(d => { if (d.data().edicaoGratuita) gratuito = true; });
         } catch (e) {}
-      }
 
-      // Calcula a proxima ordem disponivel na edicao
-      let ordemEdicao = parseInt(document.getElementById('ordemEdicao')?.value) || 1;
+        // Calcula a proxima ordem disponivel na edicao
         try {
           const snapArtigos = await getDocs(query(collection(db, 'noticias'), where('edicao', '==', edicao)));
           const ordens = [];
           snapArtigos.forEach(d => { if (d.data().ordemEdicao) ordens.push(d.data().ordemEdicao); });
-          if (ordens.length > 0) ordemEdicao = Math.max(...ordens) + 1;
-          else ordemEdicao = 1;
+          let ordemCalculada = ordens.length > 0 ? Math.max(...ordens) + 1 : 1;
           const inputOrdem = document.getElementById('ordemEdicao');
-          if (inputOrdem) inputOrdem.value = ordemEdicao;
+          if (inputOrdem) inputOrdem.value = ordemCalculada;
         } catch (e) {}
       }
+      let ordemEdicao = parseInt(document.getElementById('ordemEdicao')?.value) || 1;
       const arquivoImagem = document.getElementById('imagem').files[0];
 
       if (!titulo || !categoria || !conteudo) {
