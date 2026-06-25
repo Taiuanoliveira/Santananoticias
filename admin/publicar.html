@@ -88,6 +88,42 @@
     import { db } from "../js/firebase-config.js";
     import { collection, getDocs, orderBy, query, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    async function carregarCategoriasCheckboxes(categoriasAtuais) {
+      const container = document.getElementById('containerCategorias');
+      try {
+        const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
+        if (snap.empty) {
+          container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma categoria cadastrada.</p>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(d => {
+          const cat = d.data();
+          const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
+          const marcado = Array.isArray(categoriasAtuais) ? categoriasAtuais.includes(slug) : categoriasAtuais === slug;
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;background:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;border:1.5px solid #eee;transition:all .2s;';
+          label.innerHTML = `<input type="checkbox" value="${slug}" style="width:auto;" ${marcado ? 'checked' : ''}> ${cat.emoji || ''} ${cat.nome}`;
+          label.querySelector('input').addEventListener('change', () => {
+            label.style.borderColor = label.querySelector('input').checked ? '#00cc66' : '#eee';
+            label.style.background = label.querySelector('input').checked ? '#f0fff8' : '#fff';
+            atualizarCategoriaHidden();
+          });
+          if (marcado) {
+            label.style.borderColor = '#00cc66';
+            label.style.background = '#f0fff8';
+          }
+          container.appendChild(label);
+        });
+        atualizarCategoriaHidden();
+      } catch (e) { container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar categorias.</p>'; }
+    }
+
+    function atualizarCategoriaHidden() {
+      const selecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
+      document.getElementById('categoria').value = selecionadas[0] || '';
+    }
+
     async function carregarEdicoesNoSelect() {
       const select = document.getElementById('edicao');
       try {
@@ -251,6 +287,9 @@
           quillEditor.root.innerHTML = noticia.conteudo || '';
         }
       }, 300);
+
+      const catsAtuais = noticia.categorias || (noticia.categoria ? [noticia.categoria] : []);
+      carregarCategoriasCheckboxes(catsAtuais);
       if (noticia.imagemUrl) {
         imagemAtualUrl = noticia.imagemUrl;
         const preview = document.getElementById('previewImagem');
@@ -290,6 +329,14 @@
       const conteudoTexto = quillEditor.getText().trim();
       document.getElementById('conteudo').value = conteudoHtml;
       const conteudo = conteudoHtml;
+
+      // Pega todas as categorias selecionadas
+      const categoriasSelecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
+      if (categoriasSelecionadas.length === 0) {
+        mostrarErro('Selecione pelo menos uma categoria.');
+        return;
+      }
+      const categoria = categoriasSelecionadas[0];
       const categoriasSelecionadas = categoria ? [categoria] : [];
       const edicao = document.getElementById('edicao').value;
 
