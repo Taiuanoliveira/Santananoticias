@@ -138,7 +138,8 @@ service cloud.firestore {
     // --- COLEÇÃO: estatisticas ---
     match /estatisticas/{noticiaId} {
       allow read: if true;
-      allow write: if estaLogado();
+      allow create: if true;
+      allow update: if true;
     }
   }
 }

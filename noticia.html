@@ -150,7 +150,8 @@
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
     import {
       collection, doc, getDoc, setDoc, updateDoc, deleteDoc,
-      addDoc, getDocs, query, orderBy, where, serverTimestamp, arrayUnion, arrayRemove
+      addDoc, getDocs, query, orderBy, where, serverTimestamp, arrayUnion, arrayRemove,
+      increment, runTransaction
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     const params = new URLSearchParams(window.location.search);
@@ -271,6 +272,7 @@
       carregarBotoes(id);
       carregarComentarios(id);
       carregarUltimas(id);
+      registrarVisualizacao(id, noticia);
 
       // Carrega banner de publicidade no meio do artigo
       try {
@@ -282,6 +284,29 @@
       } catch (e) { console.error('Erro ao carregar banner:', e); }
       document.getElementById('secaoComentarios').style.display = 'block';
       document.getElementById('secaoUltimas').style.display = 'block';
+    }
+
+    async function registrarVisualizacao(noticiaId, noticia) {
+      try {
+        const refStats = doc(db, 'estatisticas', noticiaId);
+        const snap = await getDoc(refStats);
+        if (snap.exists()) {
+          await updateDoc(refStats, { visualizacoes: increment(1) });
+        } else {
+          await setDoc(refStats, {
+            noticiaId,
+            titulo: noticia.titulo || '',
+            categoria: noticia.categoria || '',
+            autorNome: noticia.autorNome || '',
+            autorUid: noticia.autorUid || '',
+            visualizacoes: 1,
+            curtidas: 0,
+            comentarios: 0,
+            salvos: 0,
+            criadoEm: noticia.criadoEm || null
+          });
+        }
+      } catch (e) { console.error('Erro ao registrar visualizacao:', e); }
     }
 
     async function carregarBotoes(noticiaId) {
@@ -314,8 +339,18 @@
         const s = await getDoc(r);
         const b = document.getElementById('btnCurtir');
         const n = document.getElementById('numCurtidas');
-        if (s.exists()) { await deleteDoc(r); b.classList.remove('ativo'); n.textContent = Math.max(0, parseInt(n.textContent)-1); }
-        else { await setDoc(r, { em: new Date().toISOString() }); b.classList.add('ativo'); n.textContent = parseInt(n.textContent)+1; }
+        const refStats = doc(db, 'estatisticas', noticiaId);
+        if (s.exists()) {
+          await deleteDoc(r);
+          b.classList.remove('ativo');
+          n.textContent = Math.max(0, parseInt(n.textContent)-1);
+          await updateDoc(refStats, { curtidas: increment(-1) }).catch(()=>{});
+        } else {
+          await setDoc(r, { em: new Date().toISOString() });
+          b.classList.add('ativo');
+          n.textContent = parseInt(n.textContent)+1;
+          await updateDoc(refStats, { curtidas: increment(1) }).catch(()=>{});
+        }
       };
 
       document.getElementById('btnFavoritar').onclick = async () => {
@@ -334,8 +369,18 @@
         const r = doc(db, 'ler_mais_tarde', usuarioAtual.uid, 'noticias', noticiaId);
         const s = await getDoc(r);
         const b = document.getElementById('btnLerDepois');
-        if (s.exists()) { await deleteDoc(r); b.classList.remove('ativo'); b.innerHTML = '🔖 Ler depois'; }
-        else { await setDoc(r, { titulo: noticiaAtual?.titulo || '', url: 'noticia.html?id='+noticiaId, em: new Date().toISOString() }); b.classList.add('ativo'); b.innerHTML = '🔖 Salvo'; }
+        const refStatsSalvo = doc(db, 'estatisticas', noticiaId);
+        if (s.exists()) {
+          await deleteDoc(r);
+          b.classList.remove('ativo');
+          b.innerHTML = '🔖 Ler depois';
+          await updateDoc(refStatsSalvo, { salvos: increment(-1) }).catch(()=>{});
+        } else {
+          await setDoc(r, { titulo: noticiaAtual?.titulo || '', url: 'noticia.html?id='+noticiaId, em: new Date().toISOString() });
+          b.classList.add('ativo');
+          b.innerHTML = '🔖 Salvo';
+          await updateDoc(refStatsSalvo, { salvos: increment(1) }).catch(()=>{});
+        }
       };
     }
 
@@ -357,6 +402,7 @@
             await addDoc(collection(db, 'noticias', noticiaId, 'comentarios'), {
               texto, autorUid: user.uid, autorNome: user.displayName || user.email, criadoEm: serverTimestamp()
             });
+            await updateDoc(doc(db, 'estatisticas', noticiaId), { comentarios: increment(1) }).catch(()=>{});
             document.getElementById('textoComentario').value = '';
             carregarListaComentarios(noticiaId, lista);
           };
