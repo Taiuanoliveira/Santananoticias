@@ -170,6 +170,13 @@
           noticiaIdEdicao = idParaEditar;
           document.getElementById('tituloPagina').textContent = 'Editar Notícia';
           await carregarNoticia(idParaEditar);
+
+          // Mostra aviso de que esta editando uma noticia existente
+          const avisoEditar = document.createElement('div');
+          avisoEditar.style.cssText = 'background:#fff3cd;border-left:4px solid #f9a825;padding:12px 16px;font-size:13px;margin-bottom:16px;';
+          avisoEditar.innerHTML = '✏️ <strong>Modo edição</strong> — Você está editando uma notícia existente. As alterações serão salvas na mesma notícia.';
+          const bloco = document.querySelector('.admin-bloco');
+          if (bloco) bloco.insertBefore(avisoEditar, bloco.firstChild);
         } else {
           carregarCategoriasCheckboxes([]);
         }
@@ -372,6 +379,14 @@
         }
 
         noticiaIdEdicao = idNoticia;
+        document.getElementById('tituloPagina').textContent = 'Editar Notícia';
+
+        // Atualiza a URL para incluir o ID, evitando duplicar ao salvar novamente
+        const urlAtual = new URL(window.location.href);
+          urlAtual.searchParams.set('id', idNoticia);
+          window.history.replaceState({}, '', urlAtual.toString());
+        }
+
         mostrarSucesso('Notícia salva com sucesso!');
         setTimeout(() => window.location.href = 'gerenciar-noticias.html', 1500);
       } catch (err) {
