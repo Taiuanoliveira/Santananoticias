@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tags e Destaques – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>Tags e Destaques</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <!-- TAGS -->
+      <section class="admin-bloco">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">🏷️ Tags</h2>
+        <p style="font-size:13px;color:#777;margin-bottom:16px;">Tags são assuntos específicos (ex: STF, Eleições, Seca). Aparecem clicáveis nas notícias.</p>
+        <div id="msgTagSucesso" class="auth-msg sucesso" style="display:none;"></div>
+        <div id="msgTagErro" class="auth-msg erro" style="display:none;"></div>
+        <label>Nome da tag</label>
+        <input type="text" id="nomeTag" placeholder="Ex: STF, Eleições 2026, Bahia">
+        <div class="form-acoes">
+          <button class="btn-primario" onclick="adicionarTag()">Adicionar tag</button>
+        </div>
+        <div id="listaTags" style="margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;"></div>
+      </section>
+
+      <!-- DESTAQUES -->
+      <section class="admin-bloco" style="margin-top:20px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">⚡ Destaques</h2>
+        <p style="font-size:13px;color:#777;margin-bottom:16px;">Etiquetas especiais que aparecem sobre a notícia na tela inicial.</p>
+        <div id="msgDestSucesso" class="auth-msg sucesso" style="display:none;"></div>
+        <div id="msgDestErro" class="auth-msg erro" style="display:none;"></div>
+        <label>Nome do destaque</label>
+        <input type="text" id="nomeDestaque" placeholder="Ex: URGENTE, EXCLUSIVO, AO VIVO">
+        <label>Emoji</label>
+        <input type="text" id="emojiDestaque" placeholder="Ex: ⚡ 🔴 🌟 📌 🔥">
+        <label>Cor de fundo</label>
+        <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;" id="coresPaleta">
+          <div onclick="selecionarCor('#e53935')" style="width:32px;height:32px;background:#e53935;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#e53935"></div>
+          <div onclick="selecionarCor('#f9a825')" style="width:32px;height:32px;background:#f9a825;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#f9a825"></div>
+          <div onclick="selecionarCor('#00cc66')" style="width:32px;height:32px;background:#00cc66;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#00cc66"></div>
+          <div onclick="selecionarCor('#1877F2')" style="width:32px;height:32px;background:#1877F2;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#1877F2"></div>
+          <div onclick="selecionarCor('#0a0a0a')" style="width:32px;height:32px;background:#0a0a0a;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#0a0a0a"></div>
+          <div onclick="selecionarCor('#9c27b0')" style="width:32px;height:32px;background:#9c27b0;border-radius:50%;cursor:pointer;border:3px solid transparent;" data-cor="#9c27b0"></div>
+        </div>
+        <input type="hidden" id="corDestaque" value="#e53935">
+        <div style="margin-top:10px;font-size:13px;color:#777;">Preview: <span id="previewDestaque" style="background:#e53935;color:#fff;padding:3px 10px;font-size:11px;font-weight:700;text-transform:uppercase;border-radius:3px;">URGENTE</span></div>
+        <div class="form-acoes">
+          <button class="btn-primario" onclick="adicionarDestaque()">Adicionar destaque</button>
+        </div>
+        <div id="listaDestaques" style="margin-top:20px;"></div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { collection, addDoc, getDocs, deleteDoc, doc, orderBy, query, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    function montarMenu(cargo) {
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','moderador'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador'] },
+        { href: 'tags-admin.html', label: '🔖 Tags e Destaques', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      document.getElementById('menuAdmin').innerHTML = itens
+        .filter(i => i.cargos.includes(cargo))
+        .map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function msg(id, texto, tipo) {
+      const el = document.getElementById(id);
+      el.textContent = texto;
+      el.className = 'auth-msg ' + tipo;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    // TAGS
+    async function carregarTags() {
+      const lista = document.getElementById('listaTags');
+      const snap = await getDocs(query(collection(db, 'tags'), orderBy('nome')));
+      lista.innerHTML = '';
+      if (snap.empty) { lista.innerHTML = '<p style="color:#777;font-size:13px;">Nenhuma tag ainda.</p>'; return; }
+      snap.forEach(d => {
+        const tag = d.data();
+        const span = document.createElement('span');
+        span.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#f4f4f4;padding:6px 12px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #eee;';
+        span.innerHTML = `#${tag.nome} <button onclick="removerTag('${d.id}')" style="background:none;border:none;cursor:pointer;color:#b3261e;font-weight:700;font-size:14px;line-height:1;padding:0 2px;">×</button>`;
+        lista.appendChild(span);
+      });
+    }
+
+    window.adicionarTag = async function() {
+      const nome = document.getElementById('nomeTag').value.trim();
+      if (!nome) { msg('msgTagErro', 'Digite o nome da tag.', 'erro'); return; }
+      const slug = nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+      try {
+        await addDoc(collection(db, 'tags'), { nome, slug, criadoEm: new Date().toISOString() });
+        msg('msgTagSucesso', 'Tag "' + nome + '" adicionada!', 'sucesso');
+        document.getElementById('nomeTag').value = '';
+        carregarTags();
+      } catch (e) { msg('msgTagErro', 'Erro: ' + e.message, 'erro'); }
+    };
+
+    window.removerTag = async function(id) {
+      if (!confirm('Remover esta tag?')) return;
+      await deleteDoc(doc(db, 'tags', id));
+      carregarTags();
+    };
+
+    // DESTAQUES
+    const destaquesFixos = [
+      { nome: 'URGENTE', emoji: '⚡', cor: '#e53935' },
+      { nome: 'AO VIVO', emoji: '🔴', cor: '#e53935' },
+      { nome: 'EXCLUSIVO', emoji: '🌟', cor: '#f9a825' },
+      { nome: 'ESPECIAL', emoji: '📌', cor: '#1877F2' },
+      { nome: 'EM ALTA', emoji: '🔥', cor: '#f9a825' },
+      { nome: 'OPINIÃO', emoji: '💬', cor: '#9c27b0' },
+      { nome: 'EDITORIAL', emoji: '📰', cor: '#0a0a0a' },
+    ];
+
+    async function inicializarDestaquesFixos() {
+      const snap = await getDocs(collection(db, 'destaques'));
+      if (snap.empty) {
+        for (const d of destaquesFixos) {
+          await addDoc(collection(db, 'destaques'), { ...d, fixo: true });
+        }
+      }
+    }
+
+    async function carregarDestaques() {
+      const lista = document.getElementById('listaDestaques');
+      const snap = await getDocs(query(collection(db, 'destaques'), orderBy('nome')));
+      lista.innerHTML = '';
+      if (snap.empty) { lista.innerHTML = '<p style="color:#777;font-size:13px;">Nenhum destaque ainda.</p>'; return; }
+      snap.forEach(d => {
+        const dest = d.data();
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee;';
+        div.innerHTML = `
+          <span style="background:${dest.cor};color:#fff;padding:4px 12px;font-size:11px;font-weight:700;text-transform:uppercase;border-radius:3px;white-space:nowrap;">${dest.emoji || ''} ${dest.nome}</span>
+          <span style="flex-grow:1;font-size:13px;color:#777;">${dest.fixo ? '(padrão)' : ''}</span>
+          ${!dest.fixo ? `<button onclick="removerDestaque('${d.id}')" style="background:none;border:none;cursor:pointer;color:#b3261e;font-weight:700;font-size:12px;text-transform:uppercase;">Remover</button>` : ''}
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    window.adicionarDestaque = async function() {
+      const nome = document.getElementById('nomeDestaque').value.trim().toUpperCase();
+      const emoji = document.getElementById('emojiDestaque').value.trim();
+      const cor = document.getElementById('corDestaque').value;
+      if (!nome) { msg('msgDestErro', 'Digite o nome do destaque.', 'erro'); return; }
+      try {
+        await addDoc(collection(db, 'destaques'), { nome, emoji, cor, fixo: false });
+        msg('msgDestSucesso', 'Destaque "' + nome + '" adicionado!', 'sucesso');
+        document.getElementById('nomeDestaque').value = '';
+        document.getElementById('emojiDestaque').value = '';
+        carregarDestaques();
+      } catch (e) { msg('msgDestErro', 'Erro: ' + e.message, 'erro'); }
+    };
+
+    window.removerDestaque = async function(id) {
+      if (!confirm('Remover este destaque?')) return;
+      await deleteDoc(doc(db, 'destaques', id));
+      carregarDestaques();
+    };
+
+    window.selecionarCor = function(cor) {
+      document.getElementById('corDestaque').value = cor;
+      document.getElementById('previewDestaque').style.background = cor;
+      document.querySelectorAll('#coresPaleta div').forEach(d => {
+        d.style.border = d.dataset.cor === cor ? '3px solid #0a0a0a' : '3px solid transparent';
+      });
+    };
+
+    document.getElementById('nomeDestaque').addEventListener('input', function() {
+      document.getElementById('previewDestaque').textContent = (document.getElementById('emojiDestaque').value + ' ' + this.value.toUpperCase()).trim() || 'PRÉVIA';
+    });
+    document.getElementById('emojiDestaque').addEventListener('input', function() {
+      document.getElementById('previewDestaque').textContent = (this.value + ' ' + document.getElementById('nomeDestaque').value.toUpperCase()).trim() || 'PRÉVIA';
+    });
+
+    protegerPagina([CARGOS.ADMIN], async (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      await inicializarDestaquesFixos();
+      carregarTags();
+      carregarDestaques();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair(); window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>

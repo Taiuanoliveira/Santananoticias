@@ -81,6 +81,18 @@ service cloud.firestore {
       allow delete: if ehAdmin() || (estaLogado() && resource.data.autorUid == request.auth.uid);
     }
 
+    // --- COLEÇÃO: tags ---
+    match /tags/{tagId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
+    // --- COLEÇÃO: destaques ---
+    match /destaques/{destId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
     // --- COLEÇÃO: edicoes (editorial) ---
     match /edicoes/{edicaoId} {
       allow read: if true;
