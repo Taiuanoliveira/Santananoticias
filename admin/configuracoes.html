@@ -219,6 +219,19 @@ Produção agrícola do município bate recorde histórico"></textarea>
         <p style="font-size:12px;color:#888;margin-top:4px;">Notícias marcadas como gratuitas nunca são bloqueadas. Assinantes nunca veem o bloqueio.</p>
         <button class="btn-primario" style="margin-top:16px;" onclick="salvarPaywall()">Salvar configurações do paywall</button>
       </section>
+
+      <section class="admin-bloco" style="margin-top:20px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">🔒 Paywall</h2>
+        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;"></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <input type="checkbox" id="paywallAtivo" style="width:auto;transform:scale(1.4);">
+          <label for="paywallAtivo" style="font-size:14px;font-weight:600;">Ativar paywall</label>
+        </div>
+        <label>Parágrafos visíveis antes de bloquear</label>
+        <input type="number" id="paywallParagrafos" value="4" min="1" max="20" style="width:100px;">
+        <p style="font-size:12px;color:#888;margin-top:4px;">Notícias marcadas como gratuitas nunca são bloqueadas. Assinantes nunca veem o bloqueio.</p>
+        <button class="btn-primario" style="margin-top:16px;" onclick="salvarPaywall()">Salvar configurações do paywall</button>
+      </section>
     </main>
   </div>
 
@@ -521,6 +534,32 @@ Produção agrícola do município bate recorde histórico"></textarea>
     });
 
     // PAYWALL
+    async function carregarPaywall() {
+      try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));
+        if (snap.exists()) {
+          const d = snap.data();
+          document.getElementById('paywallAtivo').checked = d.ativo || false;
+          document.getElementById('paywallParagrafos').value = d.paragrafos || 4;
+        }
+      } catch(e) {}
+    }
+
+    window.salvarPaywall = async function() {
+      try {
+        await setDoc(doc(db, 'configuracoes', 'paywall'), {
+          ativo: document.getElementById('paywallAtivo').checked,
+          paragrafos: parseInt(document.getElementById('paywallParagrafos').value) || 4
+        });
+        const msg = document.getElementById('msgPaywall');
+        msg.textContent = 'Paywall salvo!';
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+      } catch(e) { alert('Erro: ' + e.message); }
+    };
+
+    carregarPaywall();
+
     async function carregarPaywall() {
       try {
         const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));

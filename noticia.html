@@ -143,6 +143,37 @@
     .paywall-box .btn-assinar { background: #00cc66; color: #0a0a0a; font-weight: 700; padding: 12px 28px; border: none; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-block; }
     .paywall-box .btn-login { font-size: 13px; color: #888; display: block; margin-top: 12px; text-decoration: underline; }
   </style>
+
+  <style>
+    .paywall-overlay {
+      position: relative;
+      overflow: hidden;
+    }
+    .paywall-overlay::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 200px;
+      background: linear-gradient(to bottom, transparent, #fff);
+      pointer-events: none;
+    }
+    body.tema-escuro .paywall-overlay::after {
+      background: linear-gradient(to bottom, transparent, #111);
+    }
+    .paywall-box {
+      text-align: center;
+      padding: 40px 24px;
+      border: 1.5px solid #eee;
+      margin: 0 auto 40px;
+      max-width: 560px;
+      background: #fff;
+    }
+    body.tema-escuro .paywall-box { background: #1a1a1a; border-color: #333; }
+    .paywall-box h3 { font-family: "Playfair Display", serif; font-size: 22px; margin-bottom: 10px; }
+    .paywall-box p { font-size: 14px; color: #666; margin-bottom: 20px; }
+    .paywall-box .btn-assinar { background: #00cc66; color: #0a0a0a; font-weight: 700; padding: 12px 28px; border: none; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .paywall-box .btn-login { font-size: 13px; color: #888; display: block; margin-top: 12px; text-decoration: underline; }
+  </style>
 </head>
 <body>
 
@@ -566,6 +597,39 @@
         }
 
         // Adiciona overlay e box de assinatura
+        conteudoEl.classList.add('paywall-overlay');
+        const box = document.createElement('div');
+        box.className = 'paywall-box';
+        box.innerHTML = \`
+          <h3>Continue lendo com Veritas+</h3>
+          <p>Acesse todo o conteúdo exclusivo por menos de R$ 1 por dia.</p>
+          <a href="planos.html" class="btn-assinar">Assinar agora</a>
+          <a href="login.html?redirect=\${encodeURIComponent(window.location.href)}" class="btn-login">Já sou assinante — fazer login</a>
+        \`;
+        conteudoEl.after(box);
+      } catch(e) {}
+    }
+
+    async function verificarPaywall(noticia) {
+      try {
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { db, auth } = await import("./js/firebase-config.js");
+        const cfgSnap = await getDoc(doc(db, 'configuracoes', 'paywall'));
+        const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+        if (!cfg.ativo || noticia.gratuito) return;
+        const paragrafosVisiveis = cfg.paragrafos || 4;
+        const user = auth.currentUser;
+        if (user) {
+          const userSnap = await getDoc(doc(db, 'usuarios', user.uid));
+          if (userSnap.exists() && userSnap.data().plano && userSnap.data().plano !== 'gratuito') return;
+        }
+        const conteudoEl = document.getElementById('conteudoNoticia');
+        if (!conteudoEl) return;
+        const paragrafos = conteudoEl.querySelectorAll('p');
+        if (paragrafos.length <= paragrafosVisiveis) return;
+        for (let i = paragrafosVisiveis; i < paragrafos.length; i++) {
+          paragrafos[i].style.display = 'none';
+        }
         conteudoEl.classList.add('paywall-overlay');
         const box = document.createElement('div');
         box.className = 'paywall-box';
