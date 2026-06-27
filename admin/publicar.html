@@ -133,7 +133,22 @@
       try {
         const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
         if (snap.empty) {
-          container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma categoria cadastrada.</p>';
+          // Fallback: categorias fixas se nao tiver no Firestore
+          const fixas = [
+            {nome:'Política',slug:'politica'},{nome:'Economia',slug:'economia'},
+            {nome:'Regional',slug:'regional'},{nome:'Agro',slug:'agro'},
+            {nome:'Esportes',slug:'esportes'},{nome:'Cultura',slug:'cultura'},
+            {nome:'Saúde',slug:'saude'},{nome:'Tecnologia',slug:'tecnologia'},
+            {nome:'Opinião',slug:'opiniao'},{nome:'Editorial',slug:'editorial'}
+          ];
+          container.innerHTML = fixas.map(cat => {
+            const marcado = Array.isArray(categoriasAtuais) ? categoriasAtuais.includes(cat.slug) : categoriasAtuais === cat.slug;
+            return \`<label style="display:inline-flex;align-items:center;gap:6px;background:#f4f4f4;padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer;border:1.5px solid #eee;">
+              <input type="checkbox" value="\${cat.slug}" \${marcado?'checked':''} style="width:auto;" onchange="atualizarCategoriaPrincipal()">
+              \${cat.nome}
+            </label>\`;
+          }).join('');
+          atualizarCategoriaPrincipal();
           return;
         }
         container.innerHTML = '';
