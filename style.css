@@ -978,7 +978,8 @@ img { max-width: 100%; display: block; }
   .logo-tagline { font-size: 11px; }
 
   /* Menu mobile - empilha itens */
-  .main-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .main-nav { overflow-x: hidden; flex-wrap: wrap; }
+  .main-nav li { flex-shrink: 0; }
   .main-nav ul { gap: 0; white-space: nowrap; padding: 0 8px; }
   .main-nav li a { padding: 10px 10px; font-size: 11px; }
 
@@ -1086,6 +1087,7 @@ body.tema-escuro .equipe-avatar { border-color: #2a2a2a; }
 
 /* === BOTÃO ALTERNAR TEMA === */
 .btn-tema {
+  white-space: nowrap;
   position: fixed;
   bottom: 24px;
   right: 24px;
