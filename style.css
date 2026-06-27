@@ -1108,3 +1108,12 @@ body.tema-escuro .equipe-avatar { border-color: #2a2a2a; }
 }
 
 .btn-tema:hover { background: #009944; color: #fff; }
+
+body.fonte-grande{font-size:18px;}
+body.fonte-grande .news-card h3{font-size:17px;}
+body.fonte-grande p{font-size:16px;}
+body.fonte-maior{font-size:21px;}
+body.fonte-maior .news-card h3{font-size:20px;}
+body.fonte-maior p{font-size:18px;}
+.btn-fonte-site{background:none;border:1.5px solid #ddd;font-weight:700;font-size:13px;padding:4px 10px;cursor:pointer;font-family:serif;color:#0a0a0a;letter-spacing:1px;}
+body.tema-escuro .btn-fonte-site{border-color:#444;color:#fff;}

@@ -70,3 +70,16 @@ function alternarTema() {
     if (btn) btn.textContent = '☀️ Tema Claro';
   }
 })();
+
+(function() {
+  let idx = parseInt(localStorage.getItem('fonteIdx') || '0');
+  function aplicarFonte() {
+    document.body.classList.remove('fonte-grande','fonte-maior');
+    if (idx===1) document.body.classList.add('fonte-grande');
+    if (idx===2) document.body.classList.add('fonte-maior');
+    const btn=document.getElementById('btnFonteSite');
+    if(btn) btn.textContent=idx===0?'Tt':idx===1?'TT':'TT+';
+  }
+  window.alternarFonteSite=function(){idx=(idx+1)%3;localStorage.setItem('fonteIdx',idx);aplicarFonte();};
+  document.addEventListener('DOMContentLoaded',aplicarFonte);
+})();
