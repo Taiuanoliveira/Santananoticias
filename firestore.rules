@@ -4,7 +4,9 @@ service cloud.firestore {
 
     // --- Função auxiliar: pega o cargo do usuário logado ---
     function cargoDoUsuario() {
-      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo;
+      return estaLogado()
+        ? get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo
+        : null;
     }
 
     function estaLogado() {
