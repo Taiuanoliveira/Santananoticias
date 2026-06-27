@@ -1117,3 +1117,20 @@ body.fonte-maior .news-card h3{font-size:20px;}
 body.fonte-maior p{font-size:18px;}
 .btn-fonte-site{background:none;border:1.5px solid #ddd;font-weight:700;font-size:13px;padding:4px 10px;cursor:pointer;font-family:serif;color:#0a0a0a;letter-spacing:1px;}
 body.tema-escuro .btn-fonte-site{border-color:#444;color:#fff;}
+/* Icone de busca para mobile (so aparece quando a caixa de busca grande esta escondida) */
+.btn-busca-mobile {
+  display: none;
+  font-size: 22px;
+  text-decoration: none;
+  color: var(--preto, #0a0a0a);
+  padding: 8px 10px;
+  margin-left: auto;
+}
+@media (max-width: 768px) {
+  .btn-busca-mobile {
+    display: inline-block;
+  }
+}
+body.tema-escuro .btn-busca-mobile {
+  color: #e0e0e0;
+}
