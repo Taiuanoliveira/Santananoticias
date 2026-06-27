@@ -21,7 +21,6 @@
   </style>
 </head>
 <body class="admin-body">
-
   <div class="admin-layout">
     <aside class="admin-sidebar">
       <div class="admin-logo">Veritas Notícias</div>
@@ -29,17 +28,14 @@
       <nav class="admin-nav" id="menuAdmin"></nav>
       <button id="btnSair" class="admin-btn-sair">Sair</button>
     </aside>
-
     <main class="admin-main">
       <header class="admin-topbar">
         <h1 id="tituloPagina">Nova Notícia</h1>
         <a href="../index.html" class="admin-link-site">Ver site →</a>
       </header>
-
       <section class="admin-bloco">
         <div id="mensagemErro" class="auth-msg erro" style="display:none;"></div>
         <div id="mensagemSucesso" class="auth-msg sucesso" style="display:none;"></div>
-
         <form id="formNoticia" class="form-noticia">
           <label for="titulo">Título</label>
           <input type="text" id="titulo" required placeholder="Título da notícia">
@@ -49,6 +45,16 @@
             <p style="font-size:13px;color:#777;">Carregando categorias...</p>
           </div>
           <input type="hidden" id="categoria" required>
+
+          <label for="destaque">Destaque</label>
+          <select id="destaque">
+            <option value="">Nenhum</option>
+          </select>
+
+          <label>Tags</label>
+          <div id="containerTags" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+            <p style="font-size:13px;color:#777;">Carregando tags...</p>
+          </div>
 
           <label for="resumo">Resumo (aparece nos cards)</label>
           <textarea id="resumo" rows="2" placeholder="Resumo curto da notícia"></textarea>
@@ -61,9 +67,11 @@
           <select id="edicao">
             <option value="">Nenhuma (notícia avulsa)</option>
           </select>
-          <p style="font-size:12px;color:#888;margin-top:-4px;">Só aparecem edições ainda não publicadas. A ordem das matérias dentro da edição é definida pelo administrador na tela de Edições.</p>
 
-          <div id="containerGratuito" style="display:none;">
+          <div id="edicaoOpcoes" style="display:none;margin-top:12px;">
+            <label for="ordemEdicao">Ordem na edição</label>
+            <input type="number" id="ordemEdicao" value="1" min="1" style="width:80px;padding:6px;border:1px solid #ddd;">
+            <p style="font-size:11px;color:#888;margin-top:4px;">Posição do artigo dentro da edição (1 = primeiro)</p>
             <label style="display:flex;align-items:center;gap:8px;margin-top:14px;">
               <input type="checkbox" id="gratuito" style="width:auto;">
               Artigo gratuito (mesmo fazendo parte da edição paga)
@@ -74,9 +82,7 @@
           <input type="file" id="imagem" accept="image/*">
           <img id="previewImagem" class="preview-imagem" style="display:none;">
 
-          <div class="form-acoes" id="formAcoes">
-            <!-- Botões inseridos via JS conforme o cargo -->
-          </div>
+          <div class="form-acoes" id="formAcoes"></div>
         </form>
       </section>
     </main>
@@ -88,379 +94,9 @@
     import { criarNoticia, atualizarNoticia, obterNoticia, enviarImagem, STATUS } from "../js/noticias.js";
     import { db } from "../js/firebase-config.js";
     import { enviarImagemCloudinary } from "../js/cloudinary.js";
+    import { collection, getDocs, orderBy, query, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    import { collection, getDocs, orderBy, query, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    async function carregarDestaquesSelect(destAtual) {
-      const select = document.getElementById('destaque');
-      try {
-        const snap = await getDocs(query(collection(db, 'destaques'), orderBy('nome')));
-        const fixos = snap.empty ? [
-          {nome:'URGENTE',emoji:'⚡'},{nome:'AO VIVO',emoji:'🔴'},
-          {nome:'EXCLUSIVO',emoji:'🌟'},{nome:'ESPECIAL',emoji:'📌'},
-          {nome:'EM ALTA',emoji:'🔥'},{nome:'OPINIÃO',emoji:'💬'},
-          {nome:'EDITORIAL',emoji:'📰'}
-        ] : snap.docs.map(d => d.data());
-        fixos.forEach(dest => {
-          const opt = document.createElement('option');
-          opt.value = dest.nome;
-          opt.textContent = (dest.emoji || '') + ' ' + dest.nome;
-          if (destAtual === dest.nome) opt.selected = true;
-          select.appendChild(opt);
-        });
-      } catch (e) {}
-    }
-
-    async function carregarTagsCheckboxes(tagsAtuais) {
-      const container = document.getElementById('containerTags');
-      try {
-        const snap = await getDocs(query(collection(db, 'tags'), orderBy('nome')));
-        if (snap.empty) { container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma tag ainda. <a href="tags-admin.html" style="color:#00cc66;font-weight:700;">Criar tags →</a></p>'; return; }
-        container.innerHTML = '';
-        snap.forEach(d => {
-          const tag = d.data();
-          const marcado = Array.isArray(tagsAtuais) && tagsAtuais.includes(tag.slug);
-          const label = document.createElement('label');
-          label.style.cssText = 'display:flex;align-items:center;gap:5px;background:#f4f4f4;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:13px;border:1.5px solid #eee;transition:all .2s;';
-          label.innerHTML = `<input type="checkbox" value="${tag.slug}" style="width:auto;" ${marcado ? 'checked' : ''}> #${tag.nome}`;
-          label.querySelector('input').addEventListener('change', () => {
-            label.style.borderColor = label.querySelector('input').checked ? '#00cc66' : '#eee';
-            label.style.background = label.querySelector('input').checked ? '#f0fff8' : '#f4f4f4';
-          });
-          if (marcado) { label.style.borderColor = '#00cc66'; label.style.background = '#f0fff8'; }
-          container.appendChild(label);
-        });
-      } catch (e) { container.innerHTML = ''; }
-    }
-
-    async function carregarCategoriasCheckboxes(categoriasAtuais) {
-      const container = document.getElementById('containerCategorias');
-      try {
-        const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
-        if (snap.empty) {
-          // Fallback: categorias fixas se nao tiver no Firestore
-          const fixas = [
-            {nome:'Política',slug:'politica'},{nome:'Economia',slug:'economia'},
-            {nome:'Regional',slug:'regional'},{nome:'Agro',slug:'agro'},
-            {nome:'Esportes',slug:'esportes'},{nome:'Cultura',slug:'cultura'},
-            {nome:'Saúde',slug:'saude'},{nome:'Tecnologia',slug:'tecnologia'},
-            {nome:'Opinião',slug:'opiniao'},{nome:'Editorial',slug:'editorial'}
-          ];
-          container.innerHTML = fixas.map(cat => {
-            const marcado = Array.isArray(categoriasAtuais) ? categoriasAtuais.includes(cat.slug) : categoriasAtuais === cat.slug;
-            return \`<label style="display:inline-flex;align-items:center;gap:6px;background:#f4f4f4;padding:6px 12px;border-radius:20px;font-size:13px;cursor:pointer;border:1.5px solid #eee;">
-              <input type="checkbox" value="\${cat.slug}" \${marcado?'checked':''} style="width:auto;" onchange="atualizarCategoriaPrincipal()">
-              \${cat.nome}
-            </label>\`;
-          }).join('');
-          atualizarCategoriaPrincipal();
-          return;
-        }
-        container.innerHTML = '';
-        snap.forEach(d => {
-          const cat = d.data();
-          const slug = cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'-');
-          const marcado = Array.isArray(categoriasAtuais) ? categoriasAtuais.includes(slug) : categoriasAtuais === slug;
-          const label = document.createElement('label');
-          label.style.cssText = 'display:flex;align-items:center;gap:6px;background:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;border:1.5px solid #eee;transition:all .2s;';
-          label.innerHTML = `<input type="checkbox" value="${slug}" style="width:auto;" ${marcado ? 'checked' : ''}> ${cat.emoji || ''} ${cat.nome}`;
-          label.querySelector('input').addEventListener('change', () => {
-            label.style.borderColor = label.querySelector('input').checked ? '#00cc66' : '#eee';
-            label.style.background = label.querySelector('input').checked ? '#f0fff8' : '#fff';
-            atualizarCategoriaHidden();
-          });
-          if (marcado) {
-            label.style.borderColor = '#00cc66';
-            label.style.background = '#f0fff8';
-          }
-          container.appendChild(label);
-        });
-        atualizarCategoriaHidden();
-      } catch (e) { container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar categorias.</p>'; }
-    }
-
-    function atualizarCategoriaHidden() {
-      const selecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
-      document.getElementById('categoria').value = selecionadas[0] || '';
-    }
-
-    async function carregarEdicoesNoSelect() {
-      const select = document.getElementById('edicao');
-      try {
-        const q = query(collection(db, 'edicoes'), orderBy('criadoEm', 'desc'));
-        const snap = await getDocs(q);
-        snap.forEach(d => {
-          const ed = d.data();
-          if (ed.status === 'publicada') return;
-          const opt = document.createElement('option');
-          opt.value = ed.nome;
-          opt.textContent = ed.nome;
-          select.appendChild(opt);
-        });
-      } catch (e) { console.error('Erro ao carregar edicoes:', e); }
-    }
-    carregarEdicoesNoSelect();
-
-    function gerarSlug(nome) {
-      return nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
-    }
-
-    let usuarioAtual = null;
-    let cargoAtual = null;
-    let noticiaIdEdicao = null;
-    let imagemAtualUrl = null;
-
-    const params = new URLSearchParams(window.location.search);
-    const idParaEditar = params.get('id');
-
-    protegerPagina(
-      [CARGOS.ADMIN, CARGOS.EDITOR, CARGOS.COLUNISTA],
-      async (user, cargo) => {
-        usuarioAtual = user;
-        cargoAtual = cargo;
-        document.getElementById('nomeUsuario')?.textContent;
-        document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
-        montarMenu(cargo);
-        montarBotoesAcao(cargo);
-
-        if (idParaEditar) {
-          noticiaIdEdicao = idParaEditar;
-          document.getElementById('tituloPagina').textContent = 'Editar Notícia';
-          await carregarNoticia(idParaEditar);
-
-          // Mostra aviso de que esta editando uma noticia existente
-          const avisoEditar = document.createElement('div');
-          avisoEditar.style.cssText = 'background:#fff3cd;border-left:4px solid #f9a825;padding:12px 16px;font-size:13px;margin-bottom:16px;';
-          avisoEditar.innerHTML = '✏️ <strong>Modo edição</strong> — Você está editando uma notícia existente. As alterações serão salvas na mesma notícia.';
-          const bloco = document.querySelector('.admin-bloco');
-          if (bloco) bloco.insertBefore(avisoEditar, bloco.firstChild);
-        } else {
-          carregarCategoriasCheckboxes([]);
-        }
-      }
-    );
-
-    function formatarCargo(cargo) {
-      const nomes = { administrador: 'Administrador', editor: 'Editor', colunista: 'Colunista', revisor: 'Revisor' };
-      return nomes[cargo] || cargo;
-    }
-
-    function montarMenu(cargo) {
-      const menu = document.getElementById('menuAdmin');
-      const itens = [
-        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
-        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
-        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
-        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador','editor'] },
-        { href: 'tags-admin.html', label: '🔖 Tags e Destaques', cargos: ['administrador','editor'] },
-        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
-        { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador','editor'] },
-        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
-        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
-        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
-        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
-        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
-      ];
-      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
-    }
-
-    function montarBotoesAcao(cargo) {
-      const acoes = document.getElementById('formAcoes');
-      if (cargo === CARGOS.COLUNISTA) {
-        acoes.innerHTML = `
-          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-          <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>
-        `;
-      } else {
-        acoes.innerHTML = `
-          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-          <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>
-        `;
-      }
-
-      acoes.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao));
-      });
-
-      // Troca botao e comportamento quando seleciona edicao
-      document.getElementById('edicao').addEventListener('change', function() {
-        const temEdicao = this.value !== '';
-        const acoes = document.getElementById('formAcoes');
-        if (cargo === CARGOS.COLUNISTA) {
-          acoes.innerHTML = temEdicao
-            ? `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-               <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>`
-            : `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-               <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>`;
-        } else {
-          acoes.innerHTML = temEdicao
-            ? `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-               <button type="button" class="btn-auth" data-acao="indexar" style="background:#5c4a00;">Indexar na Edição</button>`
-            : `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
-               <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>`;
-        }
-        acoes.querySelectorAll('button').forEach(btn => {
-          btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao));
-        });
-      });
-    }
-
-    async function carregarNoticia(id) {
-      const noticia = await obterNoticia(id);
-      if (!noticia) return;
-      document.getElementById('titulo').value = noticia.titulo || '';
-      document.getElementById('categoria').value = noticia.categoria || '';
-      document.getElementById('resumo').value = noticia.resumo || '';
-      // Carrega o conteudo no Quill (aguarda o editor estar pronto)
-      setTimeout(() => {
-        if (quillEditor) {
-          quillEditor.root.innerHTML = noticia.conteudo || '';
-        }
-      }, 300);
-
-      const catsAtuais = noticia.categorias || (noticia.categoria ? [noticia.categoria] : []);
-      carregarCategoriasCheckboxes(catsAtuais);
-      carregarDestaquesSelect(noticia.destaque || '');
-      carregarTagsCheckboxes(noticia.tags || []);
-      if (noticia.imagemUrl) {
-        imagemAtualUrl = noticia.imagemUrl;
-        const preview = document.getElementById('previewImagem');
-        preview.src = noticia.imagemUrl;
-        preview.style.display = 'block';
-      }
-    }
-
-    document.getElementById('imagem').addEventListener('change', (e) => {
-      const arquivo = e.target.files[0];
-      if (!arquivo) return;
-      const preview = document.getElementById('previewImagem');
-      preview.src = URL.createObjectURL(arquivo);
-      preview.style.display = 'block';
-    });
-
-    function mostrarErro(texto) {
-      const el = document.getElementById('mensagemErro');
-      document.getElementById('mensagemSucesso').style.display = 'none';
-      el.textContent = texto;
-      el.style.display = 'block';
-    }
-
-    function mostrarSucesso(texto) {
-      const el = document.getElementById('mensagemSucesso');
-      document.getElementById('mensagemErro').style.display = 'none';
-      el.textContent = texto;
-      el.style.display = 'block';
-    }
-
-    async function salvarNoticia(acao) {
-      const titulo = document.getElementById('titulo').value.trim();
-      const resumo = document.getElementById('resumo').value.trim();
-      // Pega o HTML do editor Quill
-      const conteudoHtml = quillEditor.root.innerHTML;
-      const conteudoTexto = quillEditor.getText().trim();
-      document.getElementById('conteudo').value = conteudoHtml;
-      const conteudo = conteudoHtml;
-
-      // Pega todas as categorias marcadas — a primeira marcada é a principal
-      const categoriasSelecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
-      if (categoriasSelecionadas.length === 0) {
-        mostrarErro('Selecione pelo menos uma categoria.');
-        return;
-      }
-      const categoria = categoriasSelecionadas[0];
-      const destaque = document.getElementById('destaque')?.value || '';
-      const tagsSelecionadas = Array.from(document.querySelectorAll('#containerTags input:checked')).map(i => i.value);
-      document.getElementById('categoria').value = categoria;
-      const edicao = document.getElementById('edicao').value;
-
-      // Se a edicao for gratuita, todos os artigos ficam gratuitos automaticamente
-      let gratuito = edicao ? document.getElementById('gratuito').checked : true;
-      if (edicao) {
-        try {
-          const snapEdicoes = await getDocs(query(collection(db, 'edicoes'), where('nome', '==', edicao)));
-          snapEdicoes.forEach(d => { if (d.data().edicaoGratuita) gratuito = true; });
-        } catch (e) {}
-
-        // Calcula a proxima ordem disponivel na edicao
-        try {
-          const snapArtigos = await getDocs(query(collection(db, 'noticias'), where('edicao', '==', edicao)));
-          const ordens = [];
-          snapArtigos.forEach(d => { if (d.data().ordemEdicao) ordens.push(d.data().ordemEdicao); });
-          let ordemCalculada = ordens.length > 0 ? Math.max(...ordens) + 1 : 1;
-          const inputOrdem = document.getElementById('ordemEdicao');
-          if (inputOrdem) inputOrdem.value = ordemCalculada;
-        } catch (e) {}
-      }
-      let ordemEdicao = parseInt(document.getElementById('ordemEdicao')?.value) || 1;
-      const arquivoImagem = document.getElementById('imagem').files[0];
-
-      if (!titulo || !categoria || !conteudo) {
-        mostrarErro('Preencha ao menos título, categoria e conteúdo.');
-        return;
-      }
-
-      let status = STATUS.RASCUNHO;
-      if (acao === 'enviar_revisao') status = STATUS.EM_REVISAO;
-      if (acao === 'publicar') status = STATUS.PUBLICADO;
-      if (acao === 'indexar') status = 'indexado'; // aparece na edicao mas nao no feed avulso
-
-      try {
-        let idNoticia = noticiaIdEdicao;
-
-        let cargoEditorialAutor = '';
-        try {
-          const snapUsuario = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
-          if (snapUsuario.exists()) {
-            cargoEditorialAutor = snapUsuario.data().cargoEditorial || '';
-          }
-        } catch (e) {
-          console.error('Não foi possível obter o cargo editorial do autor:', e);
-        }
-
-        if (!idNoticia) {
-          idNoticia = await criarNoticia(
-            { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao, cargoEditorialAutor },
-            usuarioAtual.uid,
-            usuarioAtual.displayName || usuarioAtual.email
-          );
-        }
-
-        let imagemUrl = imagemAtualUrl;
-        if (arquivoImagem) {
-          imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
-        }
-
-        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, cargoEditorialAutor });
-
-        if (status === STATUS.PUBLICADO) {
-          fetch('/api/notificar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ noticiaId: idNoticia })
-          }).catch(e => console.error('Não foi possível enviar a notificação push:', e));
-        }
-
-        noticiaIdEdicao = idNoticia;
-        document.getElementById('tituloPagina').textContent = 'Editar Notícia';
-
-        // Atualiza a URL para incluir o ID, evitando duplicar ao salvar novamente
-        const urlAtual = new URL(window.location.href);
-          urlAtual.searchParams.set('id', idNoticia);
-          window.history.replaceState({}, '', urlAtual.toString());
-        }
-
-        mostrarSucesso('Notícia salva com sucesso!');
-        setTimeout(() => window.location.href = 'gerenciar-noticias.html', 1500);
-      } catch (err) {
-        mostrarErro('Erro ao salvar a notícia. Verifique sua permissão e tente novamente.');
-        console.error(err);
-      }
-    }
-
-    // Inicializa editor Quill — permite negrito, itálico, listas, link, citação,
-    // subtítulos (H2/H3) e imagens inseridas no meio do texto (separado da imagem de capa).
-    // Aguarda DOM completo antes de inicializar Quill
-    await new Promise(r => setTimeout(r, 100));
+    // Inicializa Quill imediatamente — sem await no topo do modulo
     const quillEditor = new Quill('#editorQuill', {
       theme: 'snow',
       placeholder: 'Escreva o texto completo da notícia...',
@@ -500,9 +136,280 @@
       }
     });
 
+    async function carregarDestaquesSelect(destAtual) {
+      const select = document.getElementById('destaque');
+      try {
+        const snap = await getDocs(query(collection(db, 'destaques'), orderBy('nome')));
+        const fixos = snap.empty ? [
+          {nome:'URGENTE',emoji:'⚡'},{nome:'AO VIVO',emoji:'🔴'},
+          {nome:'EXCLUSIVO',emoji:'🌟'},{nome:'ESPECIAL',emoji:'📌'},
+          {nome:'EM ALTA',emoji:'🔥'},{nome:'OPINIÃO',emoji:'💬'},
+          {nome:'EDITORIAL',emoji:'📰'}
+        ] : snap.docs.map(d => d.data());
+        fixos.forEach(dest => {
+          const opt = document.createElement('option');
+          opt.value = dest.nome;
+          opt.textContent = (dest.emoji || '') + ' ' + dest.nome;
+          if (destAtual === dest.nome) opt.selected = true;
+          select.appendChild(opt);
+        });
+      } catch (e) {}
+    }
+
+    async function carregarTagsCheckboxes(tagsAtuais) {
+      const container = document.getElementById('containerTags');
+      try {
+        const snap = await getDocs(query(collection(db, 'tags'), orderBy('nome')));
+        if (snap.empty) {
+          container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma tag ainda. <a href="tags-admin.html" style="color:#00cc66;font-weight:700;">Criar tags →</a></p>';
+          return;
+        }
+        container.innerHTML = '';
+        snap.forEach(d => {
+          const tag = d.data();
+          const marcado = Array.isArray(tagsAtuais) && tagsAtuais.includes(tag.slug);
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:5px;background:#f4f4f4;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:13px;border:1.5px solid #eee;';
+          label.innerHTML = `<input type="checkbox" value="${tag.slug}" style="width:auto;" ${marcado ? 'checked' : ''}> #${tag.nome}`;
+          container.appendChild(label);
+        });
+      } catch (e) { container.innerHTML = ''; }
+    }
+
+    async function carregarCategoriasCheckboxes(categoriasAtuais) {
+      const container = document.getElementById('containerCategorias');
+      try {
+        const snap = await getDocs(query(collection(db, 'categorias'), orderBy('ordem')));
+        const lista = snap.empty ? [
+          {nome:'Política',slug:'politica'},{nome:'Economia',slug:'economia'},
+          {nome:'Regional',slug:'regional'},{nome:'Agro',slug:'agro'},
+          {nome:'Esportes',slug:'esportes'},{nome:'Cultura',slug:'cultura'},
+          {nome:'Saúde',slug:'saude'},{nome:'Tecnologia',slug:'tecnologia'},
+          {nome:'Opinião',slug:'opiniao'},{nome:'Editorial',slug:'editorial'}
+        ] : snap.docs.map(d => {
+          const cat = d.data();
+          return { nome: cat.nome, slug: cat.slug || cat.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-'), emoji: cat.emoji || '' };
+        });
+
+        container.innerHTML = '';
+        lista.forEach(cat => {
+          const marcado = Array.isArray(categoriasAtuais) ? categoriasAtuais.includes(cat.slug) : categoriasAtuais === cat.slug;
+          const label = document.createElement('label');
+          label.style.cssText = 'display:flex;align-items:center;gap:6px;background:#fff;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;border:1.5px solid #eee;';
+          label.innerHTML = `<input type="checkbox" value="${cat.slug}" style="width:auto;" ${marcado ? 'checked' : ''}> ${cat.emoji} ${cat.nome}`;
+          label.querySelector('input').addEventListener('change', () => {
+            label.style.borderColor = label.querySelector('input').checked ? '#00cc66' : '#eee';
+            label.style.background = label.querySelector('input').checked ? '#f0fff8' : '#fff';
+            atualizarCategoriaHidden();
+          });
+          if (marcado) { label.style.borderColor = '#00cc66'; label.style.background = '#f0fff8'; }
+          container.appendChild(label);
+        });
+        atualizarCategoriaHidden();
+      } catch (e) {
+        container.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar categorias.</p>';
+      }
+    }
+
+    function atualizarCategoriaHidden() {
+      const selecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
+      document.getElementById('categoria').value = selecionadas[0] || '';
+    }
+
+    async function carregarEdicoesNoSelect() {
+      const select = document.getElementById('edicao');
+      try {
+        const snap = await getDocs(query(collection(db, 'edicoes'), orderBy('criadoEm', 'desc')));
+        snap.forEach(d => {
+          const ed = d.data();
+          if (ed.status === 'publicada') return;
+          const opt = document.createElement('option');
+          opt.value = ed.nome;
+          opt.textContent = ed.nome;
+          select.appendChild(opt);
+        });
+      } catch (e) {}
+    }
+
+    let usuarioAtual = null;
+    let cargoAtual = null;
+    let noticiaIdEdicao = null;
+    let imagemAtualUrl = null;
+
+    const params = new URLSearchParams(window.location.search);
+    const idParaEditar = params.get('id');
+
+    protegerPagina([CARGOS.ADMIN, CARGOS.EDITOR, CARGOS.COLUNISTA], async (user, cargo) => {
+      usuarioAtual = user;
+      cargoAtual = cargo;
+      document.getElementById('cargoAtual').textContent = formatarCargo(cargo);
+      montarMenu(cargo);
+      montarBotoesAcao(cargo);
+      await carregarEdicoesNoSelect();
+      await carregarDestaquesSelect('');
+      await carregarTagsCheckboxes([]);
+
+      if (idParaEditar) {
+        noticiaIdEdicao = idParaEditar;
+        document.getElementById('tituloPagina').textContent = 'Editar Notícia';
+        await carregarNoticia(idParaEditar);
+      } else {
+        await carregarCategoriasCheckboxes([]);
+      }
+    });
+
+    function formatarCargo(cargo) {
+      const nomes = { administrador: 'Administrador', editor: 'Editor', colunista: 'Colunista', revisor: 'Revisor' };
+      return nomes[cargo] || cargo;
+    }
+
+    function montarMenu(cargo) {
+      const menu = document.getElementById('menuAdmin');
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador','editor'] },
+        { href: 'tags-admin.html', label: '🔖 Tags e Destaques', cargos: ['administrador','editor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador','editor'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      menu.innerHTML = itens.filter(i => i.cargos.includes(cargo)).map(i => `<a href="${i.href}">${i.label}</a>`).join('');
+    }
+
+    function montarBotoesAcao(cargo) {
+      const acoes = document.getElementById('formAcoes');
+      if (cargo === CARGOS.COLUNISTA) {
+        acoes.innerHTML = `
+          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+          <button type="button" class="btn-auth" data-acao="enviar_revisao">Enviar para revisão</button>`;
+      } else {
+        acoes.innerHTML = `
+          <button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+          <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>`;
+      }
+      acoes.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao)));
+
+      document.getElementById('edicao').addEventListener('change', function() {
+        const temEdicao = this.value !== '';
+        document.getElementById('edicaoOpcoes').style.display = temEdicao ? 'block' : 'none';
+        if (cargo !== CARGOS.COLUNISTA) {
+          acoes.innerHTML = temEdicao
+            ? `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="indexar" style="background:#5c4a00;">Indexar na Edição</button>`
+            : `<button type="button" class="btn-auth btn-secundario" data-acao="rascunho">Salvar rascunho</button>
+               <button type="button" class="btn-auth" data-acao="publicar">Publicar</button>`;
+          acoes.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => salvarNoticia(btn.dataset.acao)));
+        }
+      });
+    }
+
+    async function carregarNoticia(id) {
+      const noticia = await obterNoticia(id);
+      if (!noticia) return;
+      document.getElementById('titulo').value = noticia.titulo || '';
+      document.getElementById('categoria').value = noticia.categoria || '';
+      document.getElementById('resumo').value = noticia.resumo || '';
+      setTimeout(() => { quillEditor.root.innerHTML = noticia.conteudo || ''; }, 200);
+      const catsAtuais = noticia.categorias || (noticia.categoria ? [noticia.categoria] : []);
+      await carregarCategoriasCheckboxes(catsAtuais);
+      await carregarDestaquesSelect(noticia.destaque || '');
+      await carregarTagsCheckboxes(noticia.tags || []);
+      if (noticia.imagemUrl) {
+        imagemAtualUrl = noticia.imagemUrl;
+        const preview = document.getElementById('previewImagem');
+        preview.src = noticia.imagemUrl;
+        preview.style.display = 'block';
+      }
+    }
+
+    document.getElementById('imagem').addEventListener('change', (e) => {
+      const arquivo = e.target.files[0];
+      if (!arquivo) return;
+      const preview = document.getElementById('previewImagem');
+      preview.src = URL.createObjectURL(arquivo);
+      preview.style.display = 'block';
+    });
+
+    function mostrarErro(texto) {
+      const el = document.getElementById('mensagemErro');
+      document.getElementById('mensagemSucesso').style.display = 'none';
+      el.textContent = texto; el.style.display = 'block';
+    }
+
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('mensagemSucesso');
+      document.getElementById('mensagemErro').style.display = 'none';
+      el.textContent = texto; el.style.display = 'block';
+    }
+
+    async function salvarNoticia(acao) {
+      const titulo = document.getElementById('titulo').value.trim();
+      const resumo = document.getElementById('resumo').value.trim();
+      const conteudoHtml = quillEditor.root.innerHTML;
+      const conteudo = conteudoHtml;
+      const categoriasSelecionadas = Array.from(document.querySelectorAll('#containerCategorias input:checked')).map(i => i.value);
+      if (categoriasSelecionadas.length === 0) { mostrarErro('Selecione pelo menos uma categoria.'); return; }
+      const categoria = categoriasSelecionadas[0];
+      const destaque = document.getElementById('destaque')?.value || '';
+      const tagsSelecionadas = Array.from(document.querySelectorAll('#containerTags input:checked')).map(i => i.value);
+      document.getElementById('categoria').value = categoria;
+      const edicao = document.getElementById('edicao').value;
+      let gratuito = edicao ? document.getElementById('gratuito').checked : true;
+      let ordemEdicao = parseInt(document.getElementById('ordemEdicao')?.value) || 1;
+      const arquivoImagem = document.getElementById('imagem').files[0];
+
+      if (!titulo || !categoria || !conteudo) { mostrarErro('Preencha ao menos título, categoria e conteúdo.'); return; }
+
+      let status = STATUS.RASCUNHO;
+      if (acao === 'enviar_revisao') status = STATUS.EM_REVISAO;
+      if (acao === 'publicar') status = STATUS.PUBLICADO;
+      if (acao === 'indexar') status = 'indexado';
+
+      try {
+        let idNoticia = noticiaIdEdicao;
+        let cargoEditorialAutor = '';
+        try {
+          const snapUsuario = await getDoc(doc(db, 'usuarios', usuarioAtual.uid));
+          if (snapUsuario.exists()) cargoEditorialAutor = snapUsuario.data().cargoEditorial || '';
+        } catch (e) {}
+
+        if (!idNoticia) {
+          idNoticia = await criarNoticia(
+            { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao, cargoEditorialAutor },
+            usuarioAtual.uid, usuarioAtual.displayName || usuarioAtual.email
+          );
+        }
+
+        let imagemUrl = imagemAtualUrl;
+        if (arquivoImagem) imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
+
+        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, cargoEditorialAutor });
+
+        if (status === STATUS.PUBLICADO) {
+          fetch('/api/notificar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ noticiaId: idNoticia }) }).catch(() => {});
+        }
+
+        noticiaIdEdicao = idNoticia;
+        document.getElementById('tituloPagina').textContent = 'Editar Notícia';
+        const urlAtual = new URL(window.location.href);
+        urlAtual.searchParams.set('id', idNoticia);
+        window.history.replaceState({}, '', urlAtual.toString());
+        mostrarSucesso('Notícia salva com sucesso!');
+        setTimeout(() => window.location.href = 'gerenciar-noticias.html', 1500);
+      } catch (err) {
+        mostrarErro('Erro ao salvar a notícia. Verifique sua permissão e tente novamente.');
+        console.error(err);
+      }
+    }
+
     document.getElementById('btnSair').addEventListener('click', async () => {
-      await sair();
-      window.location.href = '../login.html';
+      await sair(); window.location.href = '../login.html';
     });
   </script>
 </body>
