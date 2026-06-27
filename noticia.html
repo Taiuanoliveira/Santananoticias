@@ -331,6 +331,7 @@
         window.speechSynthesis.speak(fala);
       };
 
+      verificarPaywall(noticia);
       carregarBotoes(id);
       carregarComentarios(id);
       carregarUltimas(id);
@@ -585,7 +586,7 @@
         }
 
         // Aplica paywall
-        const conteudoEl = document.getElementById('conteudoNoticia');
+        const conteudoEl = document.getElementById('corpoNoticia');
         if (!conteudoEl) return;
 
         const paragrafos = conteudoEl.querySelectorAll('p');
@@ -610,38 +611,6 @@
       } catch(e) {}
     }
 
-    async function verificarPaywall(noticia) {
-      try {
-        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        const { db, auth } = await import("./js/firebase-config.js");
-        const cfgSnap = await getDoc(doc(db, 'configuracoes', 'paywall'));
-        const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
-        if (!cfg.ativo || noticia.gratuito) return;
-        const paragrafosVisiveis = cfg.paragrafos || 4;
-        const user = auth.currentUser;
-        if (user) {
-          const userSnap = await getDoc(doc(db, 'usuarios', user.uid));
-          if (userSnap.exists() && userSnap.data().plano && userSnap.data().plano !== 'gratuito') return;
-        }
-        const conteudoEl = document.getElementById('conteudoNoticia');
-        if (!conteudoEl) return;
-        const paragrafos = conteudoEl.querySelectorAll('p');
-        if (paragrafos.length <= paragrafosVisiveis) return;
-        for (let i = paragrafosVisiveis; i < paragrafos.length; i++) {
-          paragrafos[i].style.display = 'none';
-        }
-        conteudoEl.classList.add('paywall-overlay');
-        const box = document.createElement('div');
-        box.className = 'paywall-box';
-        box.innerHTML = \`
-          <h3>Continue lendo com Veritas+</h3>
-          <p>Acesse todo o conteúdo exclusivo por menos de R$ 1 por dia.</p>
-          <a href="planos.html" class="btn-assinar">Assinar agora</a>
-          <a href="login.html?redirect=\${encodeURIComponent(window.location.href)}" class="btn-login">Já sou assinante — fazer login</a>
-        \`;
-        conteudoEl.after(box);
-      } catch(e) {}
-    }
-  </script>
+      </script>
 </body>
 </html>
