@@ -459,6 +459,8 @@
 
     // Inicializa editor Quill — permite negrito, itálico, listas, link, citação,
     // subtítulos (H2/H3) e imagens inseridas no meio do texto (separado da imagem de capa).
+    // Aguarda DOM completo antes de inicializar Quill
+    await new Promise(r => setTimeout(r, 100));
     const quillEditor = new Quill('#editorQuill', {
       theme: 'snow',
       placeholder: 'Escreva o texto completo da notícia...',
