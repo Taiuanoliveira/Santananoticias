@@ -601,12 +601,12 @@
         conteudoEl.classList.add('paywall-overlay');
         const box = document.createElement('div');
         box.className = 'paywall-box';
-        box.innerHTML = \`
+        box.innerHTML = `
           <h3>Continue lendo com Veritas+</h3>
           <p>Acesse todo o conteúdo exclusivo por menos de R$ 1 por dia.</p>
           <a href="planos.html" class="btn-assinar">Assinar agora</a>
-          <a href="login.html?redirect=\${encodeURIComponent(window.location.href)}" class="btn-login">Já sou assinante — fazer login</a>
-        \`;
+          <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn-login">Já sou assinante — fazer login</a>
+        `;
         conteudoEl.after(box);
       } catch(e) {}
     }
