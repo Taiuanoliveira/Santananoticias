@@ -10,76 +10,416 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Busca – Veritas Notícias</title>
+  <title>Busca Avancada - Veritas Noticias</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .busca-hero { background: #0a0a0a; color: #fff; padding: 40px 20px; text-align: center; }
+    .busca-hero h1 { font-family: "Playfair Display", serif; font-size: 32px; font-weight: 900; margin-bottom: 8px; }
+    .busca-hero p { color: #888; font-size: 14px; }
+    .busca-form-wrapper { max-width: 1100px; margin: -20px auto 0; padding: 0 20px; position: relative; z-index: 10; }
+    .busca-form { background: #fff; border: 1px solid #ddd; border-top: 4px solid #00cc66; padding: 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+    .busca-campo-principal { display: flex; gap: 0; margin-bottom: 20px; }
+    .busca-campo-principal input { flex: 1; border: 2px solid #ddd; border-right: none; padding: 14px 18px; font-size: 16px; font-family: Inter,sans-serif; outline: none; }
+    .busca-campo-principal input:focus { border-color: #00cc66; }
+    .busca-campo-principal button { background: #00cc66; color: #000; border: none; padding: 14px 28px; font-size: 15px; font-weight: 700; font-family: Inter,sans-serif; cursor: pointer; white-space: nowrap; }
+    .busca-campo-principal button:hover { background: #009944; color: #fff; }
+    .busca-filtros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .busca-filtros label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; display: block; margin-bottom: 5px; }
+    .busca-filtros select, .busca-filtros input[type=date], .busca-filtros input[type=text] { width: 100%; border: 1px solid #ddd; padding: 9px 12px; font-size: 13px; font-family: Inter,sans-serif; outline: none; background: #fff; }
+    .busca-filtros select:focus, .busca-filtros input:focus { border-color: #00cc66; }
+    .busca-filtros-datas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .busca-acoes { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-limpar { background: none; border: 1px solid #ddd; padding: 8px 20px; font-size: 12px; font-family: Inter,sans-serif; cursor: pointer; color: #555; }
+    .btn-limpar:hover { border-color: #333; color: #333; }
+    .busca-tags-ativas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .busca-tag-chip { background: #0a0a0a; color: #fff; font-size: 12px; padding: 4px 12px; display: flex; align-items: center; gap: 6px; }
+    .busca-tag-chip button { background: none; border: none; color: #00cc66; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+    .busca-resultados { max-width: 1100px; margin: 32px auto; padding: 0 20px; }
+    .busca-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #ddd; flex-wrap: wrap; gap: 10px; }
+    .busca-info-count { font-size: 14px; color: #555; }
+    .busca-info-count strong { color: #0a0a0a; }
+    .busca-ordenar { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+    .busca-ordenar select { border: 1px solid #ddd; padding: 6px 10px; font-size: 13px; font-family: Inter,sans-serif; outline: none; }
+    .busca-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .busca-card { background: #fff; border: 1px solid #ddd; transition: box-shadow 0.2s; }
+    .busca-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .busca-card-img { width: 100%; height: 160px; background: #e0ddd8; object-fit: cover; display: block; }
+    .busca-card-img-placeholder { width: 100%; height: 160px; background: linear-gradient(135deg, #d0ccc5, #b8b3aa); }
+    .busca-card-body { padding: 16px; }
+    .busca-card-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 3px 8px; display: inline-block; margin-bottom: 8px; }
+    .busca-card-titulo { font-family: "Playfair Display",serif; font-size: 16px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+    .busca-card-titulo a { color: #0a0a0a; text-decoration: none; }
+    .busca-card-titulo a:hover { color: #00cc66; }
+    .busca-card-resumo { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+    .busca-card-meta { font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .busca-card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .busca-card-tag { font-size: 10px; background: #f0ede8; color: #555; padding: 2px 8px; }
+    .busca-highlight { background: #ffff00; padding: 0 2px; }
+    .busca-vazio { text-align: center; padding: 60px 20px; color: #888; }
+    .busca-vazio h3 { font-size: 20px; margin-bottom: 10px; color: #333; }
+    .busca-paginacao { display: flex; justify-content: center; gap: 8px; margin-top: 32px; flex-wrap: wrap; }
+    .busca-paginacao button { border: 1px solid #ddd; background: #fff; padding: 8px 16px; font-size: 13px; cursor: pointer; font-family: Inter,sans-serif; }
+    .busca-paginacao button.ativo { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+    .busca-paginacao button:hover:not(.ativo) { border-color: #00cc66; color: #00cc66; }
+    .busca-skeleton { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .skeleton-card { background: #fff; border: 1px solid #ddd; padding: 0 0 16px; }
+    .skeleton-img { width: 100%; height: 160px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+    .skeleton-line { height: 12px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; margin: 12px 16px 0; border-radius: 2px; }
+    .skeleton-line.largo { width: 80%; }
+    .skeleton-line.medio { width: 60%; }
+    .skeleton-line.curto { width: 40%; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @media (max-width: 900px) { .busca-filtros { grid-template-columns: repeat(2,1fr); } .busca-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 600px) { .busca-filtros { grid-template-columns: 1fr; } .busca-grid { grid-template-columns: 1fr; } .busca-campo-principal { flex-direction: column; } .busca-campo-principal button { width: 100%; } }
+  </style>
 </head>
 <body>
 
   <header class="site-header">
-    <div class="header-main" style="justify-content:center;">
+    <div class="header-main" style="justify-content:center;padding:12px 20px;">
       <div class="logo-area">
-        <a href="index.html"><h1 class="logo">Veritas Notícias</h1></a>
+        <a href="index.html"><h1 class="logo">Veritas <span>Noticias</span></h1></a>
+        <p class="logo-tagline">A Voz da Verdadeira Noticia</p>
       </div>
     </div>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="busca.html" class="active">Busca</a></li>
+      </ul>
+    </nav>
   </header>
 
-  <main>
-    <div class="section-divider"><span id="tituloBusca">Resultados da busca</span></div>
-    <section class="news-grid-section" style="display:block;">
-      <div class="news-grid" id="gridBusca">
-        <p class="admin-carregando">Buscando...</p>
+  <div class="busca-hero">
+    <h1>Busca Avancada</h1>
+    <p>Encontre qualquer noticia por palavra-chave, autor, categoria, tag ou data</p>
+  </div>
+
+  <div class="busca-form-wrapper">
+    <div class="busca-form">
+      <div class="busca-campo-principal">
+        <input type="text" id="termoPrincipal" placeholder="Digite palavras-chave, nomes, assuntos..." autocomplete="off">
+        <button onclick="executarBusca()">Buscar</button>
       </div>
-    </section>
-  </main>
+      <div class="busca-filtros">
+        <div>
+          <label>Categoria</label>
+          <select id="filtroCategoria">
+            <option value="">Todas as categorias</option>
+            <option value="politica">Politica</option>
+            <option value="economia">Economia</option>
+            <option value="regional">Regional</option>
+            <option value="agro">Agro</option>
+            <option value="esportes">Esportes</option>
+            <option value="cultura">Cultura</option>
+            <option value="saude">Saude</option>
+            <option value="tecnologia">Tecnologia</option>
+            <option value="educacao">Educacao</option>
+            <option value="entretenimento">Entretenimento</option>
+            <option value="brasil-mundo">Brasil/Mundo</option>
+          </select>
+        </div>
+        <div>
+          <label>Autor</label>
+          <input type="text" id="filtroAutor" placeholder="Nome do autor...">
+        </div>
+        <div>
+          <label>Destaque</label>
+          <select id="filtroDestaque">
+            <option value="">Qualquer destaque</option>
+            <option value="URGENTE">Urgente</option>
+            <option value="AO VIVO">Ao Vivo</option>
+            <option value="EXCLUSIVO">Exclusivo</option>
+            <option value="ESPECIAL">Especial</option>
+            <option value="EM ALTA">Em Alta</option>
+            <option value="OPINIAO">Opiniao</option>
+            <option value="EDITORIAL">Editorial</option>
+          </select>
+        </div>
+        <div>
+          <label>Tag</label>
+          <input type="text" id="filtroTag" placeholder="Ex: politica, eleicao...">
+        </div>
+        <div>
+          <label>De</label>
+          <input type="date" id="filtroDataDe">
+        </div>
+        <div>
+          <label>Ate</label>
+          <input type="date" id="filtroDataAte">
+        </div>
+      </div>
+      <div class="busca-acoes">
+        <button class="btn-limpar" onclick="limparFiltros()">Limpar filtros</button>
+      </div>
+      <div class="busca-tags-ativas" id="tagsAtivas"></div>
+    </div>
+  </div>
+
+  <div class="busca-resultados">
+    <div class="busca-info" id="buscarInfo" style="display:none;">
+      <span class="busca-info-count" id="countResultados"></span>
+      <div class="busca-ordenar">
+        <span>Ordenar por:</span>
+        <select id="ordenarPor" onchange="ordenarResultados()">
+          <option value="recente">Mais recente</option>
+          <option value="antigo">Mais antigo</option>
+          <option value="relevancia">Relevancia</option>
+        </select>
+      </div>
+    </div>
+    <div id="gridBusca">
+      <div class="busca-skeleton">
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line largo"></div><div class="skeleton-line medio"></div><div class="skeleton-line curto"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line largo"></div><div class="skeleton-line medio"></div><div class="skeleton-line curto"></div></div>
+        <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line largo"></div><div class="skeleton-line medio"></div><div class="skeleton-line curto"></div></div>
+      </div>
+    </div>
+    <div class="busca-paginacao" id="paginacao"></div>
+  </div>
 
   <footer class="site-footer">
     <div class="footer-bottom">
-      <span>© 2026 Veritas Notícias – Todos os direitos reservados</span>
+      <span>© 2026 Veritas Noticias - Todos os direitos reservados</span>
     </div>
   </footer>
 
   <script type="module">
-    import { listarPublicadas, filtrarPorTermo } from "./js/noticias.js";
+    import { listarPublicadas } from "./js/noticias.js";
+    import { db } from "./js/firebase-config.js";
+    import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const params = new URLSearchParams(window.location.search);
-    const termo = params.get('q') || '';
-    const grid = document.getElementById('gridBusca');
+    const POR_PAGINA = 12;
+    let todasNoticias = [];
+    let resultadosFiltrados = [];
+    let paginaAtual = 1;
 
-    document.getElementById('tituloBusca').textContent = termo ? `Resultados para "${termo}"` : 'Resultados da busca';
-
-    const nomesCategorias = {
-      politica: 'Política', economia: 'Economia', regional: 'Regional',
-      agro: 'Agro', esportes: 'Esportes', cultura: 'Cultura', saude: 'Saúde'
+    const nomesCat = {
+      politica:"Politica", economia:"Economia", regional:"Regional",
+      agro:"Agro", esportes:"Esportes", cultura:"Cultura", saude:"Saude",
+      tecnologia:"Tecnologia", educacao:"Educacao", entretenimento:"Entretenimento",
+      "brasil-mundo":"Brasil/Mundo"
     };
 
-    async function buscar() {
-      if (!termo.trim()) {
-        grid.innerHTML = '<p class="admin-vazio">Digite um termo para buscar.</p>';
-        return;
-      }
+    const coresCat = {
+      politica:"#1a3a6b", economia:"#1a5c2a", regional:"#5a2d82",
+      agro:"#5c4a00", esportes:"#c0392b", cultura:"#7a3a00",
+      saude:"#00557a", tecnologia:"#1a4a6b", educacao:"#4a1a6b",
+      entretenimento:"#6b1a4a", "brasil-mundo":"#333"
+    };
 
-      const todas = await listarPublicadas(200);
-      const resultados = filtrarPorTermo(todas, termo);
-
-      if (resultados.length === 0) {
-        grid.innerHTML = '<p class="admin-vazio">Nenhuma notícia encontrada para esse termo.</p>';
-        return;
-      }
-
-      grid.innerHTML = resultados.map(n => `
-        <article class="news-card">
-          ${n.imagemUrl ? `<div class="card-img-placeholder small" style="background-image:url('${n.imagemUrl}');background-size:cover;"></div>` : '<div class="card-img-placeholder small"></div>'}
-          <div class="card-content">
-            <span class="tag-categoria ${n.categoria}">${nomesCategorias[n.categoria] || n.categoria}</span>
-            <h3><a href="noticia.html?id=${n.id}">${n.titulo}</a></h3>
-            <p>${n.resumo || ''}</p>
-          </div>
-        </article>
-      `).join('');
+    function destacarTexto(texto, termos) {
+      if (!texto || !termos || termos.length === 0) return texto || "";
+      let resultado = texto;
+      termos.forEach(t => {
+        if (t.length < 2) return;
+        const regex = new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+        resultado = resultado.replace(regex, "<mark class=\"busca-highlight\">$1</mark>");
+      });
+      return resultado;
     }
 
-    buscar();
+    function formatarData(ts) {
+      if (!ts) return "";
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleDateString("pt-BR", { day:"numeric", month:"short", year:"numeric" });
+    }
+
+    function calcularRelevancia(n, termos) {
+      if (!termos || termos.length === 0) return 0;
+      let score = 0;
+      termos.forEach(t => {
+        const tl = t.toLowerCase();
+        if (n.titulo && n.titulo.toLowerCase().includes(tl)) score += 10;
+        if (n.resumo && n.resumo.toLowerCase().includes(tl)) score += 5;
+        if (n.conteudo && n.conteudo.toLowerCase().includes(tl)) score += 2;
+        if (n.autorNome && n.autorNome.toLowerCase().includes(tl)) score += 8;
+        if (n.tags && n.tags.some(tag => tag.toLowerCase().includes(tl))) score += 7;
+        if (n.categoria && n.categoria.toLowerCase().includes(tl)) score += 6;
+      });
+      return score;
+    }
+
+    function filtrar() {
+      const termo = document.getElementById("termoPrincipal").value.trim().toLowerCase();
+      const cat = document.getElementById("filtroCategoria").value;
+      const autor = document.getElementById("filtroAutor").value.trim().toLowerCase();
+      const destaque = document.getElementById("filtroDestaque").value;
+      const tag = document.getElementById("filtroTag").value.trim().toLowerCase();
+      const dataDE = document.getElementById("filtroDataDe").value;
+      const dataATE = document.getElementById("filtroDataAte").value;
+      const termos = termo ? termo.split(/\s+/).filter(t => t.length > 1) : [];
+
+      let resultado = todasNoticias.filter(n => {
+        if (cat && n.categoria !== cat && !(n.categorias && n.categorias.includes(cat))) return false;
+        if (autor && !(n.autorNome && n.autorNome.toLowerCase().includes(autor))) return false;
+        if (destaque && n.destaque !== destaque) return false;
+        if (tag && !(n.tags && n.tags.some(tg => tg.toLowerCase().includes(tag)))) return false;
+        if (dataDE) {
+          const d = n.criadoEm ? (n.criadoEm.toDate ? n.criadoEm.toDate() : new Date(n.criadoEm)) : null;
+          if (!d || d < new Date(dataDE)) return false;
+        }
+        if (dataATE) {
+          const d = n.criadoEm ? (n.criadoEm.toDate ? n.criadoEm.toDate() : new Date(n.criadoEm)) : null;
+          if (!d || d > new Date(dataATE + "T23:59:59")) return false;
+        }
+        if (termos.length > 0) {
+          const textoTotal = [n.titulo, n.resumo, n.autorNome, ...(n.tags || [])].join(" ").toLowerCase();
+          return termos.some(t => textoTotal.includes(t));
+        }
+        return true;
+      });
+
+      const ordenar = document.getElementById("ordenarPor").value;
+      if (ordenar === "recente") {
+        resultado.sort((a, b) => {
+          const da = a.criadoEm ? (a.criadoEm.toDate ? a.criadoEm.toDate() : new Date(a.criadoEm)) : new Date(0);
+          const db2 = b.criadoEm ? (b.criadoEm.toDate ? b.criadoEm.toDate() : new Date(b.criadoEm)) : new Date(0);
+          return db2 - da;
+        });
+      } else if (ordenar === "antigo") {
+        resultado.sort((a, b) => {
+          const da = a.criadoEm ? (a.criadoEm.toDate ? a.criadoEm.toDate() : new Date(a.criadoEm)) : new Date(0);
+          const db2 = b.criadoEm ? (b.criadoEm.toDate ? b.criadoEm.toDate() : new Date(b.criadoEm)) : new Date(0);
+          return da - db2;
+        });
+      } else {
+        resultado.sort((a, b) => calcularRelevancia(b, termos) - calcularRelevancia(a, termos));
+      }
+
+      resultadosFiltrados = resultado;
+      const termosPrincipais = termos;
+      return termosPrincipais;
+    }
+
+    function renderizar(termos) {
+      const grid = document.getElementById("gridBusca");
+      const info = document.getElementById("buscarInfo");
+      const pag = document.getElementById("paginacao");
+      const count = document.getElementById("countResultados");
+
+      if (resultadosFiltrados.length === 0) {
+        info.style.display = "none";
+        pag.innerHTML = "";
+        grid.innerHTML = `<div class="busca-vazio"><h3>Nenhum resultado encontrado</h3><p>Tente outros termos ou remova alguns filtros.</p></div>`;
+        return;
+      }
+
+      info.style.display = "flex";
+      count.innerHTML = `<strong>${resultadosFiltrados.length}</strong> resultado${resultadosFiltrados.length !== 1 ? "s" : ""} encontrado${resultadosFiltrados.length !== 1 ? "s" : ""}`;
+
+      const inicio = (paginaAtual - 1) * POR_PAGINA;
+      const pagina = resultadosFiltrados.slice(inicio, inicio + POR_PAGINA);
+
+      grid.innerHTML = pagina.map(n => {
+        const cor = coresCat[n.categoria] || "#333";
+        const tags = (n.tags || []).slice(0, 3).map(t => `<span class="busca-card-tag">#${t}</span>`).join("");
+        return `
+          <article class="busca-card">
+            ${n.imagemUrl ? `<img class="busca-card-img" src="${n.imagemUrl}" alt="${n.titulo}" loading="lazy">` : `<div class="busca-card-img-placeholder"></div>`}
+            <div class="busca-card-body">
+              <span class="busca-card-cat" style="background:${cor};color:#fff;">${nomesCat[n.categoria] || n.categoria || ""}</span>
+              ${n.destaque ? `<span style="font-size:10px;font-weight:700;color:#00cc66;margin-left:6px;">${n.destaque}</span>` : ""}
+              <h3 class="busca-card-titulo"><a href="noticia.html?id=${n.id}">${destacarTexto(n.titulo, termos)}</a></h3>
+              <p class="busca-card-resumo">${destacarTexto((n.resumo || "").substring(0, 120) + ((n.resumo || "").length > 120 ? "..." : ""), termos)}</p>
+              <div class="busca-card-meta">
+                ${n.autorNome ? `<span>Por <strong>${destacarTexto(n.autorNome, termos)}</strong></span>` : ""}
+                <span>${formatarData(n.criadoEm)}</span>
+              </div>
+              ${tags ? `<div class="busca-card-tags">${tags}</div>` : ""}
+            </div>
+          </article>`;
+      }).join("");
+
+      const totalPag = Math.ceil(resultadosFiltrados.length / POR_PAGINA);
+      if (totalPag <= 1) { pag.innerHTML = ""; return; }
+      pag.innerHTML = Array.from({length: totalPag}, (_, i) => `<button class="${i+1 === paginaAtual ? "ativo" : ""}" onclick="irPagina(${i+1})">${i+1}</button>`).join("");
+    }
+
+    window.executarBusca = function() {
+      paginaAtual = 1;
+      const termos = filtrar();
+      renderizar(termos);
+      atualizarURL();
+      mostrarTagsAtivas();
+    };
+
+    window.ordenarResultados = function() {
+      paginaAtual = 1;
+      const termos = filtrar();
+      renderizar(termos);
+    };
+
+    window.irPagina = function(p) {
+      paginaAtual = p;
+      const termos = filtrar();
+      renderizar(termos);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.limparFiltros = function() {
+      document.getElementById("termoPrincipal").value = "";
+      document.getElementById("filtroCategoria").value = "";
+      document.getElementById("filtroAutor").value = "";
+      document.getElementById("filtroDestaque").value = "";
+      document.getElementById("filtroTag").value = "";
+      document.getElementById("filtroDataDe").value = "";
+      document.getElementById("filtroDataAte").value = "";
+      document.getElementById("tagsAtivas").innerHTML = "";
+      window.executarBusca();
+    };
+
+    function mostrarTagsAtivas() {
+      const container = document.getElementById("tagsAtivas");
+      const chips = [];
+      const termo = document.getElementById("termoPrincipal").value.trim();
+      const cat = document.getElementById("filtroCategoria").value;
+      const autor = document.getElementById("filtroAutor").value.trim();
+      const dest = document.getElementById("filtroDestaque").value;
+      const tag = document.getElementById("filtroTag").value.trim();
+      if (termo) chips.push({ label: `"${termo}"`, campo: "termoPrincipal" });
+      if (cat) chips.push({ label: `Cat: ${nomesCat[cat] || cat}`, campo: "filtroCategoria" });
+      if (autor) chips.push({ label: `Autor: ${autor}`, campo: "filtroAutor" });
+      if (dest) chips.push({ label: `Destaque: ${dest}`, campo: "filtroDestaque" });
+      if (tag) chips.push({ label: `Tag: ${tag}`, campo: "filtroTag" });
+      container.innerHTML = chips.map(ch =>
+        `<div class="busca-tag-chip">${ch.label} <button onclick="removerFiltro('${ch.campo}')">x</button></div>`
+      ).join("");
+    }
+
+    window.removerFiltro = function(campo) {
+      const el = document.getElementById(campo);
+      if (el.tagName === "SELECT") el.value = "";
+      else el.value = "";
+      window.executarBusca();
+    };
+
+    function atualizarURL() {
+      const termo = document.getElementById("termoPrincipal").value.trim();
+      const url = new URL(window.location.href);
+      if (termo) url.searchParams.set("q", termo); else url.searchParams.delete("q");
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    document.getElementById("termoPrincipal").addEventListener("keydown", e => {
+      if (e.key === "Enter") window.executarBusca();
+    });
+
+    async function inicializar() {
+      todasNoticias = await listarPublicadas(500);
+      const params = new URLSearchParams(window.location.search);
+      const termoInicial = params.get("q") || "";
+      if (termoInicial) {
+        document.getElementById("termoPrincipal").value = termoInicial;
+        window.executarBusca();
+      } else {
+        const termos = filtrar();
+        renderizar(termos);
+      }
+    }
+
+    inicializar();
   </script>
 </body>
 </html>
