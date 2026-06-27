@@ -96,6 +96,8 @@
     import { enviarImagemCloudinary } from "../js/cloudinary.js";
     import { collection, getDocs, orderBy, query, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    let quillEditor = null;
+
     // Inicializa Quill imediatamente — sem await no topo do modulo
     quillEditor = new Quill('#editorQuill', {
       theme: 'snow',
@@ -232,7 +234,6 @@
     }
 
     let usuarioAtual = null;
-    let quillEditor = null;
     let cargoAtual = null;
     let noticiaIdEdicao = null;
     let imagemAtualUrl = null;
