@@ -527,7 +527,7 @@
         if (noticiaAtual.categoria) {
           const q = query(
             collection(db, 'noticias'),
-            where('status', '==', 'publicada'),
+            where('status', '==', 'publicado'),
             where('categoria', '==', noticiaAtual.categoria),
             orderBy('criadoEm', 'desc'),
             limit(4)
@@ -540,7 +540,7 @@
 
         // Se nao achou por categoria, pega as mais recentes
         if (docs.length === 0) {
-          const q2 = query(collection(db, 'noticias'), where('status', '==', 'publicada'), orderBy('criadoEm', 'desc'), limit(4));
+          const q2 = query(collection(db, 'noticias'), where('status', '==', 'publicado'), orderBy('criadoEm', 'desc'), limit(4));
           const snap2 = await getDocs(q2);
           docs.push(...snap2.docs.filter(d => d.id !== noticiaAtual.id));
         }
