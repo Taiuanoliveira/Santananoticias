@@ -95,8 +95,13 @@
       const select = document.getElementById('destaque');
       try {
         const snap = await getDocs(query(collection(db, 'destaques'), orderBy('nome')));
-        snap.forEach(d => {
-          const dest = d.data();
+        const fixos = snap.empty ? [
+          {nome:'URGENTE',emoji:'⚡'},{nome:'AO VIVO',emoji:'🔴'},
+          {nome:'EXCLUSIVO',emoji:'🌟'},{nome:'ESPECIAL',emoji:'📌'},
+          {nome:'EM ALTA',emoji:'🔥'},{nome:'OPINIÃO',emoji:'💬'},
+          {nome:'EDITORIAL',emoji:'📰'}
+        ] : snap.docs.map(d => d.data());
+        fixos.forEach(dest => {
           const opt = document.createElement('option');
           opt.value = dest.nome;
           opt.textContent = (dest.emoji || '') + ' ' + dest.nome;
@@ -110,7 +115,7 @@
       const container = document.getElementById('containerTags');
       try {
         const snap = await getDocs(query(collection(db, 'tags'), orderBy('nome')));
-        if (snap.empty) { container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma tag cadastrada ainda.</p>'; return; }
+        if (snap.empty) { container.innerHTML = '<p style="font-size:13px;color:#777;">Nenhuma tag ainda. <a href="tags-admin.html" style="color:#00cc66;font-weight:700;">Criar tags →</a></p>'; return; }
         container.innerHTML = '';
         snap.forEach(d => {
           const tag = d.data();
@@ -247,6 +252,7 @@
         { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
         { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
         { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador','editor'] },
+        { href: 'tags-admin.html', label: '🔖 Tags e Destaques', cargos: ['administrador','editor'] },
         { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
         { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador','editor'] },
         { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
