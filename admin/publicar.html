@@ -97,7 +97,7 @@
     import { collection, getDocs, orderBy, query, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // Inicializa Quill imediatamente — sem await no topo do modulo
-    const quillEditor = new Quill('#editorQuill', {
+    quillEditor = new Quill('#editorQuill', {
       theme: 'snow',
       placeholder: 'Escreva o texto completo da notícia...',
       modules: {
@@ -232,6 +232,7 @@
     }
 
     let usuarioAtual = null;
+    let quillEditor = null;
     let cargoAtual = null;
     let noticiaIdEdicao = null;
     let imagemAtualUrl = null;
@@ -246,6 +247,9 @@
       montarMenu(cargo);
       montarBotoesAcao(cargo);
       await carregarEdicoesNoSelect();
+      await carregarCategoriasCheckboxes([]);
+      await carregarTagsCheckboxes([]);
+      await carregarDestaquesSelect('');
       await carregarDestaquesSelect('');
       await carregarTagsCheckboxes([]);
 
