@@ -207,34 +207,7 @@ Produção agrícola do município bate recorde histórico"></textarea>
       </section>
 
       <!-- MURO PAGO -->
-      <section class="admin-bloco" style="margin-top:20px;">
-        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;">🔒 Muro Pago</h2>
-        <p class="admin-explicacao">Regra padrão usada em todas as notícias de edições pagas. Notícias avulsas e marcadas como gratuitas nunca são bloqueadas, e assinantes Veritas+ sempre veem o texto completo.</p>
-        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;margin-top:10px;"></div>
 
-        <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
-          <input type="checkbox" id="paywallAtivo" style="width:auto;transform:scale(1.4);">
-          <label for="paywallAtivo" style="font-size:14px;font-weight:600;">Ativar Muro Pago</label>
-        </div>
-
-        <label style="display:block;margin-bottom:10px;">Regra padrão (vale pra todas as notícias, a não ser que você escolha outra coisa numa notícia específica)</label>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
-          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
-            <input type="radio" name="paywallModo" value="2-paragrafos" style="width:auto;">
-            Liberar 2 parágrafos, bloquear o resto
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
-            <input type="radio" name="paywallModo" value="3-paragrafos" style="width:auto;">
-            Liberar 3 parágrafos, bloquear o resto
-          </label>
-          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
-            <input type="radio" name="paywallModo" value="50-porcento" style="width:auto;">
-            Liberar 50% da notícia, bloquear o resto
-          </label>
-        </div>
-
-        <button class="btn-primario" style="margin-top:10px;" onclick="salvarPaywall()">Salvar configurações do Muro Pago</button>
-      </section>
     </main>
   </div>
 
@@ -276,6 +249,7 @@ Produção agrícola do município bate recorde histórico"></textarea>
         { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
         { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
         { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'paywall-admin.html', label: '🔒 Muro Pago', cargos: ['administrador'] },
         { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
         { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
       ];

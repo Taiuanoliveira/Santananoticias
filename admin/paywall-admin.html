@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muro Pago – Painel Santana.com</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Santana<span>.com</span></div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>🔒 Muro Pago</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <p class="admin-explicacao" style="margin-bottom:16px;">Controle o acesso pago ao conteúdo. Notícias gratuitas e assinantes ativos nunca são bloqueados.</p>
+
+        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;"></div>
+
+        <label style="display:flex;align-items:center;gap:12px;margin:16px 0;background:#f9f9f9;padding:16px;border-radius:4px;">
+          <input type="checkbox" id="paywallAtivo" style="width:auto;transform:scale(1.4);">
+          <div>
+            <strong style="font-size:15px;">Ativar Muro Pago</strong>
+            <p style="font-size:12px;color:#777;margin-top:2px;">Quando ativado, notícias de edições pagas serão bloqueadas após X parágrafos para não assinantes.</p>
+          </div>
+        </label>
+
+        <label style="display:block;margin-bottom:12px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;">Quantos parágrafos mostrar antes de bloquear</label>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <label style="display:flex;align-items:center;gap:10px;background:#f9f9f9;padding:12px 16px;border-radius:4px;cursor:pointer;">
+            <input type="radio" name="paywallModo" value="2-paragrafos" style="width:auto;">
+            <div>
+              <strong>2 parágrafos</strong>
+              <span style="font-size:12px;color:#777;display:block;">Mostra pouco — incentiva a assinatura mais rápido</span>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;background:#f9f9f9;padding:12px 16px;border-radius:4px;cursor:pointer;">
+            <input type="radio" name="paywallModo" value="3-paragrafos" style="width:auto;" checked>
+            <div>
+              <strong>3 parágrafos</strong>
+              <span style="font-size:12px;color:#777;display:block;">Equilíbrio entre engajar e converter — recomendado</span>
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;background:#f9f9f9;padding:12px 16px;border-radius:4px;cursor:pointer;">
+            <input type="radio" name="paywallModo" value="50-porcento" style="width:auto;">
+            <div>
+              <strong>50% da notícia</strong>
+              <span style="font-size:12px;color:#777;display:block;">Mostra mais conteúdo — bom para textos longos</span>
+            </div>
+          </label>
+        </div>
+
+        <button class="btn-primario" onclick="salvarPaywall()">Salvar configurações</button>
+      </section>
+
+      <section class="admin-bloco" style="margin-top:20px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:12px;">Assinantes ativos</h2>
+        <p style="font-size:13px;color:#777;margin-bottom:16px;">Usuários com acesso premium ativo agora.</p>
+        <div id="listaAssinantes">Carregando...</div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { doc, getDoc, setDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    function montarMenu(cargo) {
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','moderador','colaborador'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','moderador'] },
+        { href: 'planos-admin.html', label: '💳 Planos', cargos: ['administrador'] },
+        { href: 'paywall-admin.html', label: '🔒 Muro Pago', cargos: ['administrador'] },
+        { href: 'equipe-admin.html', label: '👥 Equipe', cargos: ['administrador'] },
+        { href: 'categorias-admin.html', label: '🏷️ Categorias', cargos: ['administrador'] },
+        { href: 'tags-admin.html', label: '🔖 Tags e Destaques', cargos: ['administrador'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'estatisticas-admin.html', label: '📈 Estatísticas', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      document.getElementById('menuAdmin').innerHTML = itens
+        .filter(i => i.cargos.includes(cargo))
+        .map(i => `<a href="${i.href}" class="${window.location.pathname.includes(i.href) ? 'ativo' : ''}">${i.label}</a>`)
+        .join('');
+    }
+
+    async function carregarPaywall() {
+      try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));
+        if (snap.exists()) {
+          const d = snap.data();
+          document.getElementById('paywallAtivo').checked = d.ativo || false;
+          const modo = d.modo || '3-paragrafos';
+          const radio = document.querySelector(`input[name="paywallModo"][value="${modo}"]`);
+          if (radio) radio.checked = true;
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    window.salvarPaywall = async function() {
+      const msg = document.getElementById('msgPaywall');
+      try {
+        await setDoc(doc(db, 'configuracoes', 'paywall'), {
+          ativo: document.getElementById('paywallAtivo').checked,
+          modo: document.querySelector('input[name="paywallModo"]:checked').value
+        });
+        msg.textContent = 'Configurações salvas com sucesso!';
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+      } catch (e) {
+        msg.className = 'auth-msg erro';
+        msg.textContent = 'Erro ao salvar: ' + e.message;
+        msg.style.display = 'block';
+      }
+    };
+
+    async function carregarAssinantes() {
+      const lista = document.getElementById('listaAssinantes');
+      try {
+        const hoje = new Date().toISOString().slice(0, 10);
+        const snap = await getDocs(collection(db, 'usuarios'));
+        const ativos = [];
+        snap.forEach(d => {
+          const u = d.data();
+          if (u.premiumAte && u.premiumAte >= hoje) ativos.push(u);
+        });
+        if (!ativos.length) {
+          lista.innerHTML = '<p style="color:#777;font-size:13px;">Nenhum assinante ativo no momento.</p>';
+          return;
+        }
+        lista.innerHTML = ativos.map(u => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee;">
+            <div>
+              <strong style="font-size:14px;">${u.nome || u.email}</strong>
+              <div style="font-size:12px;color:#777;">${u.email}</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="background:#00cc66;color:#0a0a0a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;">ATIVO</span>
+              <div style="font-size:11px;color:#777;margin-top:4px;">até ${new Date(u.premiumAte + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        lista.innerHTML = '<p style="color:#b3261e;font-size:13px;">Erro ao carregar assinantes.</p>';
+      }
+    }
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarPaywall();
+      carregarAssinantes();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair(); window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>
