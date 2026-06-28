@@ -592,6 +592,49 @@
       } catch(e) {}
     }
 
-      </script>
+    
+    // === BLOQUEIA ANUNCIOS PARA ASSINANTES ===
+    async function verificarAssinanteEBloquearAnuncios() {
+      try {
+        const { auth } = await import("./js/firebase-config.js");
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { db } = await import("./js/firebase-config.js");
+        const user = auth.currentUser;
+        if (!user) return;
+        const snap = await getDoc(doc(db, "usuarios", user.uid));
+        if (!snap.exists()) return;
+        const dados = snap.data();
+        const planoAtivo = dados.planoStatus === "ativo" && dados.plano && dados.plano !== "gratuito";
+        if (!planoAtivo) return;
+        // Verifica se nao expirou
+        if (dados.planoVencimento) {
+          const vencimento = new Date(dados.planoVencimento);
+          if (vencimento < new Date()) return;
+        }
+        // Esconde todos os anuncios
+        const seletores = [
+          "#carrosselPublicidade",
+          "#rodapePublicidade", 
+          "#bannerLateral",
+          "#bannerNoticia",
+          ".banner-pub",
+          ".publicidade-bloco",
+          "ins.adsbygoogle",
+          "[id*='google_ads']",
+          "[class*='ad-']",
+          "[class*='anuncio']"
+        ];
+        seletores.forEach(s => {
+          document.querySelectorAll(s).forEach(el => {
+            el.style.display = "none";
+          });
+        });
+        // Injeta CSS global para garantir
+        const style = document.createElement("style");
+        style.textContent = "#carrosselPublicidade,#rodapePublicidade,#bannerLateral,#bannerNoticia,.banner-pub,.publicidade-bloco,ins.adsbygoogle{display:none!important;}";
+        document.head.appendChild(style);
+      } catch(e) {}
+    }
+  </script>
 </body>
 </html>
