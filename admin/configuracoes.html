@@ -509,38 +509,7 @@ Produção agrícola do município bate recorde histórico"></textarea>
       await sair();
       window.location.href = '../login.html';
     });
-
-    // MURO PAGO
-    async function carregarPaywall() {
-      try {
-        const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));
-        if (snap.exists()) {
-          const d = snap.data();
-          document.getElementById('paywallAtivo').checked = d.ativo || false;
-          const modo = d.modo || '3-paragrafos';
-          const radio = document.querySelector(`input[name="paywallModo"][value="${modo}"]`);
-          if (radio) radio.checked = true;
-        } else {
-          document.querySelector('input[name="paywallModo"][value="3-paragrafos"]').checked = true;
-        }
-      } catch(e) {}
-    }
-
-    window.salvarPaywall = async function() {
-      try {
-        const modoSelecionado = document.querySelector('input[name="paywallModo"]:checked');
-        await setDoc(doc(db, 'configuracoes', 'paywall'), {
-          ativo: document.getElementById('paywallAtivo').checked,
-          modo: modoSelecionado ? modoSelecionado.value : '3-paragrafos'
-        });
-        const msg = document.getElementById('msgPaywall');
-        msg.textContent = 'Muro Pago salvo!';
-        msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 3000);
-      } catch(e) { alert('Erro: ' + e.message); }
-    };
-
-    carregarPaywall();
+    // paywall gerenciado em paywall-admin.html
   </script>
 </body>
 </html>
