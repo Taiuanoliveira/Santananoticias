@@ -32,8 +32,13 @@
 
         <div id="msgPagamento" class="auth-msg sucesso" style="display:none;"></div>
 
-        <label for="mpAccessToken">Access Token do Mercado Pago</label>
-        <input type="password" id="mpAccessToken" placeholder="APP_USR-... (cole aqui o seu Access Token de Produção)">
+        <label for="mpAccessToken">🛒 Access Token — Checkout Pro (Pix e Boleto)</label>
+        <input type="password" id="mpAccessToken" placeholder="APP_USR-... (token do aplicativo Checkout Pro)">
+        <p style="font-size:12px;color:#888;margin-top:4px;">Usado para pagamentos via Pix e Boleto. A pessoa paga manualmente e o acesso é liberado automaticamente.</p>
+
+        <label for="mpAssinaturaToken" style="margin-top:16px;display:block;">🔄 Access Token — Assinatura (Cartão recorrente)</label>
+        <input type="password" id="mpAssinaturaToken" placeholder="APP_USR-... (token do aplicativo Assinatura)">
+        <p style="font-size:12px;color:#888;margin-top:4px;">Usado para cartão de crédito com cobrança automática todo mês. A pessoa assina uma vez e não precisa fazer mais nada.</p>
         <p style="font-size:12px;color:#888;margin-top:4px;">
           Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank">painel de desenvolvedores do Mercado Pago</a>
           → sua aplicação → Credenciais de produção → Access Token.
@@ -111,22 +116,25 @@
         const snap = await getDoc(doc(db, 'configuracoes', 'pagamento'));
         if (snap.exists()) {
           document.getElementById('mpAccessToken').value = snap.data().mercadoPagoAccessToken || '';
+          document.getElementById('mpAssinaturaToken').value = snap.data().mercadoPagoAssinaturaToken || '';
         }
       } catch (e) { console.error(e); }
     }
 
     window.salvarPagamento = async function() {
       const token = document.getElementById('mpAccessToken').value.trim();
-      if (!token) {
-        mostrarErro('Cole o Access Token antes de salvar.');
+      const tokenAssinatura = document.getElementById('mpAssinaturaToken').value.trim();
+      if (!token && !tokenAssinatura) {
+        mostrarErro('Cole pelo menos um Access Token antes de salvar.');
         return;
       }
       try {
         await setDoc(doc(db, 'configuracoes', 'pagamento'), {
           mercadoPagoAccessToken: token,
+          mercadoPagoAssinaturaToken: tokenAssinatura,
           atualizadoEm: new Date().toISOString()
         }, { merge: true });
-        mostrarSucesso('Token salvo! O botão Assinar já está usando essa configuração.');
+        mostrarSucesso('Tokens salvos! O sistema já está usando essas configurações.');
       } catch (e) {
         mostrarErro('Erro ao salvar: ' + e.message);
       }
