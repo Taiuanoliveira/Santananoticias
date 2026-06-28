@@ -2,7 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Função auxiliar: pega o cargo do usuário logado ---
     function cargoDoUsuario() {
       return estaLogado()
         ? get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.cargo
@@ -29,141 +28,110 @@ service cloud.firestore {
       return estaLogado() && cargoDoUsuario() == 'revisor';
     }
 
-    // --- COLEÇÃO: usuarios ---
     match /usuarios/{userId} {
-      // Qualquer pessoa logada pode ler a própria conta; Admin pode ler todas.
       allow read: if estaLogado() && (request.auth.uid == userId || ehAdmin());
-      // Criação acontece no cadastro (o próprio usuário cria seu doc já como leitor).
       allow create: if estaLogado() && request.auth.uid == userId && (request.resource.data.cargo == 'pendente' || request.resource.data.cargo == 'leitor' || request.resource.data.cargo == 'usuario');
-      // Só Admin pode alterar cargos de outras pessoas. O próprio usuário pode editar nome/email.
       allow update: if ehAdmin() || (estaLogado() && request.auth.uid == userId && request.resource.data.cargo == resource.data.cargo);
       allow delete: if ehAdmin();
     }
 
-    // --- COLEÇÃO: noticias ---
     match /noticias/{noticiaId} {
-      // Leitura pública apenas de notícias publicadas. Logados podem ver as próprias/em revisão conforme cargo.
       allow read: if resource.data.status == 'publicado'
                   || resource.data.status == 'indexado'
                   || ehAdmin() || ehEditor() || ehRevisor()
                   || (estaLogado() && resource.data.autorUid == request.auth.uid);
-
-      // Criação: Admin, Editor e Colunista podem criar notícias.
       allow create: if ehAdmin() || ehEditor() || ehColunista();
-
-      // Atualização:
-      // - Admin e Editor podem editar e publicar qualquer notícia.
-      // - Revisor pode mudar o status (aprovar/devolver) mas não o conteúdo.
-      // - Colunista só pode editar as PRÓPRIAS notícias, e não pode definir status como "publicado".
       allow update: if ehAdmin() || ehEditor()
                     || (ehRevisor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'atualizadoEm', 'observacaoRevisor']))
                     || (ehColunista() && resource.data.autorUid == request.auth.uid && request.resource.data.status != 'publicado');
-
-      // Exclusão: Admin sempre pode. Colunista só pode excluir o próprio rascunho (ainda não publicado).
       allow delete: if ehAdmin()
                     || (ehColunista() && resource.data.autorUid == request.auth.uid && resource.data.status != 'publicado');
     }
 
-    // --- COLEÇÃO: configuracoes (logo, banner, redes sociais, dados do site) ---
-    match /configuracoes/{docId} {
-      allow read: if true; // o site público precisa ler isso para exibir logo, etc.
-      allow write: if ehAdmin();
-    }
-
-    // --- COLEÇÃO: categorias ---
-    match /categorias/{catId} {
-      allow read: if true;
-      allow write: if ehAdmin() || ehEditor();
-    }
-
-    // --- COLEÇÃO: comentarios (subcollection das noticias) ---
     match /noticias/{noticiaId}/comentarios/{comentarioId} {
       allow read: if true;
       allow create: if estaLogado() && request.resource.data.autorUid == request.auth.uid;
       allow delete: if ehAdmin() || (estaLogado() && resource.data.autorUid == request.auth.uid);
     }
 
-    // --- COLEÇÃO: destaques ---
-    match /destaques/{destId} {
+    match /configuracoes/{docId} {
       allow read: if true;
       allow write: if ehAdmin();
     }
 
-    // --- COLEÇÃO: edicoes (editorial) ---
+    match /categorias/{catId} {
+      allow read: if true;
+      allow write: if ehAdmin() || ehEditor();
+    }
+
+    match /tags/{tagId} {
+      allow read: if true;
+      allow write: if ehAdmin() || ehEditor();
+    }
+
+    match /destaques/{destId} {
+      allow read: if true;
+      allow write: if ehAdmin() || ehEditor();
+    }
+
     match /edicoes/{edicaoId} {
       allow read: if true;
       allow write: if ehAdmin() || ehEditor();
     }
 
-    // --- COLEÇÃO: equipe ---
     match /equipe/{membroId} {
       allow read: if true;
       allow write: if ehAdmin();
     }
 
-    // --- COLEÇÃO: planos ---
     match /planos/{planoId} {
       allow read: if true;
       allow write: if ehAdmin();
     }
 
-    // --- COLEÇÃO: publicidade (banners de anunciantes) ---
     match /publicidade/{anuncioId} {
       allow read: if true;
       allow write: if ehAdmin();
     }
 
-    // --- COLEÇÃO: favoritos por usuario ---
     match /usuarios/{userId}/favoritos/{favId} {
       allow read: if estaLogado() && request.auth.uid == userId;
       allow write: if estaLogado() && request.auth.uid == userId;
     }
 
-    // --- COLEÇÃO: curtidas ---
     match /curtidas/{noticiaId}/usuarios/{userId} {
       allow read: if true;
       allow write: if estaLogado() && request.auth.uid == userId;
     }
 
-    // --- COLEÇÃO: ler_mais_tarde ---
     match /ler_mais_tarde/{userId}/noticias/{noticiaId} {
       allow read: if estaLogado() && request.auth.uid == userId;
       allow write: if estaLogado() && request.auth.uid == userId;
     }
 
-    // --- COLEÇÃO: estatisticas ---
     match /estatisticas/{noticiaId} {
       allow read: if true;
       allow create: if true;
       allow update: if true;
     }
 
-    // --- COLEÇÃO: pagamentos ---
     match /pagamentos/{pagamentoId} {
       allow read: if ehAdmin() || (estaLogado() && resource.data.usuarioId == request.auth.uid);
-      allow create: if false; // só o webhook do servidor pode criar
+      allow create: if false;
       allow update: if false;
       allow delete: if ehAdmin();
     }
 
-    // --- COLEÇÃO: assinaturas ---
     match /assinaturas/{assinaturaId} {
       allow read: if ehAdmin() || (estaLogado() && resource.data.usuarioId == request.auth.uid);
-      allow write: if false; // só o servidor pode escrever
+      allow write: if false;
     }
 
-    // --- COLEÇÃO: newsletter ---
     match /newsletter/{emailId} {
       allow read: if ehAdmin();
-      allow create: if true; // qualquer visitante pode assinar
+      allow create: if true;
       allow update: if false;
       allow delete: if ehAdmin();
-    }
-
-    // --- COLEÇÃO: tags ---
-    match /tags/{tagId} {
-      allow read: if true;
-      allow write: if ehAdmin() || ehEditor();
     }
   }
 }
