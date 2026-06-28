@@ -83,12 +83,6 @@ service cloud.firestore {
       allow delete: if ehAdmin() || (estaLogado() && resource.data.autorUid == request.auth.uid);
     }
 
-    // --- COLEÇÃO: tags ---
-    match /tags/{tagId} {
-      allow read: if true;
-      allow write: if ehAdmin();
-    }
-
     // --- COLEÇÃO: destaques ---
     match /destaques/{destId} {
       allow read: if true;
@@ -142,6 +136,34 @@ service cloud.firestore {
       allow read: if true;
       allow create: if true;
       allow update: if true;
+    }
+
+    // --- COLEÇÃO: pagamentos ---
+    match /pagamentos/{pagamentoId} {
+      allow read: if ehAdmin() || (estaLogado() && resource.data.usuarioId == request.auth.uid);
+      allow create: if false; // só o webhook do servidor pode criar
+      allow update: if false;
+      allow delete: if ehAdmin();
+    }
+
+    // --- COLEÇÃO: assinaturas ---
+    match /assinaturas/{assinaturaId} {
+      allow read: if ehAdmin() || (estaLogado() && resource.data.usuarioId == request.auth.uid);
+      allow write: if false; // só o servidor pode escrever
+    }
+
+    // --- COLEÇÃO: newsletter ---
+    match /newsletter/{emailId} {
+      allow read: if ehAdmin();
+      allow create: if true; // qualquer visitante pode assinar
+      allow update: if false;
+      allow delete: if ehAdmin();
+    }
+
+    // --- COLEÇÃO: tags ---
+    match /tags/{tagId} {
+      allow read: if true;
+      allow write: if ehAdmin() || ehEditor();
     }
   }
 }
