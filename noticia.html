@@ -562,42 +562,54 @@
       } catch(e) { grid.innerHTML = ''; }
     }
 
-    // === PAYWALL ===
+    // === MURO PAGO ===
     async function verificarPaywall(noticia) {
       try {
         const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        const { db } = await import("./js/firebase-config.js");
-        const { auth } = await import("./js/firebase-config.js");
+        const { db, auth } = await import("./js/firebase-config.js");
 
-        // Busca config do paywall
+        // Notícia avulsa ou marcada como gratuita: nunca bloqueia
+        if (noticia.gratuito) return;
+
+        // Interruptor geral do site
         const cfgSnap = await getDoc(doc(db, 'configuracoes', 'paywall'));
         const cfg = cfgSnap.exists() ? cfgSnap.data() : {};
+        if (!cfg.ativo) return;
 
-        // Se paywall desativado ou noticia gratuita, nao bloqueia
-        if (!cfg.ativo || noticia.gratuito) return;
+        // Essa notícia específica foi marcada como "sempre liberada"
+        if (noticia.paywallOverride === 'sempre-liberado') return;
 
-        const paragrafosVisiveis = cfg.paragrafos || 4;
+        // Regra que vale: a da notícia, senão a padrão do site, senão 3 parágrafos
+        const modo = noticia.paywallOverride || cfg.modo || '3-paragrafos';
 
-        // Verifica se usuario e assinante
+        // Assinante Veritas+ (premiumAte é uma data "YYYY-MM-DD")
         const user = auth.currentUser;
         if (user) {
           const userSnap = await getDoc(doc(db, 'usuarios', user.uid));
-          if (userSnap.exists() && userSnap.data().plano && userSnap.data().plano !== 'gratuito') return;
+          if (userSnap.exists()) {
+            const premiumAte = userSnap.data().premiumAte;
+            const hoje = new Date().toISOString().slice(0, 10);
+            if (premiumAte && premiumAte >= hoje) return;
+          }
         }
 
-        // Aplica paywall
         const conteudoEl = document.getElementById('corpoNoticia');
         if (!conteudoEl) return;
 
         const paragrafos = conteudoEl.querySelectorAll('p');
+        if (paragrafos.length === 0) return;
+
+        let paragrafosVisiveis;
+        if (modo === '2-paragrafos') paragrafosVisiveis = 2;
+        else if (modo === '50-porcento') paragrafosVisiveis = Math.max(1, Math.ceil(paragrafos.length / 2));
+        else paragrafosVisiveis = 3;
+
         if (paragrafos.length <= paragrafosVisiveis) return;
 
-        // Esconde paragrafos apos o limite
         for (let i = paragrafosVisiveis; i < paragrafos.length; i++) {
           paragrafos[i].style.display = 'none';
         }
 
-        // Adiciona overlay e box de assinatura
         conteudoEl.classList.add('paywall-overlay');
         const box = document.createElement('div');
         box.className = 'paywall-box';

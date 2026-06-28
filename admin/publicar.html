@@ -76,6 +76,15 @@
               <input type="checkbox" id="gratuito" style="width:auto;">
               Artigo gratuito (mesmo fazendo parte da edição paga)
             </label>
+
+            <label for="paywallOverride" style="margin-top:14px;">Regra de Muro Pago pra essa notícia</label>
+            <select id="paywallOverride">
+              <option value="">Usar a regra padrão do site (Configurações)</option>
+              <option value="2-paragrafos">Liberar 2 parágrafos, bloquear o resto</option>
+              <option value="3-paragrafos">Liberar 3 parágrafos, bloquear o resto</option>
+              <option value="50-porcento">Liberar 50% da notícia, bloquear o resto</option>
+              <option value="sempre-liberado">Sempre liberado (nunca bloquear, mesmo sem assinatura)</option>
+            </select>
           </div>
 
           <label for="imagem">Imagem de destaque</label>
@@ -318,6 +327,7 @@
       document.getElementById('titulo').value = noticia.titulo || '';
       document.getElementById('categoria').value = noticia.categoria || '';
       document.getElementById('resumo').value = noticia.resumo || '';
+      document.getElementById('paywallOverride').value = noticia.paywallOverride || '';
       setTimeout(() => { quillEditor.root.innerHTML = noticia.conteudo || ''; }, 200);
       const catsAtuais = noticia.categorias || (noticia.categoria ? [noticia.categoria] : []);
       await carregarCategoriasCheckboxes(catsAtuais);
@@ -364,6 +374,7 @@
       document.getElementById('categoria').value = categoria;
       const edicao = document.getElementById('edicao').value;
       let gratuito = edicao ? document.getElementById('gratuito').checked : true;
+      const paywallOverride = document.getElementById('paywallOverride').value;
       let ordemEdicao = parseInt(document.getElementById('ordemEdicao')?.value) || 1;
       const arquivoImagem = document.getElementById('imagem').files[0];
 
@@ -384,7 +395,7 @@
 
         if (!idNoticia) {
           idNoticia = await criarNoticia(
-            { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, ordemEdicao, cargoEditorialAutor },
+            { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl: imagemAtualUrl, edicao, gratuito, paywallOverride, ordemEdicao, cargoEditorialAutor },
             usuarioAtual.uid, usuarioAtual.displayName || usuarioAtual.email
           );
         }
@@ -392,7 +403,7 @@
         let imagemUrl = imagemAtualUrl;
         if (arquivoImagem) imagemUrl = await enviarImagem(arquivoImagem, idNoticia);
 
-        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, cargoEditorialAutor });
+        await atualizarNoticia(idNoticia, { titulo, categoria, categorias: categoriasSelecionadas, destaque, tags: tagsSelecionadas, resumo, conteudo, status, imagemUrl, edicao, gratuito, paywallOverride, cargoEditorialAutor });
 
         if (status === STATUS.PUBLICADO) {
           fetch('/api/notificar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ noticiaId: idNoticia }) }).catch(() => {});

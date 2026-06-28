@@ -206,31 +206,34 @@ Produção agrícola do município bate recorde histórico"></textarea>
         </div>
       </section>
 
-      <!-- PAYWALL -->
+      <!-- MURO PAGO -->
       <section class="admin-bloco" style="margin-top:20px;">
-        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">🔒 Paywall</h2>
-        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;"></div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-          <input type="checkbox" id="paywallAtivo" style="width:auto;transform:scale(1.4);">
-          <label for="paywallAtivo" style="font-size:14px;font-weight:600;">Ativar paywall</label>
-        </div>
-        <label>Parágrafos visíveis antes de bloquear</label>
-        <input type="number" id="paywallParagrafos" value="4" min="1" max="20" style="width:100px;">
-        <p style="font-size:12px;color:#888;margin-top:4px;">Notícias marcadas como gratuitas nunca são bloqueadas. Assinantes nunca veem o bloqueio.</p>
-        <button class="btn-primario" style="margin-top:16px;" onclick="salvarPaywall()">Salvar configurações do paywall</button>
-      </section>
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:6px;">🔒 Muro Pago</h2>
+        <p class="admin-explicacao">Regra padrão usada em todas as notícias de edições pagas. Notícias avulsas e marcadas como gratuitas nunca são bloqueadas, e assinantes Veritas+ sempre veem o texto completo.</p>
+        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;margin-top:10px;"></div>
 
-      <section class="admin-bloco" style="margin-top:20px;">
-        <h2 style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:16px;">🔒 Paywall</h2>
-        <div id="msgPaywall" class="auth-msg sucesso" style="display:none;"></div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
           <input type="checkbox" id="paywallAtivo" style="width:auto;transform:scale(1.4);">
-          <label for="paywallAtivo" style="font-size:14px;font-weight:600;">Ativar paywall</label>
+          <label for="paywallAtivo" style="font-size:14px;font-weight:600;">Ativar Muro Pago</label>
         </div>
-        <label>Parágrafos visíveis antes de bloquear</label>
-        <input type="number" id="paywallParagrafos" value="4" min="1" max="20" style="width:100px;">
-        <p style="font-size:12px;color:#888;margin-top:4px;">Notícias marcadas como gratuitas nunca são bloqueadas. Assinantes nunca veem o bloqueio.</p>
-        <button class="btn-primario" style="margin-top:16px;" onclick="salvarPaywall()">Salvar configurações do paywall</button>
+
+        <label style="display:block;margin-bottom:10px;">Regra padrão (vale pra todas as notícias, a não ser que você escolha outra coisa numa notícia específica)</label>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+            <input type="radio" name="paywallModo" value="2-paragrafos" style="width:auto;">
+            Liberar 2 parágrafos, bloquear o resto
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+            <input type="radio" name="paywallModo" value="3-paragrafos" style="width:auto;">
+            Liberar 3 parágrafos, bloquear o resto
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;">
+            <input type="radio" name="paywallModo" value="50-porcento" style="width:auto;">
+            Liberar 50% da notícia, bloquear o resto
+          </label>
+        </div>
+
+        <button class="btn-primario" style="margin-top:10px;" onclick="salvarPaywall()">Salvar configurações do Muro Pago</button>
       </section>
     </main>
   </div>
@@ -533,52 +536,31 @@ Produção agrícola do município bate recorde histórico"></textarea>
       window.location.href = '../login.html';
     });
 
-    // PAYWALL
+    // MURO PAGO
     async function carregarPaywall() {
       try {
         const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));
         if (snap.exists()) {
           const d = snap.data();
           document.getElementById('paywallAtivo').checked = d.ativo || false;
-          document.getElementById('paywallParagrafos').value = d.paragrafos || 4;
+          const modo = d.modo || '3-paragrafos';
+          const radio = document.querySelector(`input[name="paywallModo"][value="${modo}"]`);
+          if (radio) radio.checked = true;
+        } else {
+          document.querySelector('input[name="paywallModo"][value="3-paragrafos"]').checked = true;
         }
       } catch(e) {}
     }
 
     window.salvarPaywall = async function() {
       try {
+        const modoSelecionado = document.querySelector('input[name="paywallModo"]:checked');
         await setDoc(doc(db, 'configuracoes', 'paywall'), {
           ativo: document.getElementById('paywallAtivo').checked,
-          paragrafos: parseInt(document.getElementById('paywallParagrafos').value) || 4
+          modo: modoSelecionado ? modoSelecionado.value : '3-paragrafos'
         });
         const msg = document.getElementById('msgPaywall');
-        msg.textContent = 'Paywall salvo!';
-        msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 3000);
-      } catch(e) { alert('Erro: ' + e.message); }
-    };
-
-    carregarPaywall();
-
-    async function carregarPaywall() {
-      try {
-        const snap = await getDoc(doc(db, 'configuracoes', 'paywall'));
-        if (snap.exists()) {
-          const d = snap.data();
-          document.getElementById('paywallAtivo').checked = d.ativo || false;
-          document.getElementById('paywallParagrafos').value = d.paragrafos || 4;
-        }
-      } catch(e) {}
-    }
-
-    window.salvarPaywall = async function() {
-      try {
-        await setDoc(doc(db, 'configuracoes', 'paywall'), {
-          ativo: document.getElementById('paywallAtivo').checked,
-          paragrafos: parseInt(document.getElementById('paywallParagrafos').value) || 4
-        });
-        const msg = document.getElementById('msgPaywall');
-        msg.textContent = 'Paywall salvo!';
+        msg.textContent = 'Muro Pago salvo!';
         msg.style.display = 'block';
         setTimeout(() => msg.style.display = 'none', 3000);
       } catch(e) { alert('Erro: ' + e.message); }
