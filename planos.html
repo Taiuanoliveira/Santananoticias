@@ -103,33 +103,53 @@
       }
     }
 
+    const MENSAL_BASE = 19.9;
     const PLANOS_CHECKOUT = [
       {
         id: 'mensal',
         nome: 'Mensal',
-        preco: 'R$ 19,90',
+        preco: 'R$ 19.90'.replace('.', ','),
         periodo: 'por mês',
-        desc: 'Você paga todo mês via Pix ou Boleto. O acesso é liberado automaticamente após a confirmação.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Suporte por email'],
+        desc: 'Pague via Pix ou Boleto todo mês. O acesso é liberado automaticamente após a confirmação do pagamento.',
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+        ],
         destaque: false
       },
       {
         id: 'trimestral',
         nome: 'Trimestral',
-        preco: 'R$ 49,90',
+        preco: 'R$ 50.15'.replace('.', ','),
         periodo: 'a cada 3 meses',
-        desc: 'Pague a cada 3 meses e economize. Acesso liberado automaticamente.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Economia de 16%','Suporte prioritário'],
+        economia: '16% de desconto',
+        desc: 'Pague a cada 3 meses e economize. Acesso liberado automaticamente após confirmação.',
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+          '16% mais barato que o mensal',
+        ],
         destaque: true,
         badge: 'Mais popular'
       },
       {
         id: 'anual',
         nome: 'Anual',
-        preco: 'R$ 159,90',
+        preco: 'R$ 160.00'.replace('.', ','),
         periodo: 'por ano',
-        desc: 'Melhor custo-benefício. Pague uma vez e fique tranquilo por 12 meses.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Economia de 33%','Suporte VIP'],
+        economia: '33% de desconto',
+        desc: 'Pague uma vez e fique tranquilo por 12 meses. Melhor custo-benefício.',
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+          '33% mais barato que o mensal',
+        ],
         destaque: false
       }
     ];
@@ -138,29 +158,51 @@
       {
         id: 'mensal_cartao',
         nome: 'Mensal',
-        preco: 'R$ 19,90',
+        preco: 'R$ 19.90'.replace('.', ','),
         periodo: '/mês no cartão',
-        desc: 'Cobrança automática todo mês no seu cartão. Cancele quando quiser.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Cancele a qualquer hora'],
+        desc: 'Cobrança automática todo mês no cartão. Assine uma vez e esqueça — renova sozinho.',
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+          'Cancele quando quiser',
+        ],
         destaque: false
       },
       {
         id: 'trimestral_cartao',
         nome: 'Trimestral',
-        preco: 'R$ 49,90',
+        preco: 'R$ 50.15'.replace('.', ','),
         periodo: '/trimestre no cartão',
+        economia: '16% de desconto',
         desc: 'Cobrança automática a cada 3 meses. Mais econômico e sem preocupação.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Economia de 16%','Cancele a qualquer hora'],
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+          '16% mais barato que o mensal',
+          'Cancele quando quiser',
+        ],
         destaque: true,
         badge: 'Mais popular'
       },
       {
         id: 'anual_cartao',
         nome: 'Anual',
-        preco: 'R$ 159,90',
+        preco: 'R$ 160.00'.replace('.', ','),
         periodo: '/ano no cartão',
+        economia: '33% de desconto',
         desc: 'Cobrado automaticamente uma vez por ano. Melhor preço garantido.',
-        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Economia de 33%','Suporte VIP'],
+        beneficios: [
+          'Acesso completo ao editorial',
+          'Leia todas as edições exclusivas',
+          'Conteúdo antecipado e exclusivo',
+          'Sem anúncios',
+          '33% mais barato que o mensal',
+          'Cancele quando quiser',
+        ],
         destaque: false
       }
     ];
@@ -172,6 +214,7 @@
           ${p.badge ? `<div class="plano-badge">${p.badge}</div>` : ''}
           <div class="plano-nome">${p.nome}</div>
           <div class="plano-preco">${p.preco} <span>${p.periodo}</span></div>
+          ${p.economia ? `<div style="font-size:12px;font-weight:700;color:#00cc66;margin-bottom:8px;">${p.economia}</div>` : ''}
           <p class="plano-desc">${p.desc}</p>
           <ul class="plano-beneficios">
             ${p.beneficios.map(b => `<li>${b}</li>`).join('')}
