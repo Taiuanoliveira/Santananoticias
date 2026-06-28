@@ -1,193 +1,234 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.init({ appId: "d391c7f0-84aa-434a-b6bd-efc73611e68c" });
-    });
-  </script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planos de Assinatura – Veritas Notícias</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f4f4f4;color:#0a0a0a}
-header{background:#0a0a0a;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
-header a.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;text-decoration:none}
-header a.logo span{color:#00cc66}
-header a.voltar{color:#ccc;text-decoration:none;font-size:13px}
-.hero{text-align:center;padding:50px 20px 30px}
-.hero h1{font-family:'Playfair Display',serif;font-size:32px;margin-bottom:10px}
-.hero p{color:#555;font-size:15px;max-width:540px;margin:0 auto}
-.promo-banner{max-width:640px;margin:24px auto 0;background:#00cc66;color:#0a0a0a;text-align:center;padding:10px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:none}
-.planos{max-width:1000px;margin:30px auto 70px;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
-.plano{background:#fff;padding:30px 26px;box-shadow:0 4px 20px rgba(0,0,0,.06);border-top:4px solid #ddd;position:relative;display:flex;flex-direction:column}
-.plano.destaque{border-top-color:#00cc66;transform:scale(1.03);box-shadow:0 8px 30px rgba(0,0,0,.12)}
-.selo{position:absolute;top:-12px;right:20px;background:#00cc66;color:#0a0a0a;font-size:11px;font-weight:700;text-transform:uppercase;padding:5px 12px;letter-spacing:.5px}
-.plano h2{font-family:'Playfair Display',serif;font-size:19px;margin-bottom:6px}
-.plano .periodo{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:18px}
-.plano .preco{font-size:34px;font-weight:900;margin-bottom:2px}
-.plano .preco span{font-size:14px;font-weight:600;color:#777}
-.plano .preco-original{font-size:13px;color:#999;text-decoration:line-through;margin-bottom:14px}
-.plano ul{list-style:none;margin:18px 0;flex-grow:1}
-.plano li{font-size:13px;padding:7px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:8px}
-.plano li:before{content:"✓";color:#00cc66;font-weight:700}
-.btn-assinar{margin-top:10px;background:#0a0a0a;color:#fff;border:none;padding:13px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;text-align:center;text-decoration:none;display:block}
-.btn-assinar:hover{background:#00cc66;color:#0a0a0a}
-.plano.destaque .btn-assinar{background:#00cc66;color:#0a0a0a}
-.faixa-gratis{max-width:700px;margin:0 auto 50px;text-align:center;padding:0 20px}
-.faixa-gratis p{font-size:13px;color:#777}
-.faixa-gratis a{color:#00cc66;font-weight:600;text-decoration:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planos – Veritas Notícias</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .planos-hero { text-align:center; padding: 48px 20px 32px; }
+    .planos-hero h1 { font-family:'Playfair Display',serif; font-size:36px; margin-bottom:10px; }
+    .planos-hero p { font-size:15px; color:#666; max-width:520px; margin:0 auto; }
+    .planos-tabs { display:flex; justify-content:center; gap:12px; margin:24px auto; flex-wrap:wrap; }
+    .tab-btn { padding:10px 28px; border:2px solid #ddd; background:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:Inter,sans-serif; transition:all .2s; }
+    .tab-btn.ativo { border-color:#00cc66; background:#00cc66; color:#0a0a0a; }
+    .tab-desc { text-align:center; font-size:13px; color:#888; margin-bottom:28px; padding:0 20px; }
+    .planos-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:24px; max-width:900px; margin:0 auto; padding:0 20px 60px; }
+    .plano-card { border:1.5px solid #eee; padding:32px 24px; text-align:center; position:relative; }
+    .plano-card.destaque { border-color:#00cc66; }
+    .plano-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:#00cc66; color:#0a0a0a; font-size:11px; font-weight:700; padding:4px 14px; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; }
+    .plano-nome { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; margin-bottom:8px; }
+    .plano-preco { font-size:36px; font-weight:900; margin:16px 0 4px; }
+    .plano-preco span { font-size:14px; font-weight:400; color:#888; }
+    .plano-desc { font-size:13px; color:#666; margin-bottom:24px; line-height:1.6; }
+    .plano-beneficios { list-style:none; padding:0; margin:0 0 24px; text-align:left; }
+    .plano-beneficios li { font-size:13px; padding:6px 0; border-bottom:1px solid #f4f4f4; }
+    .plano-beneficios li::before { content:'✓ '; color:#00cc66; font-weight:700; }
+    .btn-assinar { background:#0a0a0a; color:#fff; border:none; padding:14px 32px; font-size:14px; font-weight:700; cursor:pointer; width:100%; font-family:Inter,sans-serif; transition:background .2s; }
+    .btn-assinar:hover { background:#00cc66; color:#0a0a0a; }
+    .aviso-pagamento { max-width:900px; margin:0 auto 24px; padding:0 20px; }
+    .aviso-box { padding:14px 18px; font-size:13px; font-weight:600; text-align:center; }
+    .aviso-box.aprovado { background:#d4edda; color:#1a5c2a; }
+    .aviso-box.pendente { background:#fff3cd; color:#856404; }
+    .aviso-box.falhou { background:#f8d7da; color:#721c24; }
+  </style>
 </head>
 <body>
-<header>
-  <a href="index.html" class="logo">Veritas Notícias</a>
-  <a href="index.html" class="voltar">← Voltar ao site</a>
-</header>
+  <header class="site-header">
+    <div class="header-main" style="justify-content:center;">
+      <div class="logo-area">
+        <a href="index.html"><h1 class="logo">Veritas Notícias</h1></a>
+      </div>
+    </div>
+  </header>
 
-<div class="hero">
-  <h1>Assine o Veritas Notícias</h1>
-  <p>Jornalismo local de qualidade, direto de Amargosa e região. Escolha o plano que combina com você.</p>
-</div>
+  <main>
+    <div class="planos-hero">
+      <h1>Veritas+</h1>
+      <p>Acesse todo o conteúdo exclusivo, sem limites. Escolha como prefere pagar.</p>
+    </div>
 
-<div class="promo-banner" id="bannerPromo"></div>
+    <!-- AVISO RETORNO PAGAMENTO -->
+    <div class="aviso-pagamento" id="avisoRetorno" style="display:none;">
+      <div class="aviso-box" id="avisoBox"></div>
+    </div>
 
-<div class="planos" id="listaPlanos"></div>
+    <!-- TABS -->
+    <div class="planos-tabs">
+      <button class="tab-btn ativo" onclick="trocarTab('checkout')">⚡ Pix / Boleto</button>
+      <button class="tab-btn" onclick="trocarTab('assinatura')">💳 Cartão recorrente</button>
+    </div>
 
-<div class="faixa-gratis">
-  <p>Algumas notícias são gratuitas para todos os leitores. <a href="cadastro.html">Crie sua conta grátis</a> para acompanhar.</p>
-</div>
+    <div class="tab-desc" id="tabDesc">
+      Pague via <strong>Pix ou Boleto</strong> — você paga manualmente e o acesso é liberado automaticamente na hora da confirmação.
+    </div>
 
-<script type="module">
-import { auth, db } from './js/firebase-config.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    <!-- PLANOS -->
+    <div class="planos-grid" id="planosGrid"></div>
+  </main>
 
-// Configuração dos planos - edite aqui para mudar preços e promoções
-const PLANOS = [
-  {
-    id: 'mensal',
-    nome: 'Mensal',
-    periodo: 'Cobrança mensal',
-    preco: 19.90,
-    precoOriginal: null,
-    destaque: false,
-    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Cancele quando quiser']
-  },
-  {
-    id: 'trimestral',
-    nome: 'Trimestral',
-    periodo: 'Cobrança a cada 3 meses',
-    preco: 49.90,
-    precoOriginal: 59.70,
-    destaque: true,
-    selo: 'Mais popular',
-    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Conteúdo exclusivo de colunistas', 'Economia de 16%']
-  },
-  {
-    id: 'anual',
-    nome: 'Anual',
-    periodo: 'Cobrança anual',
-    preco: 159.90,
-    precoOriginal: 238.80,
-    destaque: false,
-    selo: 'Melhor valor',
-    beneficios: ['Acesso a todas as notícias', 'Sem anúncios', 'Conteúdo exclusivo de colunistas', 'Economia de 33%', 'Newsletter premium']
-  }
-];
+  <footer class="site-footer">
+    <div class="footer-bottom">
+      <span>© 2026 Veritas Notícias – Todos os direitos reservados</span>
+    </div>
+  </footer>
 
-const PROMOCAO_ATIVA = null; // exemplo: "Black Friday: 30% OFF em todos os planos até dia 30!"
-if (PROMOCAO_ATIVA) {
-  const banner = document.getElementById('bannerPromo');
-  banner.textContent = PROMOCAO_ATIVA;
-  banner.style.display = 'block';
-}
+  <script type="module">
+    import { auth } from "./js/firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-function formatarPreco(v) {
-  return v.toFixed(2).replace('.', ',');
-}
+    let usuarioAtual = null;
+    let tabAtual = 'checkout';
 
-const container = document.getElementById('listaPlanos');
-PLANOS.forEach(plano => {
-  const div = document.createElement('div');
-  div.className = 'plano' + (plano.destaque ? ' destaque' : '');
-  div.innerHTML = `
-    ${plano.selo ? `<div class="selo">${plano.selo}</div>` : ''}
-    <h2>${plano.nome}</h2>
-    <div class="periodo">${plano.periodo}</div>
-    ${plano.precoOriginal ? `<div class="preco-original">R$ ${formatarPreco(plano.precoOriginal)}</div>` : ''}
-    <div class="preco">R$ ${formatarPreco(plano.preco)} <span>/${plano.id === 'mensal' ? 'mês' : plano.id === 'trimestral' ? 'trimestre' : 'ano'}</span></div>
-    <ul>${plano.beneficios.map(b => `<li>${b}</li>`).join('')}</ul>
-    <a href="#" class="btn-assinar" data-plano="${plano.id}">Assinar ${plano.nome}</a>
-  `;
-  container.appendChild(div);
-});
-
-let usuarioAtual = null;
-onAuthStateChanged(auth, (user) => { usuarioAtual = user; });
-
-(function mostrarRetornoDoPagamento() {
-  const params = new URLSearchParams(window.location.search);
-  const status = params.get('status');
-  if (!status) return;
-
-  const mensagens = {
-    aprovado: { texto: 'Pagamento aprovado! Sua assinatura ja esta ativa.', cor: '#00cc66' },
-    pendente: { texto: 'Pagamento em analise. Voce sera avisado assim que for aprovado.', cor: '#f9a825' },
-    falhou: { texto: 'O pagamento nao foi concluido. Voce pode tentar novamente.', cor: '#e53935' }
-  };
-  const info = mensagens[status];
-  if (!info) return;
-
-  const aviso = document.createElement('div');
-  aviso.style.cssText = 'max-width:640px;margin:16px auto 0;background:' + info.cor + ';color:#0a0a0a;text-align:center;padding:14px;font-size:14px;font-weight:700;';
-  aviso.textContent = info.texto;
-  document.querySelector('.hero').after(aviso);
-})();
-
-container.addEventListener('click', async (e) => {
-  if (!e.target.classList.contains('btn-assinar')) return;
-  e.preventDefault();
-  const planoId = e.target.dataset.plano;
-
-  if (!usuarioAtual) {
-    alert('Você precisa criar uma conta ou entrar para assinar um plano.');
-    window.location.href = 'login.html';
-    return;
-  }
-
-  const botao = e.target;
-  const textoOriginal = botao.textContent;
-  botao.textContent = 'Gerando pagamento...';
-  botao.style.pointerEvents = 'none';
-
-  try {
-    const resposta = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        planoId,
-        usuarioId: usuarioAtual.uid,
-        usuarioEmail: usuarioAtual.email
-      })
+    onAuthStateChanged(auth, (user) => {
+      usuarioAtual = user;
     });
-    const dados = await resposta.json();
 
-    if (!resposta.ok || !dados.checkoutUrl) {
-      throw new Error(dados.erro || 'Nao foi possivel gerar o pagamento.');
+    // Aviso de retorno do pagamento
+    const params = new URLSearchParams(window.location.search);
+    const statusPag = params.get('status');
+    if (statusPag) {
+      const avisos = {
+        aprovado: { texto: '✅ Pagamento aprovado! Sua assinatura já está ativa.', classe: 'aprovado' },
+        pendente: { texto: '⏳ Pagamento em análise. Você será avisado assim que for confirmado.', classe: 'pendente' },
+        falhou:   { texto: '❌ O pagamento não foi concluído. Tente novamente.', classe: 'falhou' }
+      };
+      const aviso = avisos[statusPag];
+      if (aviso) {
+        document.getElementById('avisoRetorno').style.display = 'block';
+        const box = document.getElementById('avisoBox');
+        box.textContent = aviso.texto;
+        box.className = 'aviso-box ' + aviso.classe;
+      }
     }
 
-    window.location.href = dados.checkoutUrl;
-  } catch (err) {
-    alert('Erro ao iniciar o pagamento: ' + err.message);
-    botao.textContent = textoOriginal;
-    botao.style.pointerEvents = 'auto';
-  }
-});
-</script>
+    const PLANOS_CHECKOUT = [
+      {
+        id: 'mensal',
+        nome: 'Mensal',
+        preco: 'R$ 19,90',
+        periodo: 'por mês',
+        desc: 'Você paga todo mês via Pix ou Boleto. O acesso é liberado automaticamente após a confirmação.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Suporte por email'],
+        destaque: false
+      },
+      {
+        id: 'trimestral',
+        nome: 'Trimestral',
+        preco: 'R$ 49,90',
+        periodo: 'a cada 3 meses',
+        desc: 'Pague a cada 3 meses e economize. Acesso liberado automaticamente.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Economia de 16%','Suporte prioritário'],
+        destaque: true,
+        badge: 'Mais popular'
+      },
+      {
+        id: 'anual',
+        nome: 'Anual',
+        preco: 'R$ 159,90',
+        periodo: 'por ano',
+        desc: 'Melhor custo-benefício. Pague uma vez e fique tranquilo por 12 meses.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Economia de 33%','Suporte VIP'],
+        destaque: false
+      }
+    ];
+
+    const PLANOS_ASSINATURA = [
+      {
+        id: 'mensal_cartao',
+        nome: 'Mensal',
+        preco: 'R$ 19,90',
+        periodo: '/mês no cartão',
+        desc: 'Cobrança automática todo mês no seu cartão. Cancele quando quiser.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Cancele a qualquer hora'],
+        destaque: false
+      },
+      {
+        id: 'trimestral_cartao',
+        nome: 'Trimestral',
+        preco: 'R$ 49,90',
+        periodo: '/trimestre no cartão',
+        desc: 'Cobrança automática a cada 3 meses. Mais econômico e sem preocupação.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Economia de 16%','Cancele a qualquer hora'],
+        destaque: true,
+        badge: 'Mais popular'
+      },
+      {
+        id: 'anual_cartao',
+        nome: 'Anual',
+        preco: 'R$ 159,90',
+        periodo: '/ano no cartão',
+        desc: 'Cobrado automaticamente uma vez por ano. Melhor preço garantido.',
+        beneficios: ['Acesso a todo conteúdo exclusivo','Sem anúncios','Renovação automática','Economia de 33%','Suporte VIP'],
+        destaque: false
+      }
+    ];
+
+    function renderPlanos(planos) {
+      const grid = document.getElementById('planosGrid');
+      grid.innerHTML = planos.map(p => `
+        <div class="plano-card ${p.destaque ? 'destaque' : ''}">
+          ${p.badge ? `<div class="plano-badge">${p.badge}</div>` : ''}
+          <div class="plano-nome">${p.nome}</div>
+          <div class="plano-preco">${p.preco} <span>${p.periodo}</span></div>
+          <p class="plano-desc">${p.desc}</p>
+          <ul class="plano-beneficios">
+            ${p.beneficios.map(b => `<li>${b}</li>`).join('')}
+          </ul>
+          <button class="btn-assinar" data-plano="${p.id}" data-tipo="${tabAtual}">Assinar agora</button>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('.btn-assinar').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!usuarioAtual) {
+            alert('Você precisa criar uma conta ou entrar para assinar.');
+            window.location.href = 'login.html';
+            return;
+          }
+          const textoOriginal = btn.textContent;
+          btn.textContent = 'Gerando pagamento...';
+          btn.style.pointerEvents = 'none';
+          try {
+            const endpoint = btn.dataset.tipo === 'assinatura' ? '/api/checkout-assinatura' : '/api/checkout';
+            const resposta = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                planoId: btn.dataset.plano,
+                usuarioId: usuarioAtual.uid,
+                usuarioEmail: usuarioAtual.email
+              })
+            });
+            const dados = await resposta.json();
+            if (!resposta.ok || !dados.checkoutUrl) throw new Error(dados.erro || 'Erro ao gerar pagamento.');
+            window.location.href = dados.checkoutUrl;
+          } catch (err) {
+            alert('Erro: ' + err.message);
+            btn.textContent = textoOriginal;
+            btn.style.pointerEvents = 'auto';
+          }
+        });
+      });
+    }
+
+    window.trocarTab = function(tipo) {
+      tabAtual = tipo;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('ativo'));
+      event.target.classList.add('ativo');
+      const desc = document.getElementById('tabDesc');
+      if (tipo === 'checkout') {
+        desc.innerHTML = 'Pague via <strong>Pix ou Boleto</strong> — você paga manualmente e o acesso é liberado automaticamente na hora da confirmação.';
+        renderPlanos(PLANOS_CHECKOUT);
+      } else {
+        desc.innerHTML = 'Pague via <strong>Cartão de crédito</strong> — cobrança automática recorrente. Assine uma vez e esqueça, renova sozinho.';
+        renderPlanos(PLANOS_ASSINATURA);
+      }
+    };
+
+    // Inicia com Pix/Boleto
+    renderPlanos(PLANOS_CHECKOUT);
+  </script>
 </body>
 </html>
