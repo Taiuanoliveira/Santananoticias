@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento – Painel Veritas Notícias</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">Veritas Notícias</div>
+      <p class="admin-cargo-label">Cargo: <strong id="cargoAtual">—</strong></p>
+      <nav class="admin-nav" id="menuAdmin"></nav>
+      <a href="../perfil.html" class="admin-btn-sair" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">Meu Perfil</a>
+      <button id="btnSair" class="admin-btn-sair">Sair</button>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <h1>💳 Pagamento</h1>
+        <a href="../index.html" class="admin-link-site">Ver site →</a>
+      </header>
+
+      <section class="admin-bloco">
+        <p class="admin-explicacao" style="margin-bottom:16px;">
+          Conecte sua conta do Mercado Pago para receber assinaturas de verdade (cartão, Pix, boleto).
+          Depois de salvar aqui, o botão "Assinar" em <a href="../planos.html" target="_blank">Planos</a>
+          já leva o leitor direto para o checkout, sem precisar editar nenhum código.
+        </p>
+
+        <div id="msgPagamento" class="auth-msg sucesso" style="display:none;"></div>
+
+        <label for="mpAccessToken">Access Token do Mercado Pago</label>
+        <input type="password" id="mpAccessToken" placeholder="APP_USR-... (cole aqui o seu Access Token de Produção)">
+        <p style="font-size:12px;color:#888;margin-top:4px;">
+          Encontre em: <a href="https://www.mercadopago.com.br/developers/panel/app" target="_blank">painel de desenvolvedores do Mercado Pago</a>
+          → sua aplicação → Credenciais de produção → Access Token.
+        </p>
+
+        <button id="btnMostrarToken" type="button" style="margin-top:8px;font-size:12px;background:#f4f4f4;border:1px solid #ddd;padding:6px 12px;cursor:pointer;">
+          👁 Mostrar token
+        </button>
+
+        <div class="form-acoes" style="margin-top:20px;">
+          <button class="btn-primario" onclick="salvarPagamento()">Salvar configuração</button>
+        </div>
+      </section>
+
+      <section class="admin-bloco" style="margin-top:20px;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:10px;">Como funciona</h2>
+        <ol style="font-size:13px;color:#555;line-height:1.8;padding-left:20px;">
+          <li>O leitor clica em "Assinar" num plano em <strong>Planos</strong>.</li>
+          <li>O site gera um link de pagamento seguro direto com o Mercado Pago.</li>
+          <li>O leitor paga com cartão, Pix ou boleto, na própria página do Mercado Pago.</li>
+          <li>Assim que o pagamento for aprovado, o acesso é liberado automaticamente — sem você precisar fazer nada.</li>
+          <li>A assinatura expira sozinha na data certa, voltando o leitor para o plano gratuito.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { protegerPagina, sair, CARGOS } from "../js/auth.js";
+    import { db } from "../js/firebase-config.js";
+    import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    function montarMenu(cargo) {
+      const itens = [
+        { href: 'dashboard.html', label: '📊 Dashboard', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'publicar.html', label: '✍️ Nova Notícia', cargos: ['administrador','editor','colunista'] },
+        { href: 'gerenciar-noticias.html', label: '📰 Gerenciar Notícias', cargos: ['administrador','editor','colunista','revisor'] },
+        { href: 'edicoes-admin.html', label: '📚 Edições', cargos: ['administrador','editor'] },
+        { href: 'planos-admin.html', label: '💰 Planos', cargos: ['administrador'] },
+        { href: 'pagamento-admin.html', label: '💳 Pagamento', cargos: ['administrador'] },
+        { href: 'paywall-admin.html', label: '🔒 Muro Pago', cargos: ['administrador'] },
+        { href: 'publicidade-admin.html', label: '📢 Publicidade', cargos: ['administrador'] },
+        { href: 'usuarios.html', label: '👤 Usuários', cargos: ['administrador'] },
+        { href: 'configuracoes.html', label: '⚙️ Configurações', cargos: ['administrador'] },
+      ];
+      document.getElementById('menuAdmin').innerHTML = itens
+        .filter(i => i.cargos.includes(cargo))
+        .map(i => `<a href="${i.href}">${i.label}</a>`)
+        .join('');
+    }
+
+    function mostrarSucesso(texto) {
+      const el = document.getElementById('msgPagamento');
+      el.className = 'auth-msg sucesso';
+      el.textContent = texto;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+    function mostrarErro(texto) {
+      const el = document.getElementById('msgPagamento');
+      el.className = 'auth-msg erro';
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    document.getElementById('btnMostrarToken').addEventListener('click', function() {
+      const campo = document.getElementById('mpAccessToken');
+      const mostrando = campo.type === 'text';
+      campo.type = mostrando ? 'password' : 'text';
+      this.textContent = mostrando ? '👁 Mostrar token' : '🙈 Esconder token';
+    });
+
+    async function carregarPagamento() {
+      try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'pagamento'));
+        if (snap.exists()) {
+          document.getElementById('mpAccessToken').value = snap.data().mercadoPagoAccessToken || '';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    window.salvarPagamento = async function() {
+      const token = document.getElementById('mpAccessToken').value.trim();
+      if (!token) {
+        mostrarErro('Cole o Access Token antes de salvar.');
+        return;
+      }
+      try {
+        await setDoc(doc(db, 'configuracoes', 'pagamento'), {
+          mercadoPagoAccessToken: token,
+          atualizadoEm: new Date().toISOString()
+        }, { merge: true });
+        mostrarSucesso('Token salvo! O botão Assinar já está usando essa configuração.');
+      } catch (e) {
+        mostrarErro('Erro ao salvar: ' + e.message);
+      }
+    };
+
+    protegerPagina([CARGOS.ADMIN], (user, cargo) => {
+      document.getElementById('cargoAtual').textContent = cargo;
+      montarMenu(cargo);
+      carregarPagamento();
+    });
+
+    document.getElementById('btnSair').addEventListener('click', async () => {
+      await sair(); window.location.href = '../index.html';
+    });
+  </script>
+</body>
+</html>

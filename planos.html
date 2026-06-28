@@ -130,11 +130,29 @@ PLANOS.forEach(plano => {
 let usuarioAtual = null;
 onAuthStateChanged(auth, (user) => { usuarioAtual = user; });
 
+(function mostrarRetornoDoPagamento() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+  if (!status) return;
+
+  const mensagens = {
+    aprovado: { texto: 'Pagamento aprovado! Sua assinatura ja esta ativa.', cor: '#00cc66' },
+    pendente: { texto: 'Pagamento em analise. Voce sera avisado assim que for aprovado.', cor: '#f9a825' },
+    falhou: { texto: 'O pagamento nao foi concluido. Voce pode tentar novamente.', cor: '#e53935' }
+  };
+  const info = mensagens[status];
+  if (!info) return;
+
+  const aviso = document.createElement('div');
+  aviso.style.cssText = 'max-width:640px;margin:16px auto 0;background:' + info.cor + ';color:#0a0a0a;text-align:center;padding:14px;font-size:14px;font-weight:700;';
+  aviso.textContent = info.texto;
+  document.querySelector('.hero').after(aviso);
+})();
+
 container.addEventListener('click', async (e) => {
   if (!e.target.classList.contains('btn-assinar')) return;
   e.preventDefault();
   const planoId = e.target.dataset.plano;
-  const plano = PLANOS.find(p => p.id === planoId);
 
   if (!usuarioAtual) {
     alert('Você precisa criar uma conta ou entrar para assinar um plano.');
@@ -142,20 +160,33 @@ container.addEventListener('click', async (e) => {
     return;
   }
 
-  // TODO: aqui entra a integração futura com um gateway de pagamento (Mercado Pago, Stripe, etc).
-  // Por enquanto, registra a intenção de assinatura no perfil do usuário.
-  await setDoc(doc(db, 'usuarios', usuarioAtual.uid), {
-    plano: {
-      id: plano.id,
-      nome: plano.nome,
-      descricao: `R$ ${formatarPreco(plano.preco)} / ${plano.periodo.toLowerCase()}`,
-      status: 'pendente_pagamento',
-      escolhidoEm: new Date().toISOString()
-    }
-  }, { merge: true });
+  const botao = e.target;
+  const textoOriginal = botao.textContent;
+  botao.textContent = 'Gerando pagamento...';
+  botao.style.pointerEvents = 'none';
 
-  alert('Plano selecionado! A integração de pagamento será adicionada em breve. Por enquanto, fale com o administrador para confirmar sua assinatura.');
-  window.location.href = 'perfil.html';
+  try {
+    const resposta = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planoId,
+        usuarioId: usuarioAtual.uid,
+        usuarioEmail: usuarioAtual.email
+      })
+    });
+    const dados = await resposta.json();
+
+    if (!resposta.ok || !dados.checkoutUrl) {
+      throw new Error(dados.erro || 'Nao foi possivel gerar o pagamento.');
+    }
+
+    window.location.href = dados.checkoutUrl;
+  } catch (err) {
+    alert('Erro ao iniciar o pagamento: ' + err.message);
+    botao.textContent = textoOriginal;
+    botao.style.pointerEvents = 'auto';
+  }
 });
 </script>
 </body>
